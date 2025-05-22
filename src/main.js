@@ -1,4 +1,5 @@
 import { loadComponent } from './assets/js/componentLoader.js';
+import { initPlayerRegionSelector} from "./pages/home/playerRegionSelector.js";
 
 async function initializeFlowbite() {
     // Wait for Flowbite to be loaded
@@ -18,6 +19,7 @@ async function initializeFlowbite() {
 
 document.addEventListener("DOMContentLoaded", async function() {
     await loadComponent('header', './src/components/AppHeader.html');
+    initPlayerRegionSelector();
     await import('flowbite');
 
     // Inicializa Flowbite para TODOS los elementos (estáticos y dinámicos)
