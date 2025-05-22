@@ -2,7 +2,6 @@
  * Riot Games API endpoints for League of Legends.
  */
 
-// Platform values: euw1, na1, kr, etc. (para endpoints por región)
 export const riotApiEndpoints = {
     getSummonerByName: (platform, summonerName) =>
         `https://${platform}.api.riotgames.com/lol/summoner/v4/summoners/by-name/${encodeURIComponent(summonerName)}`,
