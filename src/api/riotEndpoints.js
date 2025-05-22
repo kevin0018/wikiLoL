@@ -16,5 +16,4 @@ export const riotApiEndpoints = {
         `https://${platform}.api.riotgames.com/lol/league/v4/${tier.toLowerCase()}leagues/by-queue/${queue}`,
     getChampionData: (locale = "es_ES") =>
         `https://ddragon.leagueoflegends.com/cdn/latest/data/${locale}/champion.json`
-    // Puedes añadir más endpoints según crezca tu app
 };
