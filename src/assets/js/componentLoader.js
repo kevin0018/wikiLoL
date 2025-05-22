@@ -6,11 +6,11 @@
 export async function loadComponent(elementId, filePath) {
     try {
         const response = await fetch(filePath);
-        if (!response.ok) throw new Error('Error en la respuesta de la red');
+        if (!response.ok) throw new Error('Network response was not ok');
         const html = await response.text();
         document.getElementById(elementId).innerHTML = html;
     } catch (error) {
-        console.error('Error cargando el componente:', error);
+        console.error('Component loading error:', error);
         document.getElementById(elementId).innerHTML = "<div>Error cargando el componente.</div>";
     }
 }
