@@ -1,9 +1,13 @@
-process.loadEnvFile();
+// Importa las dependencias usando sintaxis ESM
+import process from 'node:process';
+import express from 'express';
+import cors from 'cors';
+import routes from './interfaces/routes.js';
 
-const express = require('express');
-const cors = require('cors');
-const routes = require('./interfaces/routes');
+// Load environment variables
+await process.loadEnvFile();
 
+// Import the routes
 const app = express();
 const PORT = process.env.PORT || 3001;
 
@@ -11,6 +15,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api', routes);
 
+// Inicia el servidor
 app.listen(PORT, () => {
     console.log(`Backend corriendo en http://localhost:${PORT}`);
 });
