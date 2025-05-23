@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async function() {
     for (const key in champions.data) {
         if ( champions.data[key].hasOwnProperty("id") ) {
             const championDiv = document.createElement("div");
-            championDiv.classList.add("champion");
+            championDiv.classList.add("champion", "shadow-lg", "rounded-lg");
             // Create an image element for the champion
             const championImage = document.createElement("img");
             championImage.src = `https://ddragon.leagueoflegends.com/cdn/${champions.data[key].version}/img/champion/${champions.data[key].image.full}`; 
@@ -15,6 +15,11 @@ document.addEventListener("DOMContentLoaded", async function() {
             championDiv.appendChild(championImage);
             // Append the div to the body or a specific container
             document.body.appendChild(championDiv);
+            // Add the champion name as a title
+            const championName = document.createElement("h2");
+            championName.textContent = champions.data[key].name;
+            championName.classList.add("font-bold");
+            championDiv.appendChild(championName);
         }        
     }
 });
