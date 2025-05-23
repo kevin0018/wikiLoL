@@ -47,7 +47,7 @@ export function initPlayerRegionSelector() {
     function updatePlaceholder(select) {
         const selected = select.selectedOptions[0];
         const tag = selected ? selected.dataset.tag : '';
-        playerSearchInput.placeholder = `Nombre de jugador + #${tag}`;
+        playerSearchInput.placeholder = `Nombre de invocador + #${tag}`;
     }
 
     // Syncs selects and updates placeholder on change
@@ -65,6 +65,6 @@ export function initPlayerRegionSelector() {
     if (regions.length > 0) {
         desktopSelect.value = regions[0].id;
         mobileSelect.value = regions[0].id;
-        playerSearchInput.placeholder = `Nombre de jugador + #${regions[0].tag}`;
+        playerSearchInput.placeholder = `Nombre de invocador + #${regions[0].tag}`;
     }
 }
