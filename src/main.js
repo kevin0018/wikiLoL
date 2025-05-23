@@ -1,8 +1,12 @@
 import { loadComponent } from './assets/js/componentLoader.js';
+
 async function initializeFlowbite() {
+    // Wait for Flowbite to be loaded
     if (window?.Flowbite) {
+        // Initialize Flowbite for all elements
         window.Flowbite.init();
     } else if (window?.Dropdown && window?.Collapse) {
+        // If Flowbite is not available, initialize Dropdown and Collapse manually
         document.querySelectorAll('[data-dropdown-toggle]').forEach(toggle => {
             new window.Dropdown(document.getElementById(toggle.dataset.dropdownToggle), toggle);
         });
@@ -11,27 +15,9 @@ async function initializeFlowbite() {
         });
     }
 }
-// This function gets the current page name from the URL
-function getCurrentPage() {
-    const path = window.location.pathname;
-    return path.substring(path.lastIndexOf('/') + 1);
-}
+
 document.addEventListener("DOMContentLoaded", async function() {
-    await loadComponent('header', './src/components/AppHeader.html');
+    await loadComponent('header', '/src/components/AppHeader.html');
     await import('flowbite');
     await initializeFlowbite();
-    const page = getCurrentPage();
-    switch (page) {
-        case '':
-        case 'index.html':
-            // This section is for the home page
-            import('./assets/js/playerRegionSelector.js').then(module => {
-                module.initPlayerRegionSelector();
-            });
-            break;
-        case 'champions.html':
-            break;
-        default:
-            break;
-    }
 });
