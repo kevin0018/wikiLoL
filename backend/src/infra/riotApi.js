@@ -1,8 +1,8 @@
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+import fetch from 'node-fetch';
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
-async function fetchAccountByRiotId(gameName, tagLine) {
+export async function fetchAccountByRiotId(gameName, tagLine) {
     const url = `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
     const response = await fetch(url, {
         headers: {
@@ -14,5 +14,3 @@ async function fetchAccountByRiotId(gameName, tagLine) {
     }
     return await response.json();
 }
-
-module.exports = { fetchAccountByRiotId };

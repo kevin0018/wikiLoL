@@ -1,8 +1,8 @@
-const express = require('express');
-const { getAccountByRiotId } = require('../app/getAccountByRiotIdService');
-const { getChampionData } = require('../app/getChampionDataService');
+import { Router } from 'express';
+import { getAccountByRiotId } from '../app/getAccountByRiotIdService.js';
+import { getChampionData } from '../app/getChampionDataService.js';
 
-const router = express.Router();
+const router = Router();
 
 router.get('/account', async (req, res) => {
     const { gameName, tagLine } = req.query;
@@ -27,4 +27,4 @@ router.get('/champion', async (req, res) => {
     }
 });
 
-module.exports = router;
+export default router;

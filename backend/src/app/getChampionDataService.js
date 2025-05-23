@@ -1,7 +1,5 @@
-const { fetchChampionData } = require('../infra/championApi');
+import { fetchChampionData } from '../infra/championApi.js';
 
-async function getChampionData(locale, version) {
+export async function getChampionData(locale, version) {
     return await fetchChampionData(locale, version);
 }
-
-module.exports = { getChampionData };
