@@ -1,4 +1,3 @@
-// Importa las dependencias usando sintaxis ESM
 import process from 'node:process';
 import express from 'express';
 import cors from 'cors';
@@ -15,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 app.use('/api', routes);
 
-// Inicia el servidor
+// Start the server
 app.listen(PORT, () => {
     console.log(`Backend corriendo en http://localhost:${PORT}`);
 });
