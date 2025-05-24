@@ -8,8 +8,8 @@ export async function fetchChampionData(locale = "es_ES", version = "15.10.1") {
     return await response.json();
 }
 
-export async function fetchChampionDetailFromAPI(championId, locale = "es_ES", version = "15.10.1") {
-    const url = `${baseUrl}/api/champions/${encodeURIComponent(championId)}?locale=${locale}&version=${version}`;
+export async function fetchChampionDetailFromAPI(id, locale = "es_ES", version = "15.10.1") {
+    const url = `${baseUrl}/api/champions/${encodeURIComponent(id)}?locale=${locale}&version=${version}`;
     const res = await fetch(url);
     if (!res.ok) throw new Error("No se pudo obtener la información del campeón.");
     const data = await res.json();

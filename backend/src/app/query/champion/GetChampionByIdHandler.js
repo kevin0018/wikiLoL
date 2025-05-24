@@ -11,6 +11,6 @@ export class GetChampionByIdHandler {
      * @returns {Promise<Champion>}
      */
     async execute(query) {
-        return await this.championRepository.findById(query.championId, query.lang, query.version);
+        return await this.championRepository.findById(query.id, query.lang, query.version);
     }
 }

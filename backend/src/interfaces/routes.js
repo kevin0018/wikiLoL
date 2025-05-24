@@ -11,7 +11,7 @@ import { RiotAccountRepositoryImpl } from '../infra/RiotAccountRepositoryImpl.js
 
 const router = Router();
 const championRepository = new RiotChampionRepositoryImpl();
-const getChampionByNameHandler = new GetChampionByIdHandler(championRepository);
+const getChampionByIdHandler = new GetChampionByIdHandler(championRepository);
 const championDataRepository = new ChampionDataRepositoryImpl();
 const getChampionDataHandler = new GetChampionDataHandler(championDataRepository);
 const accountRepository = new RiotAccountRepositoryImpl();
@@ -39,12 +39,12 @@ router.get('/champions', async (req, res) => {
     }
 });
 
-router.get('/champions/:name', async (req, res) => {
-    const { name } = req.params;
+router.get('/champions/:id', async (req, res) => {
+    const { id } = req.params;
     const { lang = "es_ES", version = "15.10.1" } = req.query;
     try {
-        const query = new GetChampionByIdQuery(name, lang, version);
-        const champion = await getChampionByNameHandler.execute(query);
+        const query = new GetChampionByIdQuery(id, lang, version);
+        const champion = await getChampionByIdHandler.execute(query);
         res.json(champion);
     } catch (error) {
         res.status(404).json({ error: error.message });

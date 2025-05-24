@@ -1,11 +1,11 @@
 export class ChampionRepository {
     /**
-     * @param {string} championId
+     * @param {string} id
      * @param {string} lang
      * @param {string} version
      * @returns {Promise<Champion>}
      */
-    async findById(championId, lang, version) {
+    async findById(id, lang, version) {
         throw new Error("Not implemented");
     }
 }

@@ -90,7 +90,7 @@ function renderChampionDetailMobile(champion) {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-	const championId = getChampionIdFromURL();
+	const id = getChampionIdFromURL();
 	const main = document.getElementById("champion-detail-main");
 	document.body.classList.add(
 	    "bg-gradient-to-br",
@@ -99,12 +99,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 	    "to-violet-950/60",
 	    "min-h-screen"
 	);
-	if (!championId) {
+	if (!id) {
 		main.innerHTML = `<p class='text-red-500 text-center'>No se ha especificado el id del campeón.</p>`;
 		return;
 	}
 	try {
-		const champion = await fetchChampionDetailFromAPI(championId, LOL_LANG, LOL_VERSION);
+		const champion = await fetchChampionDetailFromAPI(id, LOL_LANG, LOL_VERSION);
 		renderChampionDetailMobile(champion);
 	} catch (e) {
 		main.innerHTML = `<p class='text-red-500 text-center'>${e.message}</p>`;

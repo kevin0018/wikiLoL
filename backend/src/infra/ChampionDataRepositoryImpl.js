@@ -12,7 +12,7 @@ export class ChampionDataRepositoryImpl extends ChampionDataRepository {
         // Map to Champion entity with correct fields
         return Object.values(data.data).map(champData =>
             new Champion({
-                championId: champData.id,
+                id: champData.id,
                 name: champData.name,
                 title: champData.title,
                 roles: champData.tags,

@@ -1,6 +1,6 @@
 export class Champion {
-    constructor({ championId, title, roles, lore, image, version, imageUrl }) {
-        this.championId = championId;
+    constructor({ id, name, title, roles, lore, image, version, imageUrl }) {
+        this.id = id;
         this.name = name;
         this.title = title;
         this.roles = roles;

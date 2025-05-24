@@ -1,6 +1,6 @@
 export class GetChampionByIdQuery {
-    constructor(championId, lang = "es_ES", version = "15.10.1") {
-        this.championId = championId;
+    constructor(id, lang = "es_ES", version = "15.10.1") {
+        this.id = id;
         this.lang = lang;
         this.version = version;
     }

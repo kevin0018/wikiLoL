@@ -80,7 +80,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 				const moreBtn = document.createElement("a");
 				moreBtn.textContent = "Saber más";
-				moreBtn.href = `/pages/champion.html?name=${encodeURIComponent(champion.championId)}`;
+				moreBtn.href = `/pages/champion.html?id=${encodeURIComponent(champion.id)}`;
 				moreBtn.className = "bg-violet-600 hover:bg-violet-700 text-white font-bold py-1 px-4 rounded transition-colors mt-auto inline-block text-center";
 
 				card.appendChild(img);
