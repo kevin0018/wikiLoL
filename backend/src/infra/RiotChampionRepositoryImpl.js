@@ -2,6 +2,13 @@ import { Champion } from '../domain/Champion.js';
 import { ChampionRepository } from '../domain/ChampionRepository.js';
 
 export class RiotChampionRepositoryImpl extends ChampionRepository {
+    /**
+     * Fetches champion data from Riot API.
+     * @param {string} id
+     * @param {string} lang
+     * @param {string} version
+     * @returns {Promise<Champion>}
+     */
     async findById(id, lang = "es_ES", version = "15.10.1") {
         const url = `https://ddragon.leagueoflegends.com/cdn/${version}/data/${lang}/champion/${encodeURIComponent(id)}.json`;
         const res = await fetch(url);

@@ -5,6 +5,12 @@ import { AccountRank } from '../domain/AccountRank.js';
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
 export class RiotAccountRepositoryImpl extends AccountRepository {
+    /**
+     * Get account by Riot ID
+     * @param {string} gameName
+     * @param {string} tagLine
+     * @returns {Promise<Account>}
+     */
     async getByRiotId(gameName, tagLine) {
         const url = `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
         const response = await fetch(url, {
@@ -23,6 +29,11 @@ export class RiotAccountRepositoryImpl extends AccountRepository {
         });
     }
 
+    /**
+     * Get summoner details by puuid
+     * @param {string} puuid
+     * @returns {Promise<Account>}
+     */
     async getDetailsByPUUID(puuid) {
         // Get summoner details by puuid
         const url = `https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`;
@@ -37,6 +48,11 @@ export class RiotAccountRepositoryImpl extends AccountRepository {
         return await response.json(); // includes "id" (summonerId)
     }
 
+    /**
+     * Get ranked information by accountId (summonerId)
+     * @param puuid
+     * @returns {Promise<*>}
+     */
     async getRankByAccountId(puuid) {
         //Get summoner details
         const details = await this.getDetailsByPUUID(puuid);

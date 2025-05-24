@@ -1,4 +1,14 @@
 export class Champion {
+    /**
+     * @param {string} id
+     * @param {string} name
+     * @param {string} title
+     * @param {string[]} roles
+     * @param {string} lore
+     * @param {string} image
+     * @param {string} version
+     * @param {string} imageUrl
+     */
     constructor({ id, name, title, roles, lore, image, version, imageUrl }) {
         this.id = id;
         this.name = name;

@@ -2,6 +2,12 @@ import { Champion } from '../domain/Champion.js';
 import { ChampionDataRepository } from '../domain/ChampionDataRepository.js';
 
 export class ChampionDataRepositoryImpl extends ChampionDataRepository {
+    /**
+     * Fetches all champions from the DataDragon API.
+     * @param {string} locale - The locale for the data (default: "es_ES").
+     * @param {string} version - The version of the data (default: "15.10.1").
+     * @returns {Promise<Champion[]>} - A promise that resolves to an array of Champion entities.
+     */
     async fetchAll(locale = "es_ES", version = "15.10.1") {
         const url = `https://ddragon.leagueoflegends.com/cdn/${version}/data/${locale}/champion.json`;
         const response = await fetch(url);
