@@ -1,10 +1,11 @@
 import { AccountRepository } from '../domain/AccountRepository.js';
 import { Account } from '../domain/Account.js';
+import { AccountRank } from '../domain/AccountRank.js';
 
 const RIOT_API_KEY = process.env.RIOT_API_KEY;
 
 export class RiotAccountRepositoryImpl extends AccountRepository {
-    async findByRiotId(gameName, tagLine) {
+    async getByRiotId(gameName, tagLine) {
         const url = `https://europe.api.riotgames.com/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
         const response = await fetch(url, {
             headers: {
@@ -20,5 +21,48 @@ export class RiotAccountRepositoryImpl extends AccountRepository {
             gameName: data.gameName,
             tagLine: data.tagLine
         });
+    }
+
+    async getDetailsByPUUID(puuid) {
+        // Get summoner details by puuid
+        const url = `https://euw1.api.riotgames.com/lol/summoner/v4/summoners/by-puuid/${puuid}`;
+        const response = await fetch(url, {
+            headers: {
+                "X-Riot-Token": RIOT_API_KEY
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Riot API error: ${response.status} - ${await response.text()}`);
+        }
+        return await response.json(); // includes "id" (summonerId)
+    }
+
+    async getRankByAccountId(puuid) {
+        //Get summoner details
+        const details = await this.getDetailsByPUUID(puuid);
+
+        // Use summonerId to get ranked info
+        const url = `https://euw1.api.riotgames.com/lol/league/v4/entries/by-summoner/${details.id}`;
+        const response = await fetch(url, {
+            headers: {
+                "X-Riot-Token": RIOT_API_KEY
+            }
+        });
+        if (!response.ok) {
+            throw new Error(`Riot API error: ${response.status} - ${await response.text()}`);
+        }
+        const data = await response.json();
+
+        // Map results to AccountRank entity
+        return data.map(e =>
+            new AccountRank({
+                queueType: e.queueType,
+                tier: e.tier,
+                rank: e.rank,
+                leaguePoints: e.leaguePoints,
+                wins: e.wins,
+                losses: e.losses
+            })
+        );
     }
 }

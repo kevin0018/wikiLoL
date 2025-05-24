@@ -11,6 +11,6 @@ export class GetAccountByRiotIdHandler {
      * @returns {Promise<Account>}
      */
     async execute(query) {
-        return await this.accountRepository.findByRiotId(query.gameName, query.tagLine);
+        return await this.accountRepository.getByRiotId(query.gameName, query.tagLine);
     }
 }

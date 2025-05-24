@@ -4,7 +4,7 @@ export class AccountRepository {
      * @param {string} tagLine
      * @returns {Promise<Account>}
      */
-    async findByRiotId(gameName, tagLine) {
-        throw new Error("Not implemented");
-    }
+    async getByRiotId(gameName, tagLine) {throw new Error("Not implemented"); }
+    async getDetailsByPUUID(puuid) { throw new Error("Not implemented"); }
+    async getRankByAccountId(summonerId) { throw new Error("Not implemented"); }
 }
