@@ -32,7 +32,8 @@ function renderChampionDetailMobile(champion) {
 	left.className = "flex flex-col items-center md:items-start md:w-1/3";
 
 	const img = document.createElement("img");
-	img.src = champion.imageUrl;
+	const baseUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001"
+	img.src = `${baseUrl}${champion.imageUrl}`;
 	img.alt = champion.name;
 	img.className = "w-24 h-24 md:w-28 md:h-28 rounded-full object-cover border-4 border-violet-700 shadow-lg bg-neutral-800";
 

@@ -1,5 +1,5 @@
-import { Champion } from '../domain/Champion.js';
-import { ChampionDataRepository } from '../domain/ChampionDataRepository.js';
+import { Champion } from '../../domain/Champion.js';
+import { ChampionDataRepository } from '../../domain/ChampionDataRepository.js';
 
 export class ChampionDataRepositoryImpl extends ChampionDataRepository {
     /**
@@ -25,7 +25,7 @@ export class ChampionDataRepositoryImpl extends ChampionDataRepository {
                 lore: champData.blurb,
                 image: champData.image.full,
                 version,
-                imageUrl: `https://ddragon.leagueoflegends.com/cdn/${version}/img/champion/${champData.image.full}`
+                imageUrl: `/api/assets/champion/${version}/${champData.image.full}`
             })
         );
     }

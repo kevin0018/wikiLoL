@@ -66,7 +66,8 @@ document.addEventListener("DOMContentLoaded", async function () {
                     h-full
                 `;
 				const img = document.createElement("img");
-				img.src = champion.imageUrl;
+				const baseUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001"
+				img.src = `${baseUrl}${champion.imageUrl}`;
 				img.alt = champion.name;
 				img.className = "w-20 h-20 rounded-full border-2 border-neutral-700 object-cover shadow-md mb-2";
 

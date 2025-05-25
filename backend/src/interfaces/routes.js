@@ -1,13 +1,13 @@
 import { Router } from 'express';
 import { GetChampionByIdQuery } from '../app/query/champion/GetChampionByIdQuery.js';
 import { GetChampionByIdHandler } from '../app/query/champion/GetChampionByIdHandler.js';
-import { RiotChampionRepositoryImpl } from '../infra/RiotChampionRepositoryImpl.js';
+import { RiotChampionRepositoryImpl } from '../infra/repositories/RiotChampionRepositoryImpl.js';
 import { GetChampionDataHandler } from '../app/query/champion/GetChampionDataHandler.js';
 import { GetChampionDataQuery } from '../app/query/champion/GetChampionDataQuery.js';
-import { ChampionDataRepositoryImpl } from '../infra/ChampionDataRepositoryImpl.js';
+import { ChampionDataRepositoryImpl } from '../infra/repositories/ChampionDataRepositoryImpl.js';
 import { GetAccountByRiotIdHandler } from '../app/query/account/GetAccountByRiotIdHandler.js';
 import { GetAccountByRiotIdQuery } from '../app/query/account/GetAccountByRiotIdQuery.js';
-import { RiotAccountRepositoryImpl } from '../infra/RiotAccountRepositoryImpl.js';
+import { RiotAccountRepositoryImpl } from '../infra/repositories/RiotAccountRepositoryImpl.js';
 import { GetAccountRankHandler } from '../app/query/account/GetAccountRankHandler.js';
 import { GetAccountRankQuery } from '../app/query/account/GetAccountRankQuery.js';
 
