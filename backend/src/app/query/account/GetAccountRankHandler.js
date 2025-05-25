@@ -1,6 +1,6 @@
 import { AccountRank } from "../../../domain/AccountRank.js";
 
-// Receives an AccountRepository (hexagonal port)
+// Receives an AccountRepository
 export class GetAccountRankHandler {
     /**
      * @param {AccountRepository} accountRepository
@@ -15,12 +15,10 @@ export class GetAccountRankHandler {
      * @returns {Promise<{details: never, ranks: never}>}
      */
     async execute(query) {
-        const { puuid } = query;
-        const details = await this.accountRepository.getDetailsByPUUID(puuid);
-        const ranks = await this.accountRepository.getRankByAccountId(details.id);
+        const { puuid, region } = query;
+        const ranks = await this.accountRepository.getRankByAccountId(puuid, region);
 
         return {
-            details,
             ranks
         };
     }

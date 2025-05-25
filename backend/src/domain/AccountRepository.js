@@ -7,12 +7,14 @@ export class AccountRepository {
     async getByRiotId(gameName, tagLine) {throw new Error("Not implemented"); }
     /**
      * @param {string} puuid
+     * @param {string} [region]
      * @returns {Promise<Account>}
      */
-    async getDetailsByPUUID(puuid) { throw new Error("Not implemented"); }
+    async getDetailsByPUUID(puuid, region) { throw new Error("Not implemented"); }
     /**
-     * @param {string} puuid
+     * @param {string} summonerId
+     * @param {string} region
      * @returns {Promise<Account>}
      */
-    async getRankByAccountId(summonerId) { throw new Error("Not implemented"); }
+    async getRankByAccountId(summonerId, region) { throw new Error("Not implemented"); }
 }
