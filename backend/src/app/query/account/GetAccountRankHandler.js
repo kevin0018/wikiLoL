@@ -17,7 +17,6 @@ export class GetAccountRankHandler {
     async execute(query) {
         const { puuid, region } = query;
         const ranks = await this.accountRepository.getRankByAccountId(puuid, region);
-
         return {
             ranks
         };

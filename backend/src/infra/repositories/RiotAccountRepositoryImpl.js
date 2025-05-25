@@ -45,17 +45,23 @@ export class RiotAccountRepositoryImpl extends AccountRepository {
 	 * @returns {Promise<Account>}
 	 */
 	async getDetailsByPUUID(puuid, region) {
-		// Get summoner details by puuid
 		const url = `https://${riotRegionMap[region.toUpperCase()]}/lol/summoner/v4/summoners/by-puuid/${puuid}`;
 		const response = await fetch(url, {
-			headers: {
-				"X-Riot-Token": process.env.RIOT_API_KEY
-			}
+			headers: {"X-Riot-Token": process.env.RIOT_API_KEY}
 		});
 		if (!response.ok) {
 			throw new Error(`Riot API error: ${response.status} - ${await response.text()}`);
 		}
-		return await response.json();
+		const data = await response.json();
+		console.log(data, "data from getDetailsByPUUID");
+		return {
+			summonerId: data.id,
+			accountId: data.accountId,
+			profileIconId: data.profileIconId,
+			summonerLevel: data.summonerLevel,
+			name: data.name,
+			puuid: data.puuid
+		};
 	}
 
 	/**
@@ -69,7 +75,7 @@ export class RiotAccountRepositoryImpl extends AccountRepository {
 		const details = await this.getDetailsByPUUID(puuid, region);
 
 		// Use summonerId to get ranked info
-		const url = `https://${riotRegionMap[region.toUpperCase()]}/lol/league/v4/entries/by-summoner/${details.id}`;
+		const url = `https://${riotRegionMap[region.toUpperCase()]}/lol/league/v4/entries/by-summoner/${details.summonerId}`;
 		const response = await fetch(url, {
 			headers: {
 				"X-Riot-Token": process.env.RIOT_API_KEY
@@ -79,7 +85,6 @@ export class RiotAccountRepositoryImpl extends AccountRepository {
 			throw new Error(`Riot API error: ${response.status} - ${await response.text()}`);
 		}
 		const data = await response.json();
-
 		// Map results to AccountRank entity
 		return data.map(e =>
 			new AccountRank({

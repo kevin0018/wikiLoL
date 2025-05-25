@@ -52,4 +52,19 @@ router.get("/ranked/:tier.png", async (req, res) => {
   }
 });
 
+router.get("/profile-icon/:version/:iconId.png", async (req, res) => {
+    const { version, iconId } = req.params;
+    const riotUrl = `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${iconId}.png`;
+    try {
+        const response = await fetch(riotUrl);
+        if (!response.ok) {
+            return res.status(404).send("Imagen no encontrada");
+        }
+        res.set("Content-Type", "image/png");
+        response.body.pipe(res);
+    } catch (err) {
+        res.status(500).send("Error al obtener la imagen");
+    }
+});
+
 export default router;

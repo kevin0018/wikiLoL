@@ -14,7 +14,7 @@ export function renderProfileCard(profileData, container, onUpdate) {
         gap-4 px-5 py-6
     `;
 
-    // Image
+    // Profile image (mobile first)
     const image = document.createElement("img");
     image.src = profileData.iconUrl;
     image.alt = "Icono de perfil";

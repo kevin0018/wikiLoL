@@ -27,3 +27,20 @@ export async function fetchRank(puuid, region)  {
     const { ranks } = await res.json();
     return ranks.find(r => r.queueType === "RANKED_SOLO_5x5") ?? ranks[0] ?? null;
 }
+
+/**
+ * Fetches the account details by PUUID
+ * @param {string} gameName
+ * @param {string} tagLine
+ * @param {string} region
+ * @returns {Promise<Object|null>} Account details or null if not found
+ */
+export async function getAccountProfile(gameName, tagLine, region) {
+    const response = await fetch(`${baseUrl}/api/account/profile?gameName=${encodeURIComponent(gameName)}&tagLine=${encodeURIComponent(tagLine)}&region=${region}`);
+    if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Respuesta del servidor:', errorText);
+        throw new Error("No se pudo cargar el perfil");
+    }
+    return await response.json();
+}

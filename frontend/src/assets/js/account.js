@@ -1,53 +1,86 @@
-import { getAccount, fetchRank } from "../../services/accountService.js";
+import { getAccountProfile, fetchRank } from "../../services/accountService.js";
 import { renderAccountRank } from "./renderAccountRank.js";
 import { renderProfileCard } from "./renderProfileCard.js";
 
-
+// DOM references
 const $rank = document.getElementById("rank");
+const $profileCardContainer = document.getElementById("profile-card-container");
 
-function renderRankLoading() {
-    $rank.innerHTML = `<div class="animate-pulse text-gray-400 text-center py-8">Cargando rango...</div>`;
-}
-
-function renderRankError(msg) {
-    $rank.innerHTML = `<div class="text-red-600 p-2 text-center">${msg}</div>`;
-}
-
+// Util function to get query params
 function getQueryParam(param) {
     const params = new URLSearchParams(window.location.search);
     return params.get(param) || "";
 }
 
-async function loadRank() {
-    renderRankLoading();
+// Renders loading for rank
+function renderRankLoading() {
+    $rank.innerHTML = `<div class="animate-pulse text-gray-400 text-center py-8">Cargando rango...</div>`;
+}
 
+// Renders error for rank
+function renderRankError(msg) {
+    $rank.innerHTML = `<div class="text-red-600 p-2 text-center">${msg}</div>`;
+}
+
+// Renders loading for profile
+function renderProfileLoading() {
+    $profileCardContainer.innerHTML = `<div class="animate-pulse text-gray-400 text-center py-8">Cargando perfil...</div>`;
+}
+
+// Renders error for profile
+function renderProfileError(msg) {
+    $profileCardContainer.innerHTML = `<div class="text-red-600 p-2 text-center">${msg}</div>`;
+}
+
+// Main load function (mobile first)
+async function loadAccountPage() {
     const gameName = getQueryParam("gameName");
     const tagLine = getQueryParam("tagLine");
     const region = getQueryParam("region");
 
-    if (!gameName || !tagLine) {
+    // Load profile card
+    renderProfileLoading();
+
+    if (!gameName || !tagLine || !region) {
+        renderProfileError("Faltan datos del usuario.");
         renderRankError("Faltan datos del usuario.");
         return;
     }
 
     try {
-        console.log(gameName, tagLine, region);
-        const account = await getAccount(gameName, tagLine);
-        if (!account?.puuid) {
-            renderRankError("No se encontró la cuenta.");
-            return;
-        }
+        // Fetch full profile
+        console.log("Voy a hacer fetch", gameName, tagLine, region);
+        const profile = await getAccountProfile(gameName, tagLine, region);
+        console.log("Perfil recibido:", profile);
 
-        const rank = await fetchRank(account.puuid, region);
+        // Compose icon URL
+        const patchVersion = "15.10.1";
+        const iconUrl = `/api/assets/profile-icon/${patchVersion}/${profile.profileIconId}.png`;
+
+        // Render profile card
+        renderProfileCard(
+            {
+                name: profile.name,
+                tag: profile.tagLine,
+                iconUrl: iconUrl,
+            },
+            $profileCardContainer,
+            () => window.location.reload()
+        );
+
+        // Load rank info
+        renderRankLoading();
+        const rank = await fetchRank(profile.puuid, region);
         if (!rank) {
             renderRankError("No se encontró información de rango.");
             return;
         }
+        renderAccountRank({ ...rank, account: profile }, $rank);
 
-        renderAccountRank({ ...rank, account }, $rank);
     } catch (err) {
-        renderRankError(err.message || "Error desconocido.");
+        renderProfileError(err.message || "Error al cargar el perfil.");
+        renderRankError(err.message || "Error al cargar el rango.");
     }
 }
 
-document.addEventListener("DOMContentLoaded", loadRank);
+document.addEventListener("DOMContentLoaded", loadAccountPage);

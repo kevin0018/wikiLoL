@@ -6,10 +6,11 @@ import { GetChampionDataHandler } from '../app/query/champion/GetChampionDataHan
 import { GetChampionDataQuery } from '../app/query/champion/GetChampionDataQuery.js';
 import { ChampionDataRepositoryImpl } from '../infra/repositories/ChampionDataRepositoryImpl.js';
 import { GetAccountByRiotIdHandler } from '../app/query/account/GetAccountByRiotIdHandler.js';
-import { GetAccountByRiotIdQuery } from '../app/query/account/GetAccountByRiotIdQuery.js';
+import { GetAccountByRiotIdQuery, GetAccountProfileQuery } from '../app/query/account/GetAccountByRiotIdQuery.js';
 import { RiotAccountRepositoryImpl } from '../infra/repositories/RiotAccountRepositoryImpl.js';
 import { GetAccountRankHandler } from '../app/query/account/GetAccountRankHandler.js';
 import { GetAccountRankQuery } from '../app/query/account/GetAccountRankQuery.js';
+import { GetAccountProfileHandler } from '../app/query/account/GetAccountProfileHandler.js';
 
 const router = Router();
 const championRepository = new RiotChampionRepositoryImpl();
@@ -19,7 +20,7 @@ const getChampionDataHandler = new GetChampionDataHandler(championDataRepository
 const accountRepository = new RiotAccountRepositoryImpl();
 const getAccountByRiotIdHandler = new GetAccountByRiotIdHandler(accountRepository);
 const getAccountRankHandler = new GetAccountRankHandler(accountRepository);
-const getAccountRankByIdHandler = new GetAccountRankHandler(accountRepository);
+const getAccountProfileHandler = new GetAccountProfileHandler(accountRepository);
 
 
 // Route to get account by Riot ID
@@ -57,6 +58,16 @@ router.get('/champions/:id', async (req, res) => {
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
+});
+
+router.get("/account/profile", async (req, res) => {
+   const { gameName, tagLine, region } = req.query;
+   try {
+      const result = await getAccountProfileHandler.execute({ gameName, tagLine, region });
+      res.json(result);
+   } catch (err) {
+      res.status(500).json({ error: err.message });
+   }
 });
 
 // Route to get account rank by PUUID
