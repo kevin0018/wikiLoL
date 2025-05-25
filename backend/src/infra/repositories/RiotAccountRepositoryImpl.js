@@ -1,7 +1,6 @@
 import {AccountRepository} from '../../domain/AccountRepository.js';
 import {Account} from '../../domain/Account.js';
 import {AccountRank} from '../../domain/AccountRank.js';
-import { getRankIconUrl } from '../services/rankIconUrlService.js';
 import process from "node:process";
 
 await process.loadEnvFile();
@@ -90,7 +89,7 @@ export class RiotAccountRepositoryImpl extends AccountRepository {
 				leaguePoints: e.leaguePoints,
 				wins: e.wins,
 				losses: e.losses,
-				rankIconUrl: getRankIconUrl(e.tier),
+				rankIconUrl: `/api/assets/ranked/${e.tier.toLowerCase()}.png`,
 			})
 		);
 	}

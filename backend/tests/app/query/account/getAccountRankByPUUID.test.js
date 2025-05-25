@@ -1,4 +1,4 @@
-import { RiotAccountRepositoryImpl } from '../../../../src/infra/RiotAccountRepositoryImpl.js';
+import { RiotAccountRepositoryImpl } from '../../../../src/infra/repositories/RiotAccountRepositoryImpl.js';
 import { AccountRank } from '../../../../src/domain/AccountRank.js';
 import {describe, expect, it, jest} from "@jest/globals";
 
@@ -30,7 +30,8 @@ describe('RiotAccountRepositoryImpl', () => {
                         rank: "I",
                         leaguePoints: 99,
                         wins: 30,
-                        losses: 15
+                        losses: 15,
+                        rankIconUrl: "https://example.com/platinum-icon.png"
                     },
                     {
                         queueType: "RANKED_FLEX_SR",
@@ -38,7 +39,8 @@ describe('RiotAccountRepositoryImpl', () => {
                         rank: "II",
                         leaguePoints: 60,
                         wins: 20,
-                        losses: 18
+                        losses: 18,
+                        rankIconUrl: "https://example.com/gold-icon.png"
                     }
                 ]),
             });

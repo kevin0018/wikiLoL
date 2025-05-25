@@ -1,7 +1,17 @@
 import { getAccount, fetchRank } from "../../services/accountService.js";
-import "./components/AccountRankComponent.js";
+import { renderAccountRank } from "./renderAccountRank.js";
+import { renderProfileCard } from "./renderProfileCard.js";
+
 
 const $rank = document.getElementById("rank");
+
+function renderRankLoading() {
+    $rank.innerHTML = `<div class="animate-pulse text-gray-400 text-center py-8">Cargando rango...</div>`;
+}
+
+function renderRankError(msg) {
+    $rank.innerHTML = `<div class="text-red-600 p-2 text-center">${msg}</div>`;
+}
 
 function getQueryParam(param) {
     const params = new URLSearchParams(window.location.search);
@@ -9,33 +19,34 @@ function getQueryParam(param) {
 }
 
 async function loadRank() {
-    $rank.renderLoading();
+    renderRankLoading();
 
     const gameName = getQueryParam("gameName");
     const tagLine = getQueryParam("tagLine");
     const region = getQueryParam("region");
 
     if (!gameName || !tagLine) {
-        $rank.error = "Faltan datos del usuario.";
+        renderRankError("Faltan datos del usuario.");
         return;
     }
 
     try {
+        console.log(gameName, tagLine, region);
         const account = await getAccount(gameName, tagLine);
         if (!account?.puuid) {
-            $rank.error = "No se encontró la cuenta.";
+            renderRankError("No se encontró la cuenta.");
             return;
         }
 
         const rank = await fetchRank(account.puuid, region);
         if (!rank) {
-            $rank.error = "No se encontró información de rango.";
+            renderRankError("No se encontró información de rango.");
             return;
         }
 
-        $rank.data = { ...rank, account };
+        renderAccountRank({ ...rank, account }, $rank);
     } catch (err) {
-        $rank.error = err.message || "Error desconocido.";
+        renderRankError(err.message || "Error desconocido.");
     }
 }
 

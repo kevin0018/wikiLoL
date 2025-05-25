@@ -36,4 +36,20 @@ router.get("/skin/splash/:championName/:skinNum.jpg", async (req, res) => {
   }
 });
 
+router.get("/ranked/:tier.png", async (req, res) => {
+  const { tier } = req.params;
+  const externalUrl = `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-shared-components/global/default/${tier.toLowerCase()}.png`;
+
+  try {
+    const response = await fetch(externalUrl);
+    if (!response.ok) {
+      return res.status(404).send("Imagen no encontrada");
+    }
+    res.set("Content-Type", "image/png");
+    response.body.pipe(res);
+  } catch (err) {
+    res.status(500).send("Error al obtener la imagen");
+  }
+});
+
 export default router;

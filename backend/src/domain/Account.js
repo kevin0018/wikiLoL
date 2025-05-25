@@ -10,5 +10,6 @@ export class Account {
         this.gameName = gameName;
         this.tagLine = tagLine;
         this.region = region;
+
     }
 }
