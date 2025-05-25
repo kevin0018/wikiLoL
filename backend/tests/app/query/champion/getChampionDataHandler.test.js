@@ -1,6 +1,6 @@
 import {describe, expect, it, jest} from '@jest/globals';
-import { GetChampionDataHandler } from '../../../../src/app/query/champion/GetChampionDataHandler.js';
-import { GetChampionDataQuery } from '../../../../src/app/query/champion/GetChampionDataQuery.js';
+import { GetChampionDataHandler } from '../../../../src/champion/app/query/GetChampionDataHandler.js';
+import { GetChampionDataQuery } from '../../../../src/champion/app/query/GetChampionDataQuery.js';
 
 describe('GetChampionDataHandler', () => {
     it('should return champion data from repository', async () => {

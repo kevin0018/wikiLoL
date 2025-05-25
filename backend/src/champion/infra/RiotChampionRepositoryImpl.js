@@ -1,5 +1,5 @@
-import { Champion } from '../../domain/Champion.js';
-import { ChampionRepository } from '../../domain/ChampionRepository.js';
+import { Champion } from '../domain/Champion.js';
+import { ChampionRepository } from '../domain/ChampionRepository.js';
 
 export class RiotChampionRepositoryImpl extends ChampionRepository {
     /**

@@ -1,6 +1,6 @@
 import {describe, expect, it, jest} from '@jest/globals';
-import { GetChampionByIdHandler } from '../../../../src/app/query/champion/GetChampionByIdHandler.js';
-import { GetChampionByIdQuery } from '../../../../src/app/query/champion/GetChampionByIdQuery.js';
+import { GetChampionByIdHandler } from '../../../../src/champion/app/query/GetChampionByIdHandler.js';
+import { GetChampionByIdQuery } from '../../../../src/champion/app/query/GetChampionByIdQuery.js';
 
 describe('GetChampionByIdHandler', () => {
     it('should return champion data when repository returns a champion', async () => {

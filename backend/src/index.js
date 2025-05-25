@@ -2,7 +2,7 @@ import process from 'node:process';
 import express from 'express';
 import cors from 'cors';
 import routes from './interfaces/routes.js';
-import assetsProxy from "./api/assetsProxy.js";
+import assetsProxy from "./proxy/infra/RiotAssetsProxy.js";
 
 // Load environment variables
 await process.loadEnvFile();
