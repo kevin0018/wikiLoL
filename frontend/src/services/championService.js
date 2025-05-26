@@ -1,4 +1,4 @@
-const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const baseUrl = import.meta.env.VITE_BACKEND_URL;
 
 export async function fetchChampionData(locale = "es_ES", version = "15.10.1") {
     const response = await fetch(`${baseUrl}/api/champions?locale=${locale}&version=${version}`);

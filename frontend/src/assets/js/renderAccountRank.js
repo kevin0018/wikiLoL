@@ -1,30 +1,33 @@
 /**
- * Renders the ranked information card.
+ * Renders the ranked information card with TailwindCSS classes.
  * @param {Object} rankData - Data for the rank (tier, LP, wins, losses, icon, etc)
  * @param {HTMLElement} container - Where to render the rank card
  */
 export function renderAccountRank(rankData, container) {
     container.innerHTML = "";
 
-    // Utilities
+    // Calculate winrate
     const winRate = rankData.wins + rankData.losses > 0
         ? Math.round((rankData.wins / (rankData.wins + rankData.losses)) * 100)
         : 0;
     const baseUrl = import.meta.env?.VITE_BACKEND_URL || "http://localhost:3001";
 
-    // Card
+    // Card container with Tailwind
     const card = document.createElement("section");
-    card.className = `
-        bg-neutral-800 border-b-4 border-violet-700 rounded-t-2xl w-full max-w-xl mx-auto
-        flex flex-col
-        shadow-lg
-    `;
+    card.className = [
+        "bg-neutral-800",
+        "border-b-4", "border-violet-700",
+        "rounded-t-2xl",
+        "w-full", "max-w-xl", "mx-auto",
+        "flex", "flex-col",
+        "shadow-lg"
+    ].join(" ");
 
-    // Header: "Clasificatoria solo/dúo" with icon
+    // Header with Tailwind
     const header = document.createElement("div");
     header.className = "flex items-center gap-1 px-5 pt-4 pb-2";
     header.innerHTML = `
-        <span class="text-gray-200 text-sm sm:text-base font-semibold flex items-center gap-1">
+        <span class="text-violet-400 text-sm sm:text-base font-semibold flex items-center gap-1">
             Clasificatoria solo/dúo
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-gray-400 ml-1">
                 <title>Información de clasificatoria</title>
@@ -33,15 +36,21 @@ export function renderAccountRank(rankData, container) {
         </span>
     `;
 
-    // Main row: icon + info + stats
+    // Main row: icon, info, stats
     const row = document.createElement("div");
     row.className = "flex items-center px-5 py-4 gap-4";
 
-    // Icon
     const icon = document.createElement("img");
     icon.src = `${baseUrl}${rankData.rankIconUrl}`;
     icon.alt = `Icono rango ${rankData.tier}`;
-    icon.className = "w-24 h-24 sm:w-28 sm:h-28 object-contain bg-[#181826] rounded-full flex-shrink-0 border-2 border-violet-700 shadow-md";
+    icon.className = [
+        "w-24", "h-24", "sm:w-28", "sm:h-28",
+        "object-contain",
+        "bg-[#181826]",
+        "rounded-full", "flex-shrink-0",
+        "border-2", "border-violet-700",
+        "shadow-md"
+    ].join(" ");
 
     // Info (tier and LP)
     const info = document.createElement("div");
@@ -68,7 +77,6 @@ export function renderAccountRank(rankData, container) {
         </div>
     `;
 
-    // Compose
     row.appendChild(icon);
     row.appendChild(info);
     row.appendChild(stats);
