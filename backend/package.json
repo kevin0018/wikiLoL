@@ -1,14 +1,20 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Backend for WIKILoL application",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js",
     "dev": "nodemon src/index.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "league-of-legends",
+    "api",
+    "express",
+    "vercel"
+  ],
+  "author": "Kevin Hernández (Chronos)",
   "license": "ISC",
   "type": "module",
   "jest": {
