@@ -13,7 +13,6 @@ export async function loadChampionStaticData(language = 'es_ES') {
 
     // Build map: { idNum (string): championObject }
     const championMap = {};
-    console.log('champion', data)
     for (const champName in data.data) {
         const champ = data.data[champName];
         championMap[champ.key] = champ;

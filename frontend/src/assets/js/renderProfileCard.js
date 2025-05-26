@@ -15,7 +15,7 @@ export function renderProfileCard(profileData, container, onUpdate) {
         gap-4 px-5 py-6
     `;
 
-    // Profile image (mobile first)
+    // Profile image
     const image = document.createElement("img");
     image.src = `${baseUrl}${profileData.iconUrl}`;
     image.alt = "Icono de perfil";
@@ -34,19 +34,10 @@ export function renderProfileCard(profileData, container, onUpdate) {
 
     const nameTag = document.createElement("span");
     nameTag.className = "text-white font-bold text-base sm:text-xl";
+    console.log(profileData);
     nameTag.textContent = `${profileData.name}#${profileData.tag}`;
 
-    // User icon (SVG)
-    const userIcon = document.createElement("span");
-    userIcon.innerHTML = `
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" class="w-5 h-5 text-gray-300">
-            <circle cx="12" cy="8" r="4" fill="currentColor"/>
-            <rect x="4" y="16" width="16" height="6" rx="3" fill="currentColor" class="opacity-60"/>
-        </svg>
-    `;
-
     nameRow.appendChild(nameTag);
-    nameRow.appendChild(userIcon);
 
     // Update button
     const updateBtn = document.createElement("button");

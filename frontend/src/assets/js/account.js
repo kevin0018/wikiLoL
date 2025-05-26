@@ -63,7 +63,7 @@ async function loadAccountPage() {
 		// Render profile card
 		renderProfileCard(
 			{
-				name: profile.name,
+				name: gameName,
 				tag: profile.tagLine,
 				iconUrl: iconUrl,
 			},

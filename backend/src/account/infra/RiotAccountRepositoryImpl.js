@@ -1,5 +1,3 @@
-// ENGLISH COMMENTS ONLY!
-import {AccountProfile} from '../domain/model/AccountProfile.js';
 import {AccountRank} from '../domain/model/AccountRank.js';
 import {ChampionMastery} from '../domain/model/ChampionMastery.js';
 
