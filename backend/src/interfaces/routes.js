@@ -1,41 +1,67 @@
 import { Router } from 'express';
-import { GetChampionByIdQuery } from '../app/query/champion/GetChampionByIdQuery.js';
-import { GetChampionByIdHandler } from '../app/query/champion/GetChampionByIdHandler.js';
-import { RiotChampionRepositoryImpl } from '../infra/repositories/RiotChampionRepositoryImpl.js';
-import { GetChampionDataHandler } from '../app/query/champion/GetChampionDataHandler.js';
-import { GetChampionDataQuery } from '../app/query/champion/GetChampionDataQuery.js';
-import { ChampionDataRepositoryImpl } from '../infra/repositories/ChampionDataRepositoryImpl.js';
-import { GetAccountByRiotIdHandler } from '../app/query/account/GetAccountByRiotIdHandler.js';
-import { GetAccountByRiotIdQuery, GetAccountProfileQuery } from '../app/query/account/GetAccountByRiotIdQuery.js';
-import { RiotAccountRepositoryImpl } from '../infra/repositories/RiotAccountRepositoryImpl.js';
-import { GetAccountRankHandler } from '../app/query/account/GetAccountRankHandler.js';
-import { GetAccountRankQuery } from '../app/query/account/GetAccountRankQuery.js';
-import { GetAccountProfileHandler } from '../app/query/account/GetAccountProfileHandler.js';
+
+// Account controllers
+import { buildAccountProfileController } from '../account/presentation/AccountProfileController.js';
+import { buildAccountRankController } from '../account/presentation/AccountRankController.js';
+import { buildChampionMasteryController } from '../account/presentation/ChampionMasteryController.js';
+import { buildMostPlayedChampionController } from '../account/presentation/MostPlayedChampionController.js';
+
+// Account handlers
+import { GetAccountRankHandler } from '../account/app/query/GetAccountRankHandler.js';
+import { GetAccountProfileHandler } from '../account/app/query/GetAccountProfileHandler.js';
+import { GetChampionMasteryHandler } from '../account/app/query/getChampionMasteryHandler.js';
+import { GetMostPlayedChampionHandler } from '../account/app/query/getMostPlayedChampionHandler.js';
+
+// Account services
+import { AccountProfileService } from '../account/app/service/AccountProfileService.js';
+
+// Account repositories
+import { RiotAccountRepositoryImpl } from '../account/infra/RiotAccountRepositoryImpl.js';
+import { RiotChampionRepositoryImpl } from '../account/infra/RiotChampionRepositoryImpl.js';
+
+// Champion handlers
+import { GetChampionByIdQuery } from '../champion/app/query/GetChampionByIdQuery.js';
+import { GetChampionByIdHandler } from '../champion/app/query/GetChampionByIdHandler.js';
+import { GetChampionDataHandler } from '../champion/app/query/GetChampionDataHandler.js';
+import { GetChampionDataQuery } from '../champion/app/query/GetChampionDataQuery.js';
+
+// Champion repositories
+import { RiotChampionRepositoryImpl as ChampionRepo } from '../champion/infra/RiotChampionRepositoryImpl.js';
+import { ChampionDataRepositoryImpl } from '../champion/infra/ChampionDataRepositoryImpl.js';
 
 const router = Router();
+
+// ---- DEPENDENCY INJECTION ----
+
+// Account
+const accountRepository = new RiotAccountRepositoryImpl();
 const championRepository = new RiotChampionRepositoryImpl();
-const getChampionByIdHandler = new GetChampionByIdHandler(championRepository);
+
+const accountProfileService = new AccountProfileService(accountRepository);
+const getAccountProfileHandler = new GetAccountProfileHandler(accountProfileService);
+const getAccountRankHandler = new GetAccountRankHandler(accountRepository);
+const getChampionMasteryHandler = new GetChampionMasteryHandler(accountRepository, championRepository);
+const getMostPlayedChampionHandler = new GetMostPlayedChampionHandler(accountRepository, championRepository);
+
+// Champion
+const championRepo = new ChampionRepo();
+const getChampionByIdHandler = new GetChampionByIdHandler(championRepo);
 const championDataRepository = new ChampionDataRepositoryImpl();
 const getChampionDataHandler = new GetChampionDataHandler(championDataRepository);
-const accountRepository = new RiotAccountRepositoryImpl();
-const getAccountByRiotIdHandler = new GetAccountByRiotIdHandler(accountRepository);
-const getAccountRankHandler = new GetAccountRankHandler(accountRepository);
-const getAccountProfileHandler = new GetAccountProfileHandler(accountRepository);
+
+// ---- ROUTES ----
+
+// Route to get account rank
+router.get('/account/profile', buildAccountProfileController(getAccountProfileHandler));
+// Route to get account rank
+router.get('/account/rank', buildAccountRankController(getAccountRankHandler));
+// Route to get champion mastery
+router.get('/account/mastery', buildChampionMasteryController(getChampionMasteryHandler));
+// Route to get most played champion
+router.get('/account/most-played', buildMostPlayedChampionController(getMostPlayedChampionHandler));
 
 
-// Route to get account by Riot ID
-router.get('/account/:gameName/:tagLine', async (req, res) => {
-    const { gameName, tagLine } = req.params;
-    try {
-        const query = new GetAccountByRiotIdQuery(gameName, tagLine);
-        const account = await getAccountByRiotIdHandler.execute(query);
-        res.json(account);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
-
-// Route to get account by PUUID
+// Route to get champion data
 router.get('/champions', async (req, res) => {
     const { locale = "es_ES", version = "15.10.1" } = req.query;
     try {
@@ -55,28 +81,6 @@ router.get('/champions/:id', async (req, res) => {
         const query = new GetChampionByIdQuery(id, lang, version);
         const champion = await getChampionByIdHandler.execute(query);
         res.json(champion);
-    } catch (error) {
-        res.status(404).json({ error: error.message });
-    }
-});
-
-router.get("/account/profile", async (req, res) => {
-   const { gameName, tagLine, region } = req.query;
-   try {
-      const result = await getAccountProfileHandler.execute({ gameName, tagLine, region });
-      res.json(result);
-   } catch (err) {
-      res.status(500).json({ error: err.message });
-   }
-});
-
-// Route to get account rank by PUUID
-router.get('/account/rank/:region/:puuid', async (req, res) => {
-    const { region, puuid } = req.params;
-    try {
-        const query = new GetAccountRankQuery(puuid, region);
-        const rank = await getAccountRankHandler.execute(query);
-        res.json(rank);
     } catch (error) {
         res.status(404).json({ error: error.message });
     }
