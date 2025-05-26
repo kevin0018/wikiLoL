@@ -28,6 +28,8 @@ import { GetChampionDataQuery } from '../champion/app/query/GetChampionDataQuery
 // Champion repositories
 import { RiotChampionRepositoryImpl as ChampionRepo } from '../champion/infra/RiotChampionRepositoryImpl.js';
 import { ChampionDataRepositoryImpl } from '../champion/infra/ChampionDataRepositoryImpl.js';
+import { loadChampionStaticData } from '../proxy/infra/championStaticDataLoader.js';
+
 
 const router = Router();
 
@@ -35,7 +37,8 @@ const router = Router();
 
 // Account
 const accountRepository = new RiotAccountRepositoryImpl();
-const championRepository = new RiotChampionRepositoryImpl();
+const championMap = await loadChampionStaticData();
+const championRepository = new RiotChampionRepositoryImpl(championMap);
 
 const accountProfileService = new AccountProfileService(accountRepository);
 const getAccountProfileHandler = new GetAccountProfileHandler(accountProfileService);

@@ -1,10 +1,11 @@
 export class GetAccountRankQuery {
 	/**
-	 * @param {string} puuid
+	 * @param {string} summonerId
 	 * @param {string} [region]
 	 */
-	constructor(puuid, region) {
-		this.puuid = puuid;
+	constructor({summonerId, region}) {
+		this.summonerId = summonerId;
 		this.region = region;
 	}
+	
 }

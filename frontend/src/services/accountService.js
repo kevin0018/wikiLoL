@@ -41,6 +41,11 @@ export async function fetchRank(summonerId, region) {
 export async function fetchChampionMastery(puuid, region) {
 	const url = `${baseUrl}/api/account/mastery?puuid=${encodeURIComponent(puuid)}&region=${encodeURIComponent(region)}&top=4`;
 	const response = await fetch(url);
+	if (!response.ok) {
+		const errorText = await response.text();
+		console.error('Respuesta del servidor:', errorText);
+		throw new Error("No se pudieron obtener las maestrías.");
+	}
 	if (!response.ok) throw new Error("No se pudo obtener la maestría.");
 	return await response.json();
 }

@@ -4,11 +4,11 @@ import {AccountRank} from '../domain/model/AccountRank.js';
 import {ChampionMastery} from '../domain/model/ChampionMastery.js';
 
 const riotRegionMap = {
-	EUW: "euw1.proxy.riotgames.com",
-	NA: "na1.proxy.riotgames.com",
-	EUNE: "eun1.proxy.riotgames.com",
-	LAN: "la1.proxy.riotgames.com",
-	LAS: "la2.proxy.riotgames.com"
+	EUW: "euw1.api.riotgames.com",
+	NA: "na1.api.riotgames.com",
+	EUNE: "eun1.api.riotgames.com",
+	LAN: "la1.api.riotgames.com",
+	LAS: "la2.api.riotgames.com"
 };
 
 const regionalRouting = {

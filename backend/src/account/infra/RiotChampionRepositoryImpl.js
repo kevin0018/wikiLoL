@@ -1,11 +1,11 @@
 export class RiotChampionRepositoryImpl {
-	constructor(championStaticData) {
-		this.championStaticData = championStaticData;
-	}
+    constructor(championMap) {
+        this.championMap = championMap;
+    }
 
-	async getChampionInfo(championId) {
-		const champ = this.championStaticData[championId];
-		if (!champ) throw new Error('Champion not found');
-		return champ;
-	}
+    async getChampionInfo(championId) {
+        const champ = this.championMap[String(championId)];
+        if (!champ) throw new Error('Champion not found');
+        return champ;
+    }
 }

@@ -73,7 +73,6 @@ async function loadAccountPage() {
 
 		// Fetch and render rank info
 		const ranks = await fetchRank(profile.summonerId, region);
-
 		const soloQ = ranks.find(q => q.queueType === "RANKED_SOLO_5x5");
 		const flexQ = ranks.find(q => q.queueType === "RANKED_FLEX_SR");
 

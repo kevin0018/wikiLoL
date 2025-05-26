@@ -7,6 +7,7 @@
 export function renderProfileCard(profileData, container, onUpdate) {
     container.innerHTML = "";
 
+    const baseUrl = import.meta.env?.VITE_BACKEND_URL || "http://localhost:3001";
     const card = document.createElement("section");
     card.className = `
         bg-neutral-900 border border-neutral-700 rounded-2xl shadow-lg
@@ -16,7 +17,7 @@ export function renderProfileCard(profileData, container, onUpdate) {
 
     // Profile image (mobile first)
     const image = document.createElement("img");
-    image.src = profileData.iconUrl;
+    image.src = `${baseUrl}${profileData.iconUrl}`;
     image.alt = "Icono de perfil";
     image.className = `
         w-20 h-20 sm:w-24 sm:h-24 rounded-full object-cover border-2 border-violet-700 bg-neutral-800 shadow
