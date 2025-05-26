@@ -77,7 +77,7 @@ El frontend es rápido, accesible y 100% mobileFirst.
 
 ```sh
 git clone https://github.com/kevin0018/wikiLoL.git
-cd wikiLOL
+cd wikiLoL
 ```
 
 ### 2. Instala las dependencias
@@ -98,7 +98,7 @@ npm install
 
 ### 3. Variables de entorno
 
-Edita el archivo `.env` en cada carpeta para configurar las variables necesarias.
+Edita el archivo `.env` en cada carpeta para configurar las variables necesarias (ejemplo: API keys de Riot, puertos, etc).
 
 ### 4. Ejecuta el proyecto
 
@@ -121,27 +121,37 @@ npm run dev
 ## Estructura del proyecto
 
 ```
-wikiLOL/
+wikiLoL/
 │
 ├── backend/
 │   ├── src/
-│   │   ├── api/                # Routers y proxys externos (ej: assetsProxy.js)
-│   │   ├── app/                # Lógica de aplicación (CQRS: queries, handlers, DTOs)
-│   │   │   └── query/
-│   │   ├── domain/             # Entidades y lógica de dominio puro
-│   │   ├── infra/              # Implementaciones de repositorios y otros adaptadores
-│   │   │   └── repositories/
-│   │   ├── interfaces/         # Interfaces de entrada/salida (si aplica)
-│   │   └── tests/              # Pruebas automatizadas (TDD)
-│   └── .env                    # Variables de entorno backend
+│   │   ├── account/
+│   │   │   ├── app/                # CQRS: queries, handlers, services
+│   │   │   ├── domain/             # Entidades y lógica de dominio puro
+│   │   │   ├── infra/              # Repositorios y adaptadores Riot
+│   │   │   └── presentation/       # Controladores
+│   │   ├── champion/
+│   │   │   ├── app/
+│   │   │   ├── domain/
+│   │   │   ├── infra/
+│   │   │   └── presentation/
+│   │   ├── proxy/                  # Proxy de assets (RiotAssetsProxy.js)
+│   │   ├── interfaces/             # Routers (ej: routes.js)
+│   │   └── test/                   # Pruebas (TDD)
+│   └── .env                        # Variables de entorno backend
 │
 ├── frontend/
+│   ├── public/
+│   │   └── pages/                  # HTMLs principales
 │   ├── src/
 │   │   ├── assets/
+│   │   │   ├── js/                 # Lógica y renders frontend
+│   │   │   ├── images/
 │   │   ├── components/
-│   │   ├── styles/             # Tailwind + estilos propios
+│   │   ├── services/               # Llamadas API
+│   │   ├── styles/                 # Tailwind + estilos propios
 │   │   └── ...
-│   └── .env                    # Variables de entorno frontend
+│   └── .env                        # Variables de entorno frontend
 │
 └── README.md
 ```
@@ -150,8 +160,8 @@ wikiLOL/
 
 ## Testing
 
-- El backend sigue TDD: las pruebas unitarias e integración están en `backend/src/tests`.
-- No hay tests en el frontend actualmente.
+- El backend sigue TDD: las pruebas unitarias e integración están en `backend/src/test`.
+- El frontend por ahora no tiene tests automatizados.
 
 ---
 
