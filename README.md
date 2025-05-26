@@ -1,5 +1,15 @@
 # wikiLOL
 
+## Créditos y aviso legal
+
+- **League of Legends**, sus personajes, imágenes y datos relacionados son propiedad de **Riot Games, Inc.**
+- **wikiLoL** no está afiliado, respaldado ni patrocinado por Riot Games, Inc.
+- Todos los assets (iconos, imágenes de campeones, skins, rangos, etc.) y datos utilizados en este proyecto son propiedad de Riot Games, Inc. y se usan bajo los términos y condiciones de la [Riot Games Developer Portal](https://developer.riotgames.com/).
+- Esta aplicación es un proyecto personal, educativo y de portfolio, sin fines comerciales ni monetización de ningún tipo.
+- Si eres parte del equipo de Riot y necesitas que algún contenido sea retirado, por favor contáctame y lo haré de inmediato.
+
+---
+
 Proyecto fullstack para consultar y visualizar perfiles, rangos, campeones y datos de jugadores de League of Legends, construido siguiendo buenas prácticas, arquitectura limpia y un enfoque mobileFirst.
 
 ---
