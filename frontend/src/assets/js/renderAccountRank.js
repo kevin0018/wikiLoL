@@ -1,5 +1,5 @@
 /**
- * Renders the ranked information card with TailwindCSS classes.
+ * Renders the ranked information card.
  * @param {Object} rankData - Data for the rank (tier, LP, wins, losses, icon, etc)
  * @param {HTMLElement} container - Where to render the rank card
  */
@@ -12,77 +12,64 @@ export function renderAccountRank(rankData, container) {
         : 0;
     const baseUrl = import.meta.env?.VITE_BACKEND_URL || "http://localhost:3001";
 
-    // Card container with Tailwind
+    // Card container (unified style)
     const card = document.createElement("section");
     card.className = [
+        "flex flex-col sm:flex-row items-center sm:items-stretch justify-between",
         "bg-neutral-800",
-        "border-b-4", "border-violet-700",
-        "rounded-t-2xl",
-        "w-full", "max-w-xl", "mx-auto",
-        "flex", "flex-col",
-        "shadow-lg"
+        "rounded-xl",
+        "shadow-md",
+        "border-b-4 border-violet-700",
+        "px-5 py-6",
+        "w-full max-w-xl mx-auto mb-2"
     ].join(" ");
 
-    // Header with Tailwind
-    const header = document.createElement("div");
-    header.className = "flex items-center gap-1 px-5 pt-4 pb-2";
-    header.innerHTML = `
-        <span class="text-violet-400 text-sm sm:text-base font-semibold flex items-center gap-1">
-            Clasificatoria solo/dúo
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-gray-400 ml-1">
-                <title>Información de clasificatoria</title>
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-9-2a1 1 0 112 0v1a1 1 0 01-2 0V8zm1 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
-            </svg>
-        </span>
-    `;
-
-    // Main row: icon, info, stats
-    const row = document.createElement("div");
-    row.className = "flex items-center px-5 py-4 gap-4";
-
+    // Left: Icon
     const icon = document.createElement("img");
     icon.src = `${baseUrl}${rankData.rankIconUrl}`;
     icon.alt = `Icono rango ${rankData.tier}`;
     icon.className = [
-        "w-24", "h-24", "sm:w-28", "sm:h-28",
+        "w-20 h-20 sm:w-24 sm:h-24",
         "object-contain",
         "bg-[#181826]",
-        "rounded-full", "flex-shrink-0",
-        "border-2", "border-violet-700",
-        "shadow-md"
+        "rounded-full flex-shrink-0",
+        "border-2 border-violet-700",
+        "shadow-md",
+        "mb-4 sm:mb-0"
     ].join(" ");
 
-    // Info (tier and LP)
+    // Middle: Info (tier, LP)
     const info = document.createElement("div");
-    info.className = "flex-1 min-w-0";
+    info.className = "flex-1 flex flex-col justify-center sm:pl-6 min-w-0";
     info.innerHTML = `
-        <div class="text-white font-bold text-xl sm:text-2xl leading-tight mb-0.5">
+        <span class="text-violet-400 text-base font-semibold flex items-center gap-1 mb-2">
+            Clasificatoria solo/dúo
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-4 h-4 text-gray-400 ml-1"><title>Información de clasificatoria</title><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-9-2a1 1 0 112 0v1a1 1 0 01-2 0V8zm1 6a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+        </span>
+        <span class="text-white font-bold text-xl sm:text-2xl leading-tight mb-0.5">
             ${rankData.tier.charAt(0) + rankData.tier.slice(1).toLowerCase()}
-        </div>
-        <div class="text-gray-200 text-base sm:text-lg font-medium mb-1">
+        </span>
+        <span class="text-gray-200 text-base sm:text-lg font-medium mb-1">
             ${rankData.leaguePoints.toLocaleString()} LP
-        </div>
+        </span>
     `;
 
-    // Stats (wins, losses, winrate)
+    // Right: Stats
     const stats = document.createElement("div");
-    stats.className = "flex flex-col items-end min-w-[88px]";
+    stats.className = "flex flex-col items-end justify-center min-w-[88px]";
     stats.innerHTML = `
-        <div class="text-gray-300 font-medium text-base sm:text-lg">
+        <span class="text-gray-300 font-medium text-base sm:text-lg">
             <span class="mr-1">${rankData.wins}V</span>
             <span class="opacity-60">${rankData.losses}D</span>
-        </div>
-        <div class="text-sm text-gray-400">
+        </span>
+        <span class="text-sm text-gray-400">
             WinRate ${winRate}%
-        </div>
+        </span>
     `;
 
-    row.appendChild(icon);
-    row.appendChild(info);
-    row.appendChild(stats);
-
-    card.appendChild(header);
-    card.appendChild(row);
+    card.appendChild(icon);
+    card.appendChild(info);
+    card.appendChild(stats);
 
     container.appendChild(card);
 }

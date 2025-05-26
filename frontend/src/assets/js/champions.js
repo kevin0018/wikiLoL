@@ -16,8 +16,8 @@ document.addEventListener("DOMContentLoaded", async function () {
 
 		const groupedChampions = groupChampionsByLetter(championList);
 
-		const mainContainer = document.createElement("main");
-		mainContainer.id = "champions-main";
+		// Use the existing container instead of creating a new main
+		const mainContainer = document.getElementById("champions-container");
 		mainContainer.className = `
             w-full min-h-screen bg-neutral-950 flex flex-col items-center pt-20 pb-8
         `;
@@ -40,8 +40,6 @@ document.addEventListener("DOMContentLoaded", async function () {
             xl:grid-cols-5
             gap-4
         `;
-
-		let addedCards = 0;
 
 		for (const letter of Object.keys(groupedChampions)) {
 			const letterHeader = document.createElement("div");
@@ -89,13 +87,12 @@ document.addEventListener("DOMContentLoaded", async function () {
 				card.appendChild(lore);
 				card.appendChild(moreBtn);
 				gridContainer.appendChild(card);
-				addedCards++;
 			});
 		}
 
 		gridWrapper.appendChild(gridContainer);
+		// Insert the grid inside the existing container, not after the footer
 		mainContainer.appendChild(gridWrapper);
-		document.body.appendChild(mainContainer);
 
 	} catch (error) {
 		showError("No se pudieron cargar los campeones.");

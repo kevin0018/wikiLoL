@@ -9,8 +9,8 @@ import { buildMostPlayedChampionController } from '../account/presentation/MostP
 // Account handlers
 import { GetAccountRankHandler } from '../account/app/query/GetAccountRankHandler.js';
 import { GetAccountProfileHandler } from '../account/app/query/GetAccountProfileHandler.js';
-import { GetChampionMasteryHandler } from '../account/app/query/getChampionMasteryHandler.js';
-import { GetMostPlayedChampionHandler } from '../account/app/query/getMostPlayedChampionHandler.js';
+import { GetChampionMasteryHandler } from '../account/app/query/GetChampionMasteryHandler.js';
+import { GetMostPlayedChampionHandler } from '../account/app/query/GetMostPlayedChampionHandler.js';
 
 // Account services
 import { AccountProfileService } from '../account/app/service/AccountProfileService.js';
