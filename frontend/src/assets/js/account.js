@@ -1,86 +1,118 @@
-import { getAccountProfile, fetchRank } from "../../services/accountService.js";
-import { renderAccountRank } from "./renderAccountRank.js";
-import { renderProfileCard } from "./renderProfileCard.js";
+import {
+	getAccountProfile,
+	fetchRank,
+	fetchChampionMastery,
+	fetchMostPlayedChampion
+} from "../../services/accountService.js";
+import {renderAccountRank} from "./renderAccountRank.js";
+import {renderProfileCard} from "./renderProfileCard.js";
+import {renderChampionMastery} from './renderChampionMastery.js';
+import {renderMostPlayedChampion} from './renderMostPlayedChampion.js';
 
 // DOM references
-const $rank = document.getElementById("rank");
+const $rankSoloQ = document.getElementById("rank-soloq");
+const $rankFlexQ = document.getElementById("rank-flexq");
 const $profileCardContainer = document.getElementById("profile-card-container");
+const $masteryContainer = document.getElementById("mastery-container");
+const $mostPlayedContainer = document.getElementById("mostplayed-container");
 
 // Util function to get query params
 function getQueryParam(param) {
-    const params = new URLSearchParams(window.location.search);
-    return params.get(param) || "";
+	const params = new URLSearchParams(window.location.search);
+	return params.get(param) || "";
 }
 
-// Renders loading for rank
-function renderRankLoading() {
-    $rank.innerHTML = `<div class="animate-pulse text-gray-400 text-center py-8">Cargando rango...</div>`;
+function renderLoading(container, msg = "Cargando...") {
+	container.innerHTML = `<div class='animate-pulse text-gray-400 text-center py-8'>${msg}</div>`;
 }
 
-// Renders error for rank
-function renderRankError(msg) {
-    $rank.innerHTML = `<div class="text-red-600 p-2 text-center">${msg}</div>`;
+function renderError(container, msg) {
+	container.innerHTML = `<div class='text-red-600 p-2 text-center'>${msg}</div>`;
 }
 
-// Renders loading for profile
-function renderProfileLoading() {
-    $profileCardContainer.innerHTML = `<div class="animate-pulse text-gray-400 text-center py-8">Cargando perfil...</div>`;
-}
-
-// Renders error for profile
-function renderProfileError(msg) {
-    $profileCardContainer.innerHTML = `<div class="text-red-600 p-2 text-center">${msg}</div>`;
-}
-
-// Main load function (mobile first)
+// Main load function
 async function loadAccountPage() {
-    const gameName = getQueryParam("gameName");
-    const tagLine = getQueryParam("tagLine");
-    const region = getQueryParam("region");
+	const gameName = getQueryParam("gameName");
+	const tagLine = getQueryParam("tagLine");
+	const region = getQueryParam("region");
 
-    // Load profile card
-    renderProfileLoading();
+	renderLoading($profileCardContainer, "Cargando perfil...");
+	renderLoading($rankSoloQ, "Cargando rango SoloQ...");
+	renderLoading($rankFlexQ, "Cargando rango FlexQ...");
+	renderLoading($masteryContainer, "Cargando maestrías...");
+	renderLoading($mostPlayedContainer, "Cargando campeones más jugados...");
 
-    if (!gameName || !tagLine || !region) {
-        renderProfileError("Faltan datos del usuario.");
-        renderRankError("Faltan datos del usuario.");
-        return;
-    }
+	if (!gameName || !tagLine || !region) {
+		const err = "Faltan datos del usuario.";
+		renderError($profileCardContainer, err);
+		renderError($rankSoloQ, err);
+		renderError($rankFlexQ, err);
+		renderError($masteryContainer, err);
+		renderError($mostPlayedContainer, err);
+		return;
+	}
 
-    try {
-        // Fetch full profile
-        console.log("Voy a hacer fetch", gameName, tagLine, region);
-        const profile = await getAccountProfile(gameName, tagLine, region);
-        console.log("Perfil recibido:", profile);
+	try {
+		// Fetch full profile
+		const profile = await getAccountProfile(gameName, tagLine, region);
 
-        // Compose icon URL
-        const patchVersion = "15.10.1";
-        const iconUrl = `/api/assets/profile-icon/${patchVersion}/${profile.profileIconId}.png`;
+		// Compose icon URL
+		const patchVersion = "15.10.1";
+		const iconUrl = `/api/assets/profile-icon/${patchVersion}/${profile.profileIconId}.png`;
 
-        // Render profile card
-        renderProfileCard(
-            {
-                name: profile.name,
-                tag: profile.tagLine,
-                iconUrl: iconUrl,
-            },
-            $profileCardContainer,
-            () => window.location.reload()
-        );
+		// Render profile card
+		renderProfileCard(
+			{
+				name: profile.name,
+				tag: profile.tagLine,
+				iconUrl: iconUrl,
+			},
+			$profileCardContainer,
+			() => window.location.reload()
+		);
 
-        // Load rank info
-        renderRankLoading();
-        const rank = await fetchRank(profile.puuid, region);
-        if (!rank) {
-            renderRankError("No se encontró información de rango.");
-            return;
-        }
-        renderAccountRank({ ...rank, account: profile }, $rank);
+		// Fetch and render rank info
+		const ranks = await fetchRank(profile.summonerId, region);
 
-    } catch (err) {
-        renderProfileError(err.message || "Error al cargar el perfil.");
-        renderRankError(err.message || "Error al cargar el rango.");
-    }
+		const soloQ = ranks.find(q => q.queueType === "RANKED_SOLO_5x5");
+		const flexQ = ranks.find(q => q.queueType === "RANKED_FLEX_SR");
+
+		if (soloQ) {
+			renderAccountRank({...soloQ, account: profile}, $rankSoloQ);
+		} else {
+			renderError($rankSoloQ, "No se encontró rango SoloQ.");
+		}
+
+		if (flexQ) {
+			renderAccountRank({...flexQ, account: profile}, $rankFlexQ);
+		} else {
+			renderError($rankFlexQ, "No se encontró rango FlexQ.");
+		}
+
+		// Fetch and render champion mastery
+		const masteryList = await fetchChampionMastery(profile.puuid, region);
+		if (masteryList && masteryList.length > 0) {
+			renderChampionMastery($masteryContainer, masteryList);
+		} else {
+			renderError($masteryContainer, "No hay maestrías registradas.");
+		}
+
+		// Fetch and render most played champions
+		const mostPlayed = await fetchMostPlayedChampion(profile.puuid, region);
+		if (mostPlayed && mostPlayed.length > 0) {
+			renderMostPlayedChampion($mostPlayedContainer, mostPlayed);
+		} else {
+			renderError($mostPlayedContainer, "No hay campeones jugados recientes.");
+		}
+
+	} catch (err) {
+		const msg = err.message || "Error al cargar los datos del usuario.";
+		renderError($profileCardContainer, msg);
+		renderError($rankSoloQ, msg);
+		renderError($rankFlexQ, msg);
+		renderError($masteryContainer, msg);
+		renderError($mostPlayedContainer, msg);
+	}
 }
 
 document.addEventListener("DOMContentLoaded", loadAccountPage);

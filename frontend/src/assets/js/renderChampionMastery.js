@@ -1,0 +1,48 @@
+/**
+ * Renders the champion mastery section (top 4)
+ * @param {HTMLElement} container
+ * @param {Array} masteryList - [{ championId, championName, championImageUrl, masteryPoints }]
+ */
+export function renderChampionMastery(container, masteryList) {
+	container.innerHTML = "";
+
+	const grid = document.createElement("div");
+	grid.className = "grid grid-cols-2 sm:grid-cols-4 gap-3";
+
+	masteryList.forEach(mastery => {
+		const card = document.createElement("div");
+		card.className = `
+            flex flex-col items-center justify-center
+            bg-neutral-800 rounded-xl shadow-md
+            px-3 py-4
+            h-full
+            border-b-4 border-violet-700
+        `;
+
+		const img = document.createElement("img");
+		img.src = mastery.championImageUrl;
+		img.alt = mastery.championName;
+		img.className = "w-16 h-16 rounded-full border-2 border-violet-700 object-cover mb-2";
+
+		const name = document.createElement("span");
+		name.textContent = mastery.championName;
+		name.className = "text-sm text-white font-semibold text-center mb-1";
+
+		const points = document.createElement("span");
+		points.textContent = `${mastery.masteryPoints.toLocaleString()} pts`;
+		points.className = "text-xs text-violet-400 font-bold";
+
+		card.appendChild(img);
+		card.appendChild(name);
+		card.appendChild(points);
+		grid.appendChild(card);
+	});
+
+	// Header
+	const header = document.createElement("div");
+	header.className = "mb-2 text-base text-gray-200 font-semibold text-center";
+	header.textContent = "Mejores maestrías";
+
+	container.appendChild(header);
+	container.appendChild(grid);
+}
