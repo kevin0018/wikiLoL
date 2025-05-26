@@ -1,4 +1,3 @@
-// ENGLISH COMMENTS ONLY!
 import { fetchChampionDetailFromAPI } from '../../services/championService.js';
 
 const LOL_VERSION = "15.10.1";
@@ -141,8 +140,6 @@ function renderChampionDetailView(champion) {
 	const championImage = document.createElement("img");
 	championImage.src = `${baseUrl}${champion.imageUrl}`;
 	championImage.alt = `Retrato de ${champion.name}`;
-	// Use aspect-square and define width; height will follow to ensure it's a square.
-	// Removed explicit h-X classes.
 	championImage.className = "aspect-square w-28 sm:w-32 md:w-36 rounded-full object-cover border-[3px] border-violet-500 shadow-xl bg-neutral-800";
 	championImage.loading = "lazy";
 

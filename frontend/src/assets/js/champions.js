@@ -15,8 +15,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 		const championList = Array.isArray(champions.data) ? champions.data : Object.values(champions.data);
 
 		const groupedChampions = groupChampionsByLetter(championList);
-
-		// Use the existing container instead of creating a new main
 		const mainContainer = document.getElementById("champions-container");
 		mainContainer.className = `
             w-full min-h-screen bg-neutral-950 flex flex-col items-center pt-20 pb-8
@@ -91,7 +89,6 @@ document.addEventListener("DOMContentLoaded", async function () {
 		}
 
 		gridWrapper.appendChild(gridContainer);
-		// Insert the grid inside the existing container, not after the footer
 		mainContainer.appendChild(gridWrapper);
 
 	} catch (error) {
