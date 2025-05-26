@@ -10,6 +10,16 @@
 
 ---
 
+## Credits and Legal Notice
+
+- **League of Legends**, its characters, images, and related data are the property of **Riot Games, Inc.**
+- **wikiLoL** is not affiliated with, endorsed, or sponsored by Riot Games, Inc.
+- All assets (icons, champion images, skins, ranks, etc.) and data used in this project are the property of Riot Games, Inc., and are used under the terms and conditions of the [Riot Games Developer Portal](https://developer.riotgames.com/).
+- This app is a personal, educational, and portfolio project, with no commercial purposes or monetization of any kind.
+- If you are part of the Riot team and need any content removed, please contact me and I will do so immediately.
+
+---
+
 Proyecto fullstack para consultar y visualizar perfiles, rangos, campeones y datos de jugadores de League of Legends, construido siguiendo buenas prácticas, arquitectura limpia y un enfoque mobileFirst.
 
 ---
