@@ -29,7 +29,7 @@ export class GetMostPlayedChampionHandler {
 				return {
 					championId: Number(champId),
 					championName: staticData.name,
-					championImageUrl: staticData.imageUrl,
+					championImageUrl: `/api/assets/champion/${staticData.version}/${staticData.image.full}`,
 					gamesPlayed: championCount[champId]
 				};
 			})

@@ -57,7 +57,7 @@ export async function fetchChampionMastery(puuid, region) {
  * @returns {Promise<Array>} Most played champion array
  */
 export async function fetchMostPlayedChampion(puuid, region) {
-	const url = `${baseUrl}/api/account/most-played?puuid=${encodeURIComponent(puuid)}&region=${encodeURIComponent(region)}&matchCount=10&top=4`;
+	const url = `${baseUrl}/api/account/most-played?puuid=${encodeURIComponent(puuid)}&region=${encodeURIComponent(region)}&matchCount=20&top=4`;
 	const response = await fetch(url);
 	if (!response.ok) throw new Error("No se pudieron obtener los campeones más jugados.");
 	return await response.json();

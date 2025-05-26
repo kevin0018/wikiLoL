@@ -6,6 +6,7 @@
 export function renderChampionMastery(container, masteryList) {
 	container.innerHTML = "";
 
+	const baseUrl = import.meta.env?.VITE_BACKEND_URL || "http://localhost:3001";
 	const grid = document.createElement("div");
 	grid.className = "grid grid-cols-2 sm:grid-cols-4 gap-3";
 
@@ -20,7 +21,7 @@ export function renderChampionMastery(container, masteryList) {
         `;
 
 		const img = document.createElement("img");
-		img.src = mastery.championImageUrl;
+		img.src = `${baseUrl}${mastery.championImageUrl}`;
 		img.alt = mastery.championName;
 		img.className = "w-16 h-16 rounded-full border-2 border-violet-700 object-cover mb-2";
 

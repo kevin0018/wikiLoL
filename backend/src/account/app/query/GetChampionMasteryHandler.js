@@ -19,7 +19,7 @@ export class GetChampionMasteryHandler {
 				return {
 					championId: mastery.championId,
 					championName: staticData.name,
-					championImageUrl: staticData.imageUrl,
+					championImageUrl: `/api/assets/champion/${staticData.version}/${staticData.image.full}`,
 					masteryPoints: mastery.masteryPoints
 				};
 			})
