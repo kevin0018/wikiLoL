@@ -198,7 +198,7 @@ function renderChampionDetailView(champion) {
     }
 
 	const backButtonElement = document.createElement("a");
-	backButtonElement.href = "/pages/champions.html";
+	backButtonElement.href = "/src/pages/champions.html";
 	backButtonElement.textContent = "Volver a Campeones";
 	backButtonElement.className = `
         block w-full max-w-md mx-auto mt-10 md:mt-12 bg-violet-600 hover:bg-violet-700 
