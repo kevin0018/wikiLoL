@@ -1,3 +1,4 @@
+import 'flowbite';
 /**
  * Loads an HTML component into a specified element.
  * @param {string} elementId - The ID of the element where the component will be loaded.
