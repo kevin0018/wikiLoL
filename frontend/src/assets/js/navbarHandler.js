@@ -8,38 +8,41 @@
 export function initNavbarHandler() {
     const hamburgerButton = document.getElementById('hamburger-button');
     const mobileMenuPanel = document.getElementById('main-navbar');
-  
+    console.log('Initializing mobile navbar handler');
+    console.log('Hamburger button:', hamburgerButton);
+
     if (!hamburgerButton || !mobileMenuPanel) {
-      return;
+        return;
     }
-  
+
     const toggleMenu = () => {
-      mobileMenuPanel.classList.toggle('hidden');
-      const isExpanded = !mobileMenuPanel.classList.contains('hidden');
-      hamburgerButton.setAttribute('aria-expanded', isExpanded.toString());
+        console.log('Toggling mobile menu visibility');
+        mobileMenuPanel.classList.toggle('hidden');
+        const isExpanded = !mobileMenuPanel.classList.contains('hidden');
+        hamburgerButton.setAttribute('aria-expanded', isExpanded.toString());
     };
-  
+
     hamburgerButton.addEventListener('click', (event) => {
-      event.stopPropagation();
-      toggleMenu();
+        event.stopPropagation();
+        toggleMenu();
     });
-  
+
     const menuLinks = mobileMenuPanel.querySelectorAll('a');
     menuLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        if (!mobileMenuPanel.classList.contains('hidden')) {
-          toggleMenu();
-        }
-      });
+        link.addEventListener('click', () => {
+            if (!mobileMenuPanel.classList.contains('hidden')) {
+                toggleMenu();
+            }
+        });
     });
-  
+
     document.addEventListener('click', (event) => {
-      if (
-        !mobileMenuPanel.classList.contains('hidden') &&
-        !mobileMenuPanel.contains(event.target) &&
-        !hamburgerButton.contains(event.target)
-      ) {
-        toggleMenu();
-      }
+        if (
+            !mobileMenuPanel.classList.contains('hidden') &&
+            !mobileMenuPanel.contains(event.target) &&
+            !hamburgerButton.contains(event.target)
+        ) {
+            toggleMenu();
+        }
     });
-  }
+}

@@ -5,15 +5,15 @@ import { initNavbarHandler } from './assets/js/navbarHandler.js';
 import 'flowbite';
 
 document.addEventListener('DOMContentLoaded', () => {
-    const headerPlaceholder = document.getElementById('app-header-placeholder');
-    const footerPlaceholder = document.getElementById('app-footer-placeholder');
+    const headerComponent = document.getElementById('header');
+    const footerComponent = document.getElementById('footer');
 
-    if (headerPlaceholder) {
-        loadComponent('app-header-placeholder', '/components/AppHeader.html', initNavbarHandler);
+    if (headerComponent) {
+        loadComponent('header', '/components/AppHeader.html', initNavbarHandler);
         setActiveNavbarLink();
     }
 
-    if (footerPlaceholder) {
-        loadComponent('app-footer-placeholder', '/components/AppFooter.html');
+    if (footerComponent) {
+        loadComponent('footer', '/components/AppFooter.html');
     }
 });
