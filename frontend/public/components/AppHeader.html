@@ -1,98 +1,73 @@
 <!-- Sticky Navbar -->
-<nav class = 'fixed w-full z-50 top-0 bg-neutral-900 border-b border-neutral-800 dark:bg-neutral-900'>
-	<div class = 'max-w-screen-xl mx-auto flex items-center justify-between p-4'>
+<nav class='fixed w-full z-50 top-0 bg-neutral-900 border-b border-neutral-800 dark:bg-neutral-900'>
+	<div class='max-w-screen-xl mx-auto flex items-center justify-between p-4'>
 		<!-- Logo section -->
-		<a href = '/' class = 'flex items-center space-x-3 rtl:space-x-reverse'>
-			<img src = '/src/assets/images/logo.png' class = 'h-8 rounded-full' alt = 'Logo WIKILoL'/>
-			<h1 class = 'text-2xl font-semibold whitespace-nowrap text-white m-0'>WIKILoL</h1>
+		<a href='/' class='flex items-center space-x-3 rtl:space-x-reverse'>
+			<img src='../images/logo.png' class='h-8 rounded-full' alt='Logo WIKILoL' />
+			<h1 class='text-2xl font-semibold whitespace-nowrap text-white m-0'>WIKILoL</h1>
 		</a>
 		<!-- Navigation links -->
-		<ul class = 'hidden md:flex flex-row space-x-8 font-medium'>
+		<ul class='hidden md:flex flex-row space-x-8 font-medium'>
 			<li>
-				<a
-					href = '/'
-					class = 'nav-link block py-2 px-3 rounded transition-all font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white md:aria-[current=page]:bg-transparent md:aria-[current=page]:text-violet-500 md:aria-[current=page]:font-bold hover:bg-violet-700 md:hover:bg-transparent md:hover:text-violet-400'
-				>
+				<a href='/'
+					class='nav-link block py-2 px-3 rounded transition-all font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white md:aria-[current=page]:bg-transparent md:aria-[current=page]:text-violet-500 md:aria-[current=page]:font-bold hover:bg-violet-700 md:hover:bg-transparent md:hover:text-violet-400'>
 					Buscador
 				</a>
 			</li>
 			<li>
-				<a
-					href = '/src/pages/champions.html'
-					class = 'nav-link block py-2 px-3 rounded transition-all font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white md:aria-[current=page]:bg-transparent md:aria-[current=page]:text-violet-500 md:aria-[current=page]:font-bold hover:bg-violet-700 md:hover:bg-transparent md:hover:text-violet-400'
-				>
+				<a href='/src/pages/champions.html'
+					class='nav-link block py-2 px-3 rounded transition-all font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white md:aria-[current=page]:bg-transparent md:aria-[current=page]:text-violet-500 md:aria-[current=page]:font-bold hover:bg-violet-700 md:hover:bg-transparent md:hover:text-violet-400'>
 					Campeones
 				</a>
 			</li>
 			<li>
-				<a
-					href = 'https://developer.riotgames.com/docs/lol'
-					class = 'nav-link block py-2 px-3 rounded transition-all font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white md:aria-[current=page]:bg-transparent md:aria-[current=page]:text-violet-500 md:aria-[current=page]:font-bold hover:bg-violet-700 md:hover:bg-transparent md:hover:text-violet-400'
-				>
+				<a href='https://developer.riotgames.com/docs/lol'
+					class='nav-link block py-2 px-3 rounded transition-all font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white md:aria-[current=page]:bg-transparent md:aria-[current=page]:text-violet-500 md:aria-[current=page]:font-bold hover:bg-violet-700 md:hover:bg-transparent md:hover:text-violet-400'>
 					Docs
 				</a>
 			</li>
 			<li>
-				<a
-					href = 'https://developer.riotgames.com/apis'
-					class = 'nav-link block py-2 px-3 rounded transition-all font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white md:aria-[current=page]:bg-transparent md:aria-[current=page]:text-violet-500 md:aria-[current=page]:font-bold hover:bg-violet-700 md:hover:bg-transparent md:hover:text-violet-400'
-				>
+				<a href='https://developer.riotgames.com/apis'
+					class='nav-link block py-2 px-3 rounded transition-all font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white md:aria-[current=page]:bg-transparent md:aria-[current=page]:text-violet-500 md:aria-[current=page]:font-bold hover:bg-violet-700 md:hover:bg-transparent md:hover:text-violet-400'>
 					APIs
 				</a>
 			</li>
 		</ul>
 		<!-- Mobile hamburger button -->
-		<button
-			data-collapse-toggle = 'main-navbar'
-			type = 'button'
-			class = 'inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg md:hidden hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-600'
-			aria-controls = 'main-navbar'
-			aria-expanded = 'false'
-		>
-			<span class = 'sr-only'>Abrir menú principal</span>
-			<svg
-				class = 'w-5 h-5' aria-hidden = 'true' xmlns = 'http://www.w3.org/2000/svg' fill = 'none'
-				viewBox = '0 0 17 14'
-			>
-				<path
-					stroke = 'currentColor' stroke-linecap = 'round' stroke-linejoin = 'round' stroke-width = '2'
-					d = 'M1 1h15M1 7h15M1 13h15'
-				/>
+		<button data-collapse-toggle='main-navbar' type='button'
+			class='inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-white rounded-lg md:hidden hover:bg-neutral-800 focus:outline-none focus:ring-2 focus:ring-neutral-600'
+			aria-controls='main-navbar' aria-expanded='false'>
+			<span class='sr-only'>Abrir menú principal</span>
+			<svg class='w-5 h-5' aria-hidden='true' xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 17 14'>
+				<path stroke='currentColor' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'
+					d='M1 1h15M1 7h15M1 13h15' />
 			</svg>
 		</button>
 	</div>
 	<!-- Mobile menu -->
-	<div class = 'items-center justify-between hidden w-full md:hidden' id = 'main-navbar'>
-		<ul class = 'flex flex-col font-medium p-4 mt-4 border border-neutral-800 rounded-lg bg-neutral-900 space-y-2'>
+	<div class='items-center justify-between hidden w-full md:hidden' id='main-navbar'>
+		<ul class='flex flex-col font-medium p-4 mt-4 border border-neutral-800 rounded-lg bg-neutral-900 space-y-2'>
 			<li>
-				<a
-					href = '/'
-					class = 'nav-link block py-2 px-3 rounded font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white hover:bg-violet-700'
-				>
+				<a href='/'
+					class='nav-link block py-2 px-3 rounded font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white hover:bg-violet-700'>
 					Buscador
 				</a>
 			</li>
 			<li>
-				<a
-					href = '/src/pages/champions.html'
-					class = 'nav-link block py-2 px-3 rounded font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white hover:bg-violet-700'
-				>
+				<a href='/src/pages/champions.html'
+					class='nav-link block py-2 px-3 rounded font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white hover:bg-violet-700'>
 					Campeones
 				</a>
 			</li>
 			<li>
-				<a
-					href = 'https://developer.riotgames.com/docs/lol'
-					class = 'nav-link block py-2 px-3 rounded font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white hover:bg-violet-700'
-				>
+				<a href='https://developer.riotgames.com/docs/lol'
+					class='nav-link block py-2 px-3 rounded font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white hover:bg-violet-700'>
 					Docs
 				</a>
 			</li>
 			<li>
-				<a
-					href = 'https://developer.riotgames.com/apis'
-					class = 'nav-link block py-2 px-3 rounded font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white hover:bg-violet-700'
-				>
+				<a href='https://developer.riotgames.com/apis'
+					class='nav-link block py-2 px-3 rounded font-bold text-white aria-[current=page]:bg-violet-600 aria-[current=page]:text-white hover:bg-violet-700'>
 					APIs
 				</a>
 			</li>
