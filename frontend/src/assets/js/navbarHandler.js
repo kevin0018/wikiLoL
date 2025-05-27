@@ -8,15 +8,12 @@
 export function initNavbarHandler() {
     const hamburgerButton = document.getElementById('hamburger-button');
     const mobileMenuPanel = document.getElementById('main-navbar');
-    console.log('Initializing mobile navbar handler');
-    console.log('Hamburger button:', hamburgerButton);
 
     if (!hamburgerButton || !mobileMenuPanel) {
         return;
     }
 
     const toggleMenu = () => {
-        console.log('Toggling mobile menu visibility');
         mobileMenuPanel.classList.toggle('hidden');
         const isExpanded = !mobileMenuPanel.classList.contains('hidden');
         hamburgerButton.setAttribute('aria-expanded', isExpanded.toString());
