@@ -137,6 +137,6 @@ document.addEventListener("DOMContentLoaded", () => {
             alert("Formato de nombre de invocador inválido. Usa Nombre#Tag o solo Nombre (se usará la región como tag).");
             return;
         }
-        window.location.href = `../../pages/account.html?region=${encodeURIComponent(selectedRegion)}&gameName=${encodeURIComponent(gameName)}&tagLine=${encodeURIComponent(tagLine)}`;
+        window.location.href = `@/pages/account.html?region=${encodeURIComponent(selectedRegion)}&gameName=${encodeURIComponent(gameName)}&tagLine=${encodeURIComponent(tagLine)}`;
     });
 });
