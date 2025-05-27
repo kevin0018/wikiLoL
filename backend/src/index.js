@@ -5,7 +5,7 @@ import routes from './interfaces/routes.js';
 import assetsProxy from "./proxy/infra/RiotAssetsProxy.js";
 
 // Load environment variables
-await process.loadEnvFile();
+// await process.loadEnvFile();
 
 // Import the routes
 const app = express();
