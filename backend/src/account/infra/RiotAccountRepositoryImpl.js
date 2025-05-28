@@ -1,4 +1,3 @@
-// src/account/infra/RiotAccountRepositoryImpl.js
 import { AccountRank } from '../domain/model/AccountRank.js';
 import { ChampionMastery } from '../domain/model/ChampionMastery.js';
 
@@ -15,7 +14,6 @@ const riotRegionMap = {
 	OCE: "oc1.api.riotgames.com",
 	TR: "tr1.api.riotgames.com",
 	RU: "ru.api.riotgames.com",
-	// Add other regions as necessary
 };
 
 // Riot API regional routing for broader endpoints
@@ -28,18 +26,16 @@ const regionalRouting = {
 	KR: "asia.api.riotgames.com",
 	JP: "asia.api.riotgames.com",
 	BR: "americas.api.riotgames.com",
-	OCE: "sea.api.riotgames.com", // Note: OCE uses 'sea' for some v5 endpoints
+	OCE: "sea.api.riotgames.com",
 	TR: "europe.api.riotgames.com",
 	RU: "europe.api.riotgames.com",
-	// Add other regional routing if necessary
 };
 
 export class RiotAccountRepositoryImpl {
 
-	async getByRiotId(gameName, tagLine, regionCode = 'EUW') { // Added regionCode for determining routing
-		// Determine the regional routing URL based on a provided regionCode or default
+	async getByRiotId(gameName, tagLine, regionCode = 'EUW') {
 		const platformRegion = regionCode.toUpperCase();
-		const baseUrl = regionalRouting[platformRegion] || regionalRouting.EUW; // Fallback to EUW if region not mapped
+		const baseUrl = regionalRouting[platformRegion] || regionalRouting.EUW;
 
 		const url = `https://${baseUrl}/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`;
 		const response = await fetch(url, {
@@ -107,10 +103,10 @@ export class RiotAccountRepositoryImpl {
 		}
 		const data = await response.json();
 		return {
-			summonerId: data.id, // This is the encrypted summoner ID
+			summonerId: data.id,
 			profileIconId: data.profileIconId,
 			summonerLevel: data.summonerLevel,
-			name: data.name // This is the summoner name (in-game name)
+			name: data.name
 		};
 	}
 
