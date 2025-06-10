@@ -225,7 +225,7 @@ function createScrollToTopButton() {
         bg-violet-600 hover:bg-violet-700 text-white
         rounded-full shadow-lg
         w-12 h-12 flex items-center justify-center
-        transition-colors
+        transition-all duration-300 ease-in-out
         focus:outline-none
     `;
 	btn.innerHTML = `
@@ -243,6 +243,8 @@ function createScrollToTopButton() {
 		}
 	});
 	document.body.appendChild(btn);
+
+	window.scrollToTopBtn = btn;
 }
 
 /**
@@ -431,11 +433,21 @@ function createFilterSidebar() {
 		});
 		sidebar.classList.remove("translate-x-full");
 		isSidebarOpen = true;
+
+		// Move scroll to top button to the left when sidebar is open
+		if (window.scrollToTopBtn) {
+		    window.scrollToTopBtn.style.right = "calc(264px + 2rem)";
+		}
 	}
 
 	function closeSidebar() {
 		sidebar.classList.add("translate-x-full");
 		isSidebarOpen = false;
+
+		// Move scroll to top button back to original position
+		if (window.scrollToTopBtn) {
+		    window.scrollToTopBtn.style.right = "2rem";
+		}
 	}
 
 	filterBtn.addEventListener("click", () => {
