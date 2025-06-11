@@ -122,9 +122,10 @@ document.addEventListener("DOMContentLoaded", async function () {
 /**
  * Renders champions in the grid
  * @param {Array} champions - Array of champions to display
- * @param {String} filterLetter - Letter being filtered (optional)
+ * @param {String} filterLetter - Letter being filtered
+ * @param {String} filterRole - Role being filtered
  */
-function renderChampions(champions, filterLetter = null) {
+function renderChampions(champions, filterLetter = null, filterRole = null) {
     const gridContainer = document.getElementById("champions-grid");
 
     // Clear container
@@ -141,18 +142,37 @@ function renderChampions(champions, filterLetter = null) {
         return;
     }
 
-    // If there's a filter letter, show header
-    if (filterLetter) {
-        const letterHeader = document.createElement("div");
-        letterHeader.className = "col-span-full flex flex-col mt-2 mb-4";
-        const letterTitle = document.createElement("h2");
-        letterTitle.textContent = filterLetter;
-        letterTitle.className = "text-2xl md:text-3xl font-bold text-white mb-1 px-2";
+    // Role translations for display
+    const roleTranslations = {
+        "Fighter": "Luchadores",
+        "Tank": "Tanques",
+        "Mage": "Magos",
+        "Assassin": "Asesinos",
+        "Support": "Soportes",
+        "Marksman": "Tiradores"
+    };
+
+    // If there's a filter letter or role, show header
+    if (filterLetter || filterRole) {
+        const header = document.createElement("div");
+        header.className = "col-span-full flex flex-col mt-2 mb-4";
+
+        const title = document.createElement("h2");
+
+        if (filterLetter) {
+            title.textContent = filterLetter;
+        } else if (filterRole) {
+            title.textContent = roleTranslations[filterRole] || filterRole;
+        }
+
+        title.className = "text-2xl md:text-3xl font-bold text-white mb-1 px-2";
+
         const divider = document.createElement("hr");
         divider.className = "border-violet-700 mb-2 mx-2";
-        letterHeader.appendChild(letterTitle);
-        letterHeader.appendChild(divider);
-        gridContainer.appendChild(letterHeader);
+
+        header.appendChild(title);
+        header.appendChild(divider);
+        gridContainer.appendChild(header);
     }
 
     // Render each champion
@@ -174,7 +194,6 @@ function renderChampions(champions, filterLetter = null) {
         const name = document.createElement("span");
         name.textContent = champion.name;
         name.className = "text-base sm:text-lg text-white font-semibold text-center mb-2";
-
         const lore = document.createElement("p");
         lore.textContent = champion.lore;
         lore.className = "text-xs text-neutral-300 text-center mb-4 line-clamp-3";
@@ -185,7 +204,7 @@ function renderChampions(champions, filterLetter = null) {
         moreBtn.className = "bg-violet-600 hover:bg-violet-700 text-white font-bold py-1 px-4 rounded transition-colors mt-auto inline-block text-center";
 
         card.appendChild(img);
-        card.appendChild(name);
+        if (!card.contains(name)) card.appendChild(name);
         card.appendChild(lore);
         card.appendChild(moreBtn);
         gridContainer.appendChild(card);
@@ -263,7 +282,6 @@ function createFilterSidebar() {
         transition-colors
         focus:outline-none
     `;
-	// Using funnel/filter icon
 	filterBtn.innerHTML = `
         <svg xmlns='http://www.w3.org/2000/svg' class='w-6 h-6' fill='none' viewBox='0 0 24 24' stroke='currentColor'>
           <path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z'/>
@@ -280,6 +298,7 @@ function createFilterSidebar() {
         flex flex-col
         p-6
         backdrop-blur-md
+        overflow-y-auto
     `;
 
 	// Title and close button
@@ -349,6 +368,57 @@ function createFilterSidebar() {
 	});
 
 	sidebar.appendChild(searchContainer);
+
+    // Filter by role section
+    const roleSection = document.createElement("div");
+    roleSection.className = "mb-6";
+
+    const roleLabel = document.createElement("p");
+    roleLabel.className = "text-sm text-neutral-400 mb-2";
+    roleLabel.textContent = "Filtrar por rol:";
+
+    roleSection.appendChild(roleLabel);
+
+    // Roles container
+    const rolesContainer = document.createElement("div");
+    rolesContainer.className = "flex flex-col gap-2";
+
+    // Define roles with Spanish translations
+    const roleTranslations = {
+        "Fighter": "Luchador",
+        "Tank": "Tanque",
+        "Mage": "Mago",
+        "Assassin": "Asesino",
+        "Support": "Soporte",
+        "Marksman": "Tirador"
+    };
+
+    // Create role selector
+    const availableRoles = Object.keys(roleTranslations);
+    availableRoles.forEach(role => {
+        const roleButton = document.createElement("button");
+        roleButton.textContent = roleTranslations[role];
+        roleButton.dataset.role = role;
+        roleButton.className = `
+            text-left text-white bg-neutral-800 hover:bg-violet-700
+            py-2 px-3 rounded-lg
+            transition-colors font-medium
+        `;
+
+        roleButton.addEventListener("click", () => {
+            // Filter champions by role
+            const filtered = window.allChampions.filter(champ =>
+                champ.roles && champ.roles.includes(role)
+            );
+            renderChampions(filtered, null, role);
+            closeSidebar();
+        });
+
+        rolesContainer.appendChild(roleButton);
+    });
+
+    roleSection.appendChild(rolesContainer);
+    sidebar.appendChild(roleSection);
 
 	// Filter by letter section
 	const letterSection = document.createElement("div");
