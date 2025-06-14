@@ -16,32 +16,51 @@ const $profileCardContainer = document.getElementById("profile-card-container");
 const $masteryContainer = document.getElementById("mastery-container");
 const $mostPlayedContainer = document.getElementById("mostplayed-container");
 
-// Util function to get query params
+/**
+ * Gets URL query parameter value
+ * @param {string} param - Parameter name to retrieve
+ * @returns {string} - Parameter value or empty string if not found
+ */
 function getQueryParam(param) {
 	const params = new URLSearchParams(window.location.search);
 	return params.get(param) || "";
 }
 
+/**
+ * Renders loading state in a container
+ * @param {HTMLElement} container - Element where loading state will be shown
+ * @param {string} msg - Loading message to display
+ */
 function renderLoading(container, msg = "Cargando...") {
 	container.innerHTML = `<div class='animate-pulse text-gray-400 text-center py-8'>${msg}</div>`;
 }
 
+/**
+ * Renders error state in a container
+ * @param {HTMLElement} container - Element where error state will be shown
+ * @param {string} msg - Error message to display
+ */
 function renderError(container, msg) {
 	container.innerHTML = `<div class='text-red-600 p-2 text-center'>${msg}</div>`;
 }
 
-// Main load function
+/**
+ * Main function to load and display account page data
+ * Follows clean architecture principles separating data fetching from rendering
+ */
 async function loadAccountPage() {
 	const gameName = getQueryParam("gameName");
 	const tagLine = getQueryParam("tagLine");
 	const region = getQueryParam("region");
 
+	// Show loading states for all UI components
 	renderLoading($profileCardContainer, "Cargando perfil...");
 	renderLoading($rankSoloQ, "Cargando rango SoloQ...");
 	renderLoading($rankFlexQ, "Cargando rango FlexQ...");
 	renderLoading($masteryContainer, "Cargando maestrías...");
 	renderLoading($mostPlayedContainer, "Cargando campeones más jugados...");
 
+	// Early return if required query parameters are missing
 	if (!gameName || !tagLine || !region) {
 		const err = "Faltan datos del usuario.";
 		renderError($profileCardContainer, err);
@@ -71,22 +90,33 @@ async function loadAccountPage() {
 			() => window.location.reload()
 		);
 
-		// Fetch and render rank info
+		// Fetch rank info
 		const ranks = await fetchRank(profile.summonerId, region);
-		const soloQ = ranks.find(q => q.queueType === "RANKED_SOLO_5x5");
-		const flexQ = ranks.find(q => q.queueType === "RANKED_FLEX_SR");
 
-		if (soloQ) {
-			renderAccountRank({...soloQ, account: profile}, $rankSoloQ);
-		} else {
-			renderError($rankSoloQ, "No se encontró rango SoloQ.");
-		}
+		// Find rank data for each queue type
+		const soloQ = ranks.find(q => q.queueType === "RANKED_SOLO_5x5") || {
+			queueType: "RANKED_SOLO_5x5",
+			tier: "UNRANKED",
+			rank: "",
+			leaguePoints: 0,
+			wins: 0,
+			losses: 0,
+			rankIconUrl: "/api/assets/ranked/unranked.png"
+		};
 
-		if (flexQ) {
-			renderAccountRank({...flexQ, account: profile}, $rankFlexQ);
-		} else {
-			renderError($rankFlexQ, "No se encontró rango FlexQ.");
-		}
+		const flexQ = ranks.find(q => q.queueType === "RANKED_FLEX_SR") || {
+			queueType: "RANKED_FLEX_SR",
+			tier: "UNRANKED",
+			rank: "",
+			leaguePoints: 0,
+			wins: 0,
+			losses: 0,
+			rankIconUrl: "/api/assets/ranked/unranked.png"
+		};
+
+		// Render rank cards
+		renderAccountRank({...soloQ, account: profile}, $rankSoloQ);
+		renderAccountRank({...flexQ, account: profile}, $rankFlexQ);
 
 		// Fetch and render champion mastery
 		const masteryList = await fetchChampionMastery(profile.puuid, region);
@@ -114,4 +144,5 @@ async function loadAccountPage() {
 	}
 }
 
+// Initialize page when DOM is fully loaded
 document.addEventListener("DOMContentLoaded", loadAccountPage);
