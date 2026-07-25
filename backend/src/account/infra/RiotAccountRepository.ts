@@ -50,7 +50,7 @@ const riotAccountSchema = z.object({
 });
 
 const summonerSchema = z.object({
-  id: z.string(),
+  puuid: z.string(),
   profileIconId: z.number(),
   summonerLevel: z.number(),
 });
@@ -116,17 +116,16 @@ export class RiotAccountRepository implements AccountRepository {
       gameName: account.gameName,
       tagLine: account.tagLine,
       puuid: account.puuid,
-      summonerId: summoner.id,
       summonerLevel: summoner.summonerLevel,
       region: region.value,
       iconUrl: `/api/assets/profile-icon/${summoner.profileIconId}.png`,
     };
   }
 
-  async getRanks(summonerId: string, region: Region): Promise<AccountRank[]> {
+  async getRanks(puuid: string, region: Region): Promise<AccountRank[]> {
     const ranks = await this.riotFetch(
       platformHosts[region.value],
-      `/lol/league/v4/entries/by-summoner/${encodeURIComponent(summonerId)}`,
+      `/lol/league/v4/entries/by-puuid/${encodeURIComponent(puuid)}`,
       z.array(rankSchema),
     );
 

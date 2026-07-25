@@ -5,48 +5,35 @@ const queueNames: Record<string, string> = {
   RANKED_FLEX_SR: "Flexible",
 };
 
-const unranked: Omit<AccountRank, "queueType"> = {
-  tier: "UNRANKED",
-  rank: "",
-  leaguePoints: 0,
-  wins: 0,
-  losses: 0,
-  rankIconUrl: "/api/assets/ranked/unranked.png",
-};
-
 export function RankCard({
   rank,
   queueType,
 }: {
-  rank: AccountRank | undefined;
+  rank: AccountRank;
   queueType: string;
 }) {
-  const data: AccountRank = rank ?? { ...unranked, queueType };
-  const games = data.wins + data.losses;
-  const winRate = games ? Math.round((data.wins / games) * 100) : 0;
-  const tier =
-    data.tier === "UNRANKED"
-      ? "Sin clasificar"
-      : `${titleCase(data.tier)} ${data.rank}`;
+  const games = rank.wins + rank.losses;
+  const winRate = games ? Math.round((rank.wins / games) * 100) : 0;
+  const tier = `${titleCase(rank.tier)} ${rank.rank}`;
 
   return (
     <article className="rank-card">
       <div className="rank-icon">
-        <img src={data.rankIconUrl} alt="" />
+        <img src={rank.rankIconUrl} alt="" />
       </div>
       <div className="rank-copy">
         <span className="utility-label">{queueNames[queueType]}</span>
         <h3>{tier}</h3>
-        <p>{data.tier === "UNRANKED" ? "Sin partidas" : `${data.leaguePoints} LP`}</p>
+        <p>{rank.leaguePoints} LP</p>
       </div>
       <dl>
         <div>
           <dt>Victorias</dt>
-          <dd>{data.wins}</dd>
+          <dd>{rank.wins}</dd>
         </div>
         <div>
           <dt>Derrotas</dt>
-          <dd>{data.losses}</dd>
+          <dd>{rank.losses}</dd>
         </div>
         <div>
           <dt>Win rate</dt>

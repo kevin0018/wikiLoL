@@ -4,7 +4,6 @@ export interface AccountProfile {
   gameName: string;
   tagLine: string;
   puuid: string;
-  summonerId: string;
   summonerLevel: number;
   region: RegionCode;
   iconUrl: string;

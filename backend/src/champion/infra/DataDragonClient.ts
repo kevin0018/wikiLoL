@@ -13,6 +13,7 @@ interface DataDragonImage {
 interface DataDragonSkin {
   num: number;
   name: string;
+  parentSkin?: number | string;
 }
 
 interface DataDragonChampion {
@@ -35,6 +36,10 @@ const VERSIONS_URL =
   "https://ddragon.leagueoflegends.com/api/versions.json";
 const DATA_DRAGON_URL = "https://ddragon.leagueoflegends.com/cdn";
 const CACHE_TTL_MS = 60 * 60 * 1000;
+
+function isChroma(skin: DataDragonSkin): boolean {
+  return skin.parentSkin !== undefined;
+}
 
 export class DataDragonClient implements ChampionRepository {
   private versionCache?: { value: string; expiresAt: number };
@@ -87,11 +92,13 @@ export class DataDragonClient implements ChampionRepository {
     if (!champion) {
       throw new Error("Campeón no encontrado.");
     }
+    const skins = champion.skins ?? [];
 
     return {
       ...this.toSummary(champion),
       lore: champion.lore ?? champion.blurb,
-      skins: (champion.skins ?? [])
+      skins: skins
+        .filter((skin) => !isChroma(skin))
         .sort((left, right) => left.num - right.num)
         .map((skin) => ({
           num: skin.num,

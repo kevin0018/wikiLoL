@@ -44,7 +44,7 @@ const getChampionData = new GetChampionDataHandler(dataDragonClient);
 const getChampionById = new GetChampionByIdHandler(dataDragonClient);
 
 const rankQuerySchema = z.object({
-  summonerId: z.string().min(1),
+  puuid: z.string().min(1),
   region: regionSchema,
 });
 
@@ -87,7 +87,7 @@ apiRouter.get("/account/rank", async (request, response) => {
   response.json(
     await getAccountRank.execute(
       new GetAccountRankQuery(
-        query.summonerId,
+        query.puuid,
         Region.from(query.region),
       ),
     ),

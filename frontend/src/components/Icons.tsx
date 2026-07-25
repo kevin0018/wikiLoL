@@ -77,3 +77,27 @@ export function RefreshIcon(props: IconProps) {
     </svg>
   );
 }
+
+export function ExpandIcon(props: IconProps) {
+  return (
+    <svg {...defaults} {...props}>
+      <path
+        d="m15 9 6-6m0 0h-6m6 0v6M9 15l-6 6m0 0h6m-6 0v-6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+export function DownloadIcon(props: IconProps) {
+  return (
+    <svg {...defaults} {...props}>
+      <path
+        d="M12 3v12m-4-4 4 4 4-4M5 20h14"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}

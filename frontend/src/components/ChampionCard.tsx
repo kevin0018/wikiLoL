@@ -20,10 +20,21 @@ export function ChampionCard({
       transition={{ delay: Math.min(index, 12) * 0.025, duration: 0.3 }}
       whileHover={{ y: -5 }}
     >
-      <Link to={`/champions/${champion.id}`} aria-label={`Ver a ${champion.name}`}>
-        <div className="champion-portrait">
-          <img src={champion.imageUrl} alt="" loading="lazy" />
-          <span>{champion.roles[0]}</span>
+      <Link
+        to={`/champions/${champion.id}`}
+        state={{ fromChampionArchive: true }}
+        aria-label={`Ver a ${champion.name}`}
+      >
+        <div className="champion-card-head">
+          <div className="champion-portrait">
+            <img src={champion.imageUrl} alt="" loading="lazy" />
+          </div>
+          <div className="champion-card-identity">
+            <small>Clase</small>
+            <span className="champion-role">
+              {champion.roles.join(" / ")}
+            </span>
+          </div>
         </div>
         <div className="champion-card-copy">
           <small>{champion.title}</small>

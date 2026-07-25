@@ -14,7 +14,7 @@ export interface AccountRepository {
     tagLine: string,
     region: Region,
   ): Promise<AccountProfile>;
-  getRanks(summonerId: string, region: Region): Promise<AccountRank[]>;
+  getRanks(puuid: string, region: Region): Promise<AccountRank[]>;
   getMastery(
     puuid: string,
     region: Region,

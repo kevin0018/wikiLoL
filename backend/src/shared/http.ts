@@ -1,4 +1,4 @@
-import type { ZodType } from "zod";
+import { ZodError, type ZodType } from "zod";
 
 export async function fetchJson<T>(
   url: string,
@@ -13,7 +13,18 @@ export async function fetchJson<T>(
   }
 
   const payload: unknown = await response.json();
-  return schema ? schema.parse(payload) : (payload as T);
+  if (!schema) {
+    return payload as T;
+  }
+
+  try {
+    return schema.parse(payload);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new UpstreamPayloadError(error);
+    }
+    throw error;
+  }
 }
 
 export class UpstreamError extends Error {
@@ -22,6 +33,12 @@ export class UpstreamError extends Error {
     public readonly detail: string,
   ) {
     super(`Upstream request failed with status ${status}`);
+  }
+}
+
+export class UpstreamPayloadError extends Error {
+  constructor(public readonly cause: ZodError) {
+    super("Upstream response did not match the expected schema");
   }
 }
 

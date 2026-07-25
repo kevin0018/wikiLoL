@@ -68,7 +68,6 @@ export const accountProfileSchema = z.object({
   gameName: z.string(),
   tagLine: z.string(),
   puuid: z.string(),
-  summonerId: z.string(),
   summonerLevel: z.number().int().nonnegative(),
   region: regionSchema,
   iconUrl: z.string(),

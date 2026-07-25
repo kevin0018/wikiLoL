@@ -8,6 +8,6 @@ export class GetAccountRankHandler {
   ) {}
 
   execute(query: GetAccountRankQuery): Promise<AccountRank[]> {
-    return this.repository.getRanks(query.summonerId, query.region);
+    return this.repository.getRanks(query.puuid, query.region);
   }
 }

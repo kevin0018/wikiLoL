@@ -24,8 +24,8 @@ export function AccountPage() {
     enabled: Boolean(lookup),
   });
   const ranks = useQuery({
-    queryKey: ["ranks", profile.data?.summonerId, lookup?.region],
-    queryFn: () => api.ranks(profile.data!.summonerId, lookup!.region),
+    queryKey: ["ranks", profile.data?.puuid, lookup?.region],
+    queryFn: () => api.ranks(profile.data!.puuid, lookup!.region),
     enabled: Boolean(profile.data && lookup),
   });
   const mastery = useQuery({
@@ -83,6 +83,10 @@ export function AccountPage() {
   const flexRank = ranks.data?.find(
     (rank) => rank.queueType === "RANKED_FLEX_SR",
   );
+  const visibleRanks = [
+    soloRank && { rank: soloRank, queueType: "RANKED_SOLO_5x5" },
+    flexRank && { rank: flexRank, queueType: "RANKED_FLEX_SR" },
+  ].filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
 
   return (
     <PageTransition className="account-page">
@@ -129,10 +133,24 @@ export function AccountPage() {
             <LoadingState label="Consultando ligas" />
           ) : ranks.isError ? (
             <ErrorState message={ranks.error.message} />
+          ) : visibleRanks.length === 0 ? (
+            <div className="rank-empty-state">
+              <span className="utility-label">SIN ACTIVIDAD CLASIFICATORIA</span>
+              <h3>Sin rango esta temporada</h3>
+              <p>
+                Este jugador todavía no ha disputado clasificatorias en la
+                temporada actual.
+              </p>
+            </div>
           ) : (
             <div className="rank-grid">
-              <RankCard rank={soloRank} queueType="RANKED_SOLO_5x5" />
-              <RankCard rank={flexRank} queueType="RANKED_FLEX_SR" />
+              {visibleRanks.map(({ rank, queueType }) => (
+                <RankCard
+                  key={queueType}
+                  rank={rank}
+                  queueType={queueType}
+                />
+              ))}
             </div>
           )}
         </section>

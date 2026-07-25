@@ -18,7 +18,6 @@ describe("account query handlers", () => {
       gameName: "Faker",
       tagLine: "KR1",
       puuid: "puuid",
-      summonerId: "summoner",
       summonerLevel: 500,
       region: "KR" as const,
       iconUrl: "/api/assets/profile-icon/1.png",
@@ -40,7 +39,7 @@ describe("account query handlers", () => {
     const region = Region.from("EUW");
 
     await new GetAccountRankHandler({ getRanks }).execute(
-      new GetAccountRankQuery("summoner", region),
+      new GetAccountRankQuery("puuid", region),
     );
     await new GetChampionMasteryHandler({ getMastery }).execute(
       new GetChampionMasteryQuery("puuid", region, 6),
@@ -49,7 +48,7 @@ describe("account query handlers", () => {
       new GetMostPlayedChampionQuery("puuid", region, 30, 5),
     );
 
-    expect(getRanks).toHaveBeenCalledWith("summoner", region);
+    expect(getRanks).toHaveBeenCalledWith("puuid", region);
     expect(getMastery).toHaveBeenCalledWith("puuid", region, 6);
     expect(getMostPlayed).toHaveBeenCalledWith("puuid", region, 30, 5);
   });

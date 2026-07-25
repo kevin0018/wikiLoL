@@ -1,0 +1,23 @@
+{
+  "scannedAt": "2026-07-26",
+  "framework": "React 19 + Vite 7 + TypeScript",
+  "fonts": [
+    "Marcellus",
+    "Manrope",
+    "IBM Plex Mono"
+  ],
+  "palette": "Existing dark hextech custom properties in frontend/src/styles/styles.css",
+  "motion": "motion/react enabled",
+  "spacing": "Existing fluid rem and clamp scale",
+  "preserve": [
+    "font stack",
+    "palette",
+    "spacing",
+    "motion stance"
+  ],
+  "signals": [
+    "frontend/package.json",
+    "frontend/src/styles/styles.css",
+    "frontend/index.html"
+  ]
+}

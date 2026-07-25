@@ -7,7 +7,11 @@ import express, {
 import { ZodError } from "zod";
 import { apiRouter } from "./interfaces/routes.js";
 import { assetsRouter } from "./proxy/infra/RiotAssetsProxy.js";
-import { errorMessage, UpstreamError } from "./shared/http.js";
+import {
+  errorMessage,
+  UpstreamError,
+  UpstreamPayloadError,
+} from "./shared/http.js";
 
 try {
   process.loadEnvFile();
@@ -48,8 +52,13 @@ const errorHandler: ErrorRequestHandler = (
     return;
   }
 
-  if (error instanceof UpstreamError) {
-    response.status(error.status === 404 ? 404 : 502).json({
+  if (error instanceof UpstreamError || error instanceof UpstreamPayloadError) {
+    if (error instanceof UpstreamPayloadError) {
+      console.error("Riot devolvió una respuesta inesperada", error.cause.issues);
+    }
+    const status =
+      error instanceof UpstreamError && error.status === 404 ? 404 : 502;
+    response.status(status).json({
       error: "Riot no ha podido completar la solicitud.",
     });
     return;

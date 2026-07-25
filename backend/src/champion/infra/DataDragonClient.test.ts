@@ -41,4 +41,100 @@ describe("DataDragonClient", () => {
     });
     expect(result.data[0]?.imageUrl).not.toContain("26.14.1");
   });
+
+  it("excluye los chromas que Data Dragon mezcla con las skins", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(["26.14.1"]), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: {
+              Akali: {
+                id: "Akali",
+                key: "84",
+                name: "Akali",
+                title: "la Asesina Furtiva",
+                tags: ["Assassin"],
+                blurb: "Akali combate sola.",
+                lore: "Akali ha renunciado a la orden Kinkou.",
+                image: { full: "Akali.png" },
+                skins: [
+                  { num: 0, name: "default" },
+                  { num: 14, name: "PROYECTO: Akali" },
+                  {
+                    num: 16,
+                    name: "Proyecto: Akali (rubí)",
+                    parentSkin: 14,
+                  },
+                  {
+                    num: 17,
+                    name: "PROYECTO: Akali (turquesa)",
+                    parentSkin: 14,
+                  },
+                  { num: 82, name: "Akali empírea" },
+                ],
+              },
+            },
+          }),
+          { status: 200 },
+        ),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await new DataDragonClient().getChampion("Akali", "es_ES");
+
+    expect(result.skins.map((skin) => skin.name)).toEqual([
+      "Aspecto original",
+      "PROYECTO: Akali",
+      "Akali empírea",
+    ]);
+  });
+
+  it("excluye los chromas mediante parentSkin aunque parezcan una skin", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(["26.14.1"]), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: {
+              LeeSin: {
+                id: "LeeSin",
+                key: "64",
+                name: "Lee Sin",
+                title: "el Monje Ciego",
+                tags: ["Fighter"],
+                blurb: "Lee Sin domina antiguas artes marciales.",
+                image: { full: "LeeSin.png" },
+                skins: [
+                  { num: 0, name: "default" },
+                  { num: 4, name: "Lee Sin puño de dragón" },
+                  {
+                    num: 5,
+                    name: "Lee Sin puño de dragón - Duelo oscuro",
+                    parentSkin: 4,
+                  },
+                  { num: 6, name: "Lee Sin noqueador" },
+                ],
+              },
+            },
+          }),
+          { status: 200 },
+        ),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await new DataDragonClient().getChampion("LeeSin", "es_ES");
+
+    expect(result.skins.map((skin) => skin.name)).toEqual([
+      "Aspecto original",
+      "Lee Sin puño de dragón",
+      "Lee Sin noqueador",
+    ]);
+  });
 });

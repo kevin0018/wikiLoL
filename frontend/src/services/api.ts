@@ -48,9 +48,9 @@ export const api = {
       `/api/account/profile?${params(lookup)}`,
       accountProfileSchema,
     ),
-  ranks: (summonerId: string, region: string) =>
+  ranks: (puuid: string, region: string) =>
     request(
-      `/api/account/rank?${params({ summonerId, region })}`,
+      `/api/account/rank?${params({ puuid, region })}`,
       z.array(accountRankSchema),
     ),
   mastery: (puuid: string, region: string) =>
