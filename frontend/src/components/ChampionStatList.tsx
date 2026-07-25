@@ -9,10 +9,12 @@ export function ChampionStatList({
   title,
   label,
   champions,
+  emptyMessage = "Todavía no hay datos suficientes.",
 }: {
   title: string;
   label: string;
   champions: ChampionStat[];
+  emptyMessage?: string;
 }) {
   return (
     <section className="champion-stat-panel">
@@ -32,7 +34,7 @@ export function ChampionStatList({
           ))}
         </ol>
       ) : (
-        <p className="panel-empty">Todavía no hay datos suficientes.</p>
+        <p className="panel-empty">{emptyMessage}</p>
       )}
     </section>
   );

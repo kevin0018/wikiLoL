@@ -22,7 +22,7 @@ export function RankCard({
         <img src={rank.rankIconUrl} alt="" />
       </div>
       <div className="rank-copy">
-        <span className="utility-label">{queueNames[queueType]}</span>
+        <span className="rank-queue-name">{queueNames[queueType]}</span>
         <h3>{tier}</h3>
         <p>{rank.leaguePoints} LP</p>
       </div>

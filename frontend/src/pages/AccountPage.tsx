@@ -126,8 +126,16 @@ export function AccountPage() {
       <div className="account-layout">
         <section className="rank-section">
           <header>
-            <span className="utility-label">TEMPORADA ACTUAL</span>
-            <h2>Clasificación</h2>
+            <div>
+              <span className="utility-label">TEMPORADA ACTUAL</span>
+              <h2>Clasificación</h2>
+            </div>
+            {!ranks.isPending && !ranks.isError && visibleRanks.length > 0 && (
+              <span className="rank-queue-count">
+                {visibleRanks.length}{" "}
+                {visibleRanks.length === 1 ? "cola activa" : "colas activas"}
+              </span>
+            )}
           </header>
           {ranks.isPending ? (
             <LoadingState label="Consultando ligas" />
@@ -164,6 +172,7 @@ export function AccountPage() {
             <ChampionStatList
               label="EXPERIENCIA TOTAL"
               title="Maestrías"
+              emptyMessage="Este jugador todavía no tiene maestrías registradas."
               champions={(mastery.data ?? []).map((champion) => ({
                 ...champion,
                 value: `${champion.masteryPoints.toLocaleString()} pts`,
@@ -178,6 +187,7 @@ export function AccountPage() {
             <ChampionStatList
               label="ÚLTIMAS 20 PARTIDAS"
               title="Más jugados"
+              emptyMessage="No hay partidas disponibles en el historial reciente."
               champions={(mostPlayed.data ?? []).map((champion) => ({
                 ...champion,
                 value: `${champion.gamesPlayed} partidas`,

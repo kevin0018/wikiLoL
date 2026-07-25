@@ -93,7 +93,23 @@ const challengerSchema = z.object({
   ),
 });
 
+type RiotAccount = z.infer<typeof riotAccountSchema>;
+
+const ACCOUNT_CACHE_TTL_MS = 15 * 60 * 1000;
+const MATCH_BATCH_SIZE = 8;
+const MATCH_BATCH_PAUSE_MS = 1000;
+
+function wait(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
 export class RiotAccountRepository implements AccountRepository {
+  private readonly accountCache = new Map<
+    string,
+    { value: RiotAccount; expiresAt: number }
+  >();
+  private readonly accountRequests = new Map<string, Promise<RiotAccount>>();
+
   constructor(private readonly dataDragon: DataDragonClient = dataDragonClient) {}
 
   async getProfile(
@@ -172,15 +188,23 @@ export class RiotAccountRepository implements AccountRepository {
       `/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids?start=0&count=${matchCount}`,
       z.array(z.string()),
     );
-    const matches = await Promise.all(
-      matchIds.map((matchId) =>
-        this.riotFetch(
-          regionalHosts[region.value],
-          `/lol/match/v5/matches/${encodeURIComponent(matchId)}`,
-          matchSchema,
+    const matches: z.infer<typeof matchSchema>[] = [];
+    for (let index = 0; index < matchIds.length; index += MATCH_BATCH_SIZE) {
+      if (index > 0) {
+        await wait(MATCH_BATCH_PAUSE_MS);
+      }
+
+      const batch = await Promise.all(
+        matchIds.slice(index, index + MATCH_BATCH_SIZE).map((matchId) =>
+          this.riotFetch(
+            regionalHosts[region.value],
+            `/lol/match/v5/matches/${encodeURIComponent(matchId)}`,
+            matchSchema,
+          ),
         ),
-      ),
-    );
+      );
+      matches.push(...batch);
+    }
     const championCounts = new Map<number, number>();
 
     for (const match of matches) {
@@ -227,11 +251,7 @@ export class RiotAccountRepository implements AccountRepository {
     return Promise.all(
       league.entries.slice(0, count).map(async (entry) => {
         try {
-          const account = await this.riotFetch(
-            regionalHosts[region.value],
-            `/riot/account/v1/accounts/by-puuid/${entry.puuid}`,
-            riotAccountSchema,
-          );
+          const account = await this.getAccountByPuuid(entry.puuid, region);
           return {
             puuid: entry.puuid,
             leaguePoints: entry.leaguePoints,
@@ -254,6 +274,41 @@ export class RiotAccountRepository implements AccountRepository {
         }
       }),
     );
+  }
+
+  private getAccountByPuuid(
+    puuid: string,
+    region: Region,
+  ): Promise<RiotAccount> {
+    const cacheKey = `${region.value}:${puuid}`;
+    const cached = this.accountCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+      return Promise.resolve(cached.value);
+    }
+
+    const pending = this.accountRequests.get(cacheKey);
+    if (pending) {
+      return pending;
+    }
+
+    const request = this.riotFetch(
+      regionalHosts[region.value],
+      `/riot/account/v1/accounts/by-puuid/${encodeURIComponent(puuid)}`,
+      riotAccountSchema,
+    )
+      .then((account) => {
+        this.accountCache.set(cacheKey, {
+          value: account,
+          expiresAt: Date.now() + ACCOUNT_CACHE_TTL_MS,
+        });
+        return account;
+      })
+      .finally(() => {
+        this.accountRequests.delete(cacheKey);
+      });
+
+    this.accountRequests.set(cacheKey, request);
+    return request;
   }
 
   private riotFetch<T>(

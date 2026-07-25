@@ -11,6 +11,12 @@ export function HomePage() {
   const ladder = useQuery({
     queryKey: ["challenger", "EUW"],
     queryFn: () => api.challenger("EUW"),
+    refetchInterval: (query) =>
+      query.state.data?.some(
+        (player) => !player.gameName || !player.tagLine,
+      )
+        ? 30_000
+        : false,
   });
 
   return (

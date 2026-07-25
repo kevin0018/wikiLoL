@@ -85,14 +85,37 @@ export function ChampionPage() {
     if (!isViewerOpen) {
       return;
     }
-    const activeThumbnail = viewerStripRef.current?.querySelector(
+    const strip = viewerStripRef.current;
+    const activeThumbnail = strip?.querySelector<HTMLElement>(
       `[data-skin-index="${skinIndex}"]`,
     );
-    activeThumbnail?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-      inline: "center",
-    });
+    if (
+      !strip ||
+      !activeThumbnail ||
+      strip.scrollWidth <= strip.clientWidth
+    ) {
+      return;
+    }
+
+    const stripBounds = strip.getBoundingClientRect();
+    const thumbnailBounds = activeThumbnail.getBoundingClientRect();
+    const edgeBuffer = Math.min(
+      thumbnailBounds.width * 1.4,
+      stripBounds.width * 0.24,
+    );
+    const safeLeft = stripBounds.left + edgeBuffer;
+    const safeRight = stripBounds.right - edgeBuffer;
+    let scrollDelta = 0;
+
+    if (thumbnailBounds.left < safeLeft) {
+      scrollDelta = thumbnailBounds.left - safeLeft;
+    } else if (thumbnailBounds.right > safeRight) {
+      scrollDelta = thumbnailBounds.right - safeRight;
+    }
+
+    if (Math.abs(scrollDelta) > 1) {
+      strip.scrollBy({ left: scrollDelta, behavior: "smooth" });
+    }
   }, [isViewerOpen, skinIndex]);
 
   if (champion.isPending) {
