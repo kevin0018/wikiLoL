@@ -1,0 +1,17 @@
+{
+  "name": "wikilol",
+  "version": "2.0.0",
+  "private": true,
+  "packageManager": "pnpm@10.10.0",
+  "scripts": {
+    "dev": "pnpm --parallel --filter backend --filter frontend dev",
+    "build": "pnpm --filter @wikilol/contracts build && pnpm --filter backend build && pnpm --filter frontend build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm --filter backend test && pnpm --filter frontend test"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

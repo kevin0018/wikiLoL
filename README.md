@@ -1,194 +1,107 @@
-# wikiLOL
+# wikiLoL
 
-## Créditos y aviso legal
+Aplicación full stack para consultar perfiles, rangos, maestrías y campeones de
+League of Legends.
 
-- **League of Legends**, sus personajes, imágenes y datos relacionados son propiedad de **Riot Games, Inc.**
-- **wikiLoL** no está afiliado, respaldado ni patrocinado por Riot Games, Inc.
-- Todos los assets (iconos, imágenes de campeones, skins, rangos, etc.) y datos utilizados en este proyecto son propiedad de Riot Games, Inc. y se usan bajo los términos y condiciones de la [Riot Games Developer Portal](https://developer.riotgames.com/).
-- Esta aplicación es un proyecto personal, educativo y de portfolio, sin fines comerciales ni monetización de ningún tipo.
-- Si eres parte del equipo de Riot y necesitas que algún contenido sea retirado, por favor contáctame y lo haré de inmediato.
+El navegador nunca contacta directamente con Riot ni conoce la versión de Data
+Dragon. El backend compone los datos, valida las respuestas externas y actúa
+como proxy de todos los assets.
 
----
+## Stack
 
-## Credits and Legal Notice
+- **Workspace:** pnpm
+- **Frontend:** React 19, TypeScript, Vite, TanStack Query, Motion y Tailwind CSS
+- **Backend:** Node.js, Express 5, TypeScript y Zod
+- **Contratos:** paquete compartido `@wikilol/contracts`
+- **Aplicación:** CQRS con `Query` y `Handler` por caso de uso
+- **Tests:** Vitest y Supertest
 
-- **League of Legends**, its characters, images, and related data are the property of **Riot Games, Inc.**
-- **wikiLoL** is not affiliated with, endorsed, or sponsored by Riot Games, Inc.
-- All assets (icons, champion images, skins, ranks, etc.) and data used in this project are the property of Riot Games, Inc., and are used under the terms and conditions of the [Riot Games Developer Portal](https://developer.riotgames.com/).
-- This app is a personal, educational, and portfolio project, with no commercial purposes or monetization of any kind.
-- If you are part of the Riot team and need any content removed, please contact me and I will do so immediately.
+## Estructura
 
----
-
-Proyecto fullstack para consultar y visualizar perfiles, rangos, campeones y datos de jugadores de League of Legends, construido siguiendo buenas prácticas, arquitectura limpia y un enfoque mobileFirst.
-
----
-
-## Índice
-
-- [Descripción](#descripción)
-- [Características principales](#características-principales)
-- [Tecnologías y herramientas](#tecnologías-y-herramientas)
-- [Metodologías y arquitectura](#metodologías-y-arquitectura)
-- [Instalación y ejecución](#instalación-y-ejecución)
-- [Estructura del proyecto](#estructura-del-proyecto)
-- [Testing](#testing)
-- [Licencia](#licencia)
-
----
-
-## Descripción
-
-**wikiLoL** permite consultar información sobre cuentas de jugadores de League of Legends (perfil, rango, estadísticas, iconos, etc.) y también explorar el listado completo de campeones, su lore y sus skins, usando una arquitectura robusta y desacoplada.  
-El frontend es rápido, accesible y 100% mobileFirst.
-
----
-
-## Características principales
-
-- Consulta y visualización de perfiles de usuario y rangos, incluyendo iconos y estadísticas.
-- Listado completo de campeones: nombre, lore, estadísticas y aspecto visual.
-- Consulta de todas las skins de cada campeón.
-- Proxy backend para servir imágenes de Riot Games de forma segura y eficiente.
-- Separación clara de responsabilidades entre frontend y backend.
-- Código limpio, modular y fácil de mantener.
-- Enfoque mobileFirst para todos los componentes y vistas.
-
----
-
-## Tecnologías y herramientas
-
-### Frontend
-
-- **HTML5**
-- **Tailwind CSS v4+** (mobileFirst, utilitario)
-- **Flowbite** (componentes UI modernos y accesibles)
-- **JavaScript ES2023**
-- **Vite** (bundler ultra-rápido)
-
-### Backend
-
-- **Node.js (ESM)**
-- **Express**
-- **node-fetch** (peticiones externas/proxy)
-
----
-
-## Metodologías y arquitectura
-
-- **Arquitectura Hexagonal (Ports & Adapters):**  
-  El dominio está desacoplado de frameworks e infraestructura.
-- **CQRS:**  
-  Comandos y Queries completamente separados para claridad y escalabilidad.
-- **SOLID:**  
-  Principios de diseño para un código robusto y fácil de ampliar.
-- **TDD (Test Driven Development):**  
-  Desarrollo guiado por pruebas automatizadas en el backend.
-- **Proxy backend:**  
-  Todas las imágenes (iconos, rangos, campeones, skins, etc.) se sirven mediante un proxy propio.
-- **MobileFirst:**  
-  Todo el frontend está pensado primero para móvil.
-
----
-
-## Instalación y ejecución
-
-### 1. Clona el repositorio
-
-```sh
-git clone https://github.com/kevin0018/wikiLoL.git
-cd wikiLoL
-```
-
-### 2. Instala las dependencias
-
-#### Frontend
-
-```sh
-cd frontend
-npm install
-```
-
-#### Backend
-
-```sh
-cd ../backend
-npm install
-```
-
-### 3. Variables de entorno
-
-Edita el archivo `.env` en cada carpeta para configurar las variables necesarias (ejemplo: API keys de Riot, puertos, etc).
-
-### 4. Ejecuta el proyecto
-
-#### Backend
-
-```sh
-npm run dev
-```
-> El backend estará disponible en `http://localhost:3001` (o el puerto configurado).
-
-#### Frontend
-
-```sh
-npm run dev
-```
-> El frontend estará disponible en `http://localhost:5173` (o el puerto configurado).
-
----
-
-## Estructura del proyecto
-
-```
+```text
 wikiLoL/
-│
-├── backend/
-│   ├── src/
-│   │   ├── account/
-│   │   │   ├── app/                # CQRS: queries, handlers, services
-│   │   │   ├── domain/             # Entidades y lógica de dominio puro
-│   │   │   ├── infra/              # Repositorios y adaptadores Riot
-│   │   │   └── presentation/       # Controladores
-│   │   ├── champion/
-│   │   │   ├── app/
-│   │   │   ├── domain/
-│   │   │   ├── infra/
-│   │   │   └── presentation/
-│   │   ├── proxy/                  # Proxy de assets (RiotAssetsProxy.js)
-│   │   ├── interfaces/             # Routers (ej: routes.js)
-│   │   └── test/                   # Pruebas (TDD)
-│   └── .env                        # Variables de entorno backend
-│
-├── frontend/
-│   ├── public/
-│   │   └── pages/                  # HTMLs principales
-│   ├── src/
-│   │   ├── assets/
-│   │   │   ├── js/                 # Lógica y renders frontend
-│   │   │   ├── images/
-│   │   ├── components/
-│   │   ├── services/               # Llamadas API
-│   │   ├── styles/                 # Tailwind + estilos propios
-│   │   └── ...
-│   └── .env                        # Variables de entorno frontend
-│
-└── README.md
+├── frontend/                 # SPA React + TypeScript
+├── backend/                  # API Express + proxy de Riot
+├── packages/
+│   └── contracts/            # DTOs, esquemas Zod y tipos compartidos
+├── package.json
+├── pnpm-workspace.yaml
+└── tsconfig.base.json
 ```
 
----
+Los contratos compartidos representan exclusivamente la API pública. Las
+respuestas internas de Riot y Data Dragon permanecen encapsuladas en el
+backend. Las rutas validan la entrada y despachan queries; los handlers
+dependen de puertos mínimos y reciben los adaptadores desde un único composition
+root.
 
-## Testing
+## Desarrollo
 
-- El backend sigue TDD: las pruebas unitarias e integración están en `backend/src/test`.
-- El frontend por ahora no tiene tests automatizados.
+Requisitos:
 
----
+- Node.js 22 o superior
+- pnpm 10
+- Una API key de Riot para las rutas de jugadores y clasificación
 
-## Licencia
+Instala todas las dependencias desde la raíz:
 
-Sin licencia explícita.
+```bash
+pnpm install
+```
 
----
+Crea `backend/.env`:
 
-> Proyecto desarrollado con ❤️ por kevin0018.
+```dotenv
+RIOT_API_KEY=RGAPI-...
+PORT=3000
+```
+
+Opcionalmente, crea `frontend/.env` si el backend no se encuentra en el mismo
+origen:
+
+```dotenv
+VITE_BACKEND_URL=http://localhost:3000
+```
+
+Inicia frontend y backend:
+
+```bash
+pnpm dev
+```
+
+- Frontend: `http://localhost:5173`
+- Backend: `http://localhost:3000`
+
+## Comandos
+
+```bash
+pnpm typecheck
+pnpm test
+pnpm build
+```
+
+El build se ejecuta en orden: contratos, backend y frontend.
+
+## API
+
+| Ruta | Descripción |
+| --- | --- |
+| `GET /api/meta` | Parche actual de Data Dragon |
+| `GET /api/champions` | Archivo de campeones |
+| `GET /api/champions/:id` | Lore y aspectos de un campeón |
+| `GET /api/account/profile` | Perfil por Riot ID |
+| `GET /api/account/rank` | Rangos por invocador |
+| `GET /api/account/mastery` | Mejores maestrías |
+| `GET /api/account/most-played` | Campeones de partidas recientes |
+| `GET /api/league/challenger` | Clasificación Challenger |
+| `GET /api/assets/*` | Proxy cacheable de imágenes |
+
+La versión actual de Data Dragon se descubre y cachea en el backend. Las URLs
+públicas de assets son estables y no contienen el parche.
+
+## Aviso legal
+
+League of Legends, sus personajes, imágenes y datos relacionados son propiedad
+de Riot Games, Inc. wikiLoL no está afiliado, respaldado ni patrocinado por
+Riot Games. Este repositorio es un proyecto personal y educativo sin fines
+comerciales.

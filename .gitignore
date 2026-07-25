@@ -5,6 +5,7 @@ node_modules/
 dist/
 build/
 out/
+*.tsbuildinfo
 
 # logs
 npm-debug.log*
@@ -34,10 +35,9 @@ Thumbs.db
 # Optional: coverage reports
 coverage/
 
-# lock files
+# lock files from package managers not used by this workspace
 package-lock.json
 yarn.lock
-pnpm-lock.yaml
 
 # Optional: PM2 process manager logs/dumps
 pids/

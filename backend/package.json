@@ -1,34 +1,29 @@
 {
   "name": "backend",
-  "version": "1.0.0",
-  "description": "Backend for WIKILoL application",
-  "main": "src/index.js",
-  "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
-  },
-  "keywords": [
-    "league-of-legends",
-    "api",
-    "express",
-    "vercel"
-  ],
-  "author": "Kevin Hernández (Chronos)",
-  "license": "ISC",
+  "version": "2.0.0",
+  "private": true,
   "type": "module",
-  "jest": {
-    "testEnvironment": "node"
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "TMPDIR=/tmp tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "TMPDIR=/tmp vitest run"
   },
   "dependencies": {
-    "@jest/globals": "^29.7.0",
+    "@wikilol/contracts": "workspace:*",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "node-fetch": "^3.3.2"
+    "zod": "^4.1.0"
   },
   "devDependencies": {
-    "jest": "^29.7.0",
-    "nodemon": "^3.1.10",
-    "supertest": "^7.1.1"
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.0",
+    "supertest": "^7.1.4",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
   }
 }
