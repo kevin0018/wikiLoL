@@ -1,14 +1,13 @@
-import type { ChampionDetail } from "@wikilol/contracts";
+import type { ChampionDetail } from "../../domain/model/Champion.js";
+import type { ChampionRepository } from "../../domain/repository/ChampionRepository.js";
 import type { GetChampionByIdQuery } from "./GetChampionByIdQuery.js";
 
-export interface ChampionDetailReader {
-  getChampion(id: string, locale: string): Promise<ChampionDetail>;
-}
-
 export class GetChampionByIdHandler {
-  constructor(private readonly champions: ChampionDetailReader) {}
+  constructor(
+    private readonly repository: Pick<ChampionRepository, "getChampion">,
+  ) {}
 
   execute(query: GetChampionByIdQuery): Promise<ChampionDetail> {
-    return this.champions.getChampion(query.id, query.locale);
+    return this.repository.getChampion(query.id, query.locale);
   }
 }

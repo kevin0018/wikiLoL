@@ -2,7 +2,8 @@ import type {
   ChampionDetail,
   ChampionRole,
   ChampionSummary,
-} from "@wikilol/contracts";
+} from "../domain/model/Champion.js";
+import type { ChampionRepository } from "../domain/repository/ChampionRepository.js";
 import { fetchJson } from "../../shared/http.js";
 
 interface DataDragonImage {
@@ -35,7 +36,7 @@ const VERSIONS_URL =
 const DATA_DRAGON_URL = "https://ddragon.leagueoflegends.com/cdn";
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
-export class DataDragonClient {
+export class DataDragonClient implements ChampionRepository {
   private versionCache?: { value: string; expiresAt: number };
   private championMapCache?: {
     value: Map<number, DataDragonChampion>;

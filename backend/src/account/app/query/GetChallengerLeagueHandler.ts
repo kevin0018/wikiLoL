@@ -1,23 +1,14 @@
-import type {
-  ChallengerEntry,
-  QueueType,
-  Region,
-} from "@wikilol/contracts";
+import type { ChallengerEntry } from "../../domain/model/AccountReadModels.js";
+import type { AccountRepository } from "../../domain/repository/AccountRepository.js";
 import type { GetChallengerLeagueQuery } from "./GetChallengerLeagueQuery.js";
 
-export interface ChallengerLeagueReader {
-  getChallenger(
-    region: Region,
-    queue: QueueType,
-    count: number,
-  ): Promise<ChallengerEntry[]>;
-}
-
 export class GetChallengerLeagueHandler {
-  constructor(private readonly accounts: ChallengerLeagueReader) {}
+  constructor(
+    private readonly repository: Pick<AccountRepository, "getChallenger">,
+  ) {}
 
   execute(query: GetChallengerLeagueQuery): Promise<ChallengerEntry[]> {
-    return this.accounts.getChallenger(
+    return this.repository.getChallenger(
       query.region,
       query.queue,
       query.count,

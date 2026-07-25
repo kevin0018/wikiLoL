@@ -1,4 +1,4 @@
-import type { Region } from "@wikilol/contracts";
+import type { Region } from "../../domain/value-object/Region.js";
 
 export class GetAccountRankQuery {
   constructor(

@@ -1,22 +1,16 @@
-import type { MostPlayedChampion, Region } from "@wikilol/contracts";
+import type { MostPlayedChampion } from "../../domain/model/AccountReadModels.js";
+import type { AccountRepository } from "../../domain/repository/AccountRepository.js";
 import type { GetMostPlayedChampionQuery } from "./GetMostPlayedChampionQuery.js";
 
-export interface MostPlayedChampionReader {
-  getMostPlayed(
-    puuid: string,
-    region: Region,
-    matchCount: number,
-    top: number,
-  ): Promise<MostPlayedChampion[]>;
-}
-
 export class GetMostPlayedChampionHandler {
-  constructor(private readonly accounts: MostPlayedChampionReader) {}
+  constructor(
+    private readonly repository: Pick<AccountRepository, "getMostPlayed">,
+  ) {}
 
   execute(
     query: GetMostPlayedChampionQuery,
   ): Promise<MostPlayedChampion[]> {
-    return this.accounts.getMostPlayed(
+    return this.repository.getMostPlayed(
       query.puuid,
       query.region,
       query.matchCount,

@@ -32,8 +32,10 @@ wikiLoL/
 Los contratos compartidos representan exclusivamente la API pública. Las
 respuestas internas de Riot y Data Dragon permanecen encapsuladas en el
 backend. Las rutas validan la entrada y despachan queries; los handlers
-dependen de puertos mínimos y reciben los adaptadores desde un único composition
-root.
+dependen de `AccountRepository` o `ChampionRepository` y reciben los
+adaptadores desde un único composition root. `Region` y `QueueType` son value
+objects del dominio; la capa HTTP transforma hacia ellos después de validar los
+DTO con Zod.
 
 ## Desarrollo
 

@@ -4,13 +4,18 @@ import type {
   ChallengerEntry,
   ChampionMastery,
   MostPlayedChampion,
+} from "../domain/model/AccountReadModels.js";
+import type { AccountRepository } from "../domain/repository/AccountRepository.js";
+import type { QueueType } from "../domain/value-object/QueueType.js";
+import type {
   Region,
-} from "@wikilol/contracts";
+  RegionCode,
+} from "../domain/value-object/Region.js";
 import { z } from "zod";
 import { dataDragonClient, type DataDragonClient } from "../../champion/infra/DataDragonClient.js";
 import { fetchJson } from "../../shared/http.js";
 
-const platformHosts: Record<Region, string> = {
+const platformHosts: Record<RegionCode, string> = {
   EUW: "euw1.api.riotgames.com",
   EUNE: "eun1.api.riotgames.com",
   NA: "na1.api.riotgames.com",
@@ -24,7 +29,7 @@ const platformHosts: Record<Region, string> = {
   RU: "ru.api.riotgames.com",
 };
 
-const regionalHosts: Record<Region, string> = {
+const regionalHosts: Record<RegionCode, string> = {
   EUW: "europe.api.riotgames.com",
   EUNE: "europe.api.riotgames.com",
   NA: "americas.api.riotgames.com",
@@ -88,7 +93,7 @@ const challengerSchema = z.object({
   ),
 });
 
-export class RiotAccountService {
+export class RiotAccountRepository implements AccountRepository {
   constructor(private readonly dataDragon: DataDragonClient = dataDragonClient) {}
 
   async getProfile(
@@ -97,12 +102,12 @@ export class RiotAccountService {
     region: Region,
   ): Promise<AccountProfile> {
     const account = await this.riotFetch(
-      regionalHosts[region],
+      regionalHosts[region.value],
       `/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
       riotAccountSchema,
     );
     const summoner = await this.riotFetch(
-      platformHosts[region],
+      platformHosts[region.value],
       `/lol/summoner/v4/summoners/by-puuid/${account.puuid}`,
       summonerSchema,
     );
@@ -113,14 +118,14 @@ export class RiotAccountService {
       puuid: account.puuid,
       summonerId: summoner.id,
       summonerLevel: summoner.summonerLevel,
-      region,
+      region: region.value,
       iconUrl: `/api/assets/profile-icon/${summoner.profileIconId}.png`,
     };
   }
 
   async getRanks(summonerId: string, region: Region): Promise<AccountRank[]> {
     const ranks = await this.riotFetch(
-      platformHosts[region],
+      platformHosts[region.value],
       `/lol/league/v4/entries/by-summoner/${encodeURIComponent(summonerId)}`,
       z.array(rankSchema),
     );
@@ -137,7 +142,7 @@ export class RiotAccountService {
     top: number,
   ): Promise<ChampionMastery[]> {
     const masteries = await this.riotFetch(
-      platformHosts[region],
+      platformHosts[region.value],
       `/lol/champion-mastery/v4/champion-masteries/by-puuid/${encodeURIComponent(puuid)}`,
       z.array(masterySchema),
     );
@@ -164,14 +169,14 @@ export class RiotAccountService {
     top: number,
   ): Promise<MostPlayedChampion[]> {
     const matchIds = await this.riotFetch(
-      regionalHosts[region],
+      regionalHosts[region.value],
       `/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids?start=0&count=${matchCount}`,
       z.array(z.string()),
     );
     const matches = await Promise.all(
       matchIds.map((matchId) =>
         this.riotFetch(
-          regionalHosts[region],
+          regionalHosts[region.value],
           `/lol/match/v5/matches/${encodeURIComponent(matchId)}`,
           matchSchema,
         ),
@@ -211,12 +216,12 @@ export class RiotAccountService {
 
   async getChallenger(
     region: Region,
-    queue: string,
+    queue: QueueType,
     count = 5,
   ): Promise<ChallengerEntry[]> {
     const league = await this.riotFetch(
-      platformHosts[region],
-      `/lol/league/v4/challengerleagues/by-queue/${encodeURIComponent(queue)}`,
+      platformHosts[region.value],
+      `/lol/league/v4/challengerleagues/by-queue/${encodeURIComponent(queue.value)}`,
       challengerSchema,
     );
 
@@ -224,7 +229,7 @@ export class RiotAccountService {
       league.entries.slice(0, count).map(async (entry) => {
         try {
           const account = await this.riotFetch(
-            regionalHosts[region],
+            regionalHosts[region.value],
             `/riot/account/v1/accounts/by-puuid/${entry.puuid}`,
             riotAccountSchema,
           );
@@ -269,4 +274,4 @@ export class RiotAccountService {
   }
 }
 
-export const riotAccountService = new RiotAccountService();
+export const riotAccountRepository = new RiotAccountRepository();

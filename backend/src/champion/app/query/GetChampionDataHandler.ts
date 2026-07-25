@@ -1,14 +1,13 @@
-import type { ChampionsResponse } from "@wikilol/contracts";
+import type { ChampionsResult } from "../../domain/model/Champion.js";
+import type { ChampionRepository } from "../../domain/repository/ChampionRepository.js";
 import type { GetChampionDataQuery } from "./GetChampionDataQuery.js";
 
-export interface ChampionArchiveReader {
-  getChampions(locale: string): Promise<ChampionsResponse>;
-}
-
 export class GetChampionDataHandler {
-  constructor(private readonly champions: ChampionArchiveReader) {}
+  constructor(
+    private readonly repository: Pick<ChampionRepository, "getChampions">,
+  ) {}
 
-  execute(query: GetChampionDataQuery): Promise<ChampionsResponse> {
-    return this.champions.getChampions(query.locale);
+  execute(query: GetChampionDataQuery): Promise<ChampionsResult> {
+    return this.repository.getChampions(query.locale);
   }
 }

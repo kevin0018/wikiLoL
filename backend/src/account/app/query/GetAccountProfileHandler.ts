@@ -1,19 +1,14 @@
-import type { AccountProfile, Region } from "@wikilol/contracts";
+import type { AccountProfile } from "../../domain/model/AccountReadModels.js";
+import type { AccountRepository } from "../../domain/repository/AccountRepository.js";
 import type { GetAccountProfileQuery } from "./GetAccountProfileQuery.js";
 
-export interface AccountProfileReader {
-  getProfile(
-    gameName: string,
-    tagLine: string,
-    region: Region,
-  ): Promise<AccountProfile>;
-}
-
 export class GetAccountProfileHandler {
-  constructor(private readonly accounts: AccountProfileReader) {}
+  constructor(
+    private readonly repository: Pick<AccountRepository, "getProfile">,
+  ) {}
 
   execute(query: GetAccountProfileQuery): Promise<AccountProfile> {
-    return this.accounts.getProfile(
+    return this.repository.getProfile(
       query.gameName,
       query.tagLine,
       query.region,

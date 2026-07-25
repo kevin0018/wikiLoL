@@ -9,6 +9,8 @@ import { GetChampionMasteryHandler } from "./GetChampionMasteryHandler.js";
 import { GetChampionMasteryQuery } from "./GetChampionMasteryQuery.js";
 import { GetMostPlayedChampionHandler } from "./GetMostPlayedChampionHandler.js";
 import { GetMostPlayedChampionQuery } from "./GetMostPlayedChampionQuery.js";
+import { QueueType } from "../../domain/value-object/QueueType.js";
+import { Region } from "../../domain/value-object/Region.js";
 
 describe("account query handlers", () => {
   it("delega la consulta de perfil en su puerto", async () => {
@@ -23,44 +25,48 @@ describe("account query handlers", () => {
     };
     const getProfile = vi.fn().mockResolvedValue(profile);
     const handler = new GetAccountProfileHandler({ getProfile });
+    const region = Region.from("KR");
 
     await expect(
-      handler.execute(new GetAccountProfileQuery("Faker", "KR1", "KR")),
+      handler.execute(new GetAccountProfileQuery("Faker", "KR1", region)),
     ).resolves.toEqual(profile);
-    expect(getProfile).toHaveBeenCalledWith("Faker", "KR1", "KR");
+    expect(getProfile).toHaveBeenCalledWith("Faker", "KR1", region);
   });
 
   it("delega rango, maestría y campeones recientes con sus límites", async () => {
     const getRanks = vi.fn().mockResolvedValue([]);
     const getMastery = vi.fn().mockResolvedValue([]);
     const getMostPlayed = vi.fn().mockResolvedValue([]);
+    const region = Region.from("EUW");
 
     await new GetAccountRankHandler({ getRanks }).execute(
-      new GetAccountRankQuery("summoner", "EUW"),
+      new GetAccountRankQuery("summoner", region),
     );
     await new GetChampionMasteryHandler({ getMastery }).execute(
-      new GetChampionMasteryQuery("puuid", "EUW", 6),
+      new GetChampionMasteryQuery("puuid", region, 6),
     );
     await new GetMostPlayedChampionHandler({ getMostPlayed }).execute(
-      new GetMostPlayedChampionQuery("puuid", "EUW", 30, 5),
+      new GetMostPlayedChampionQuery("puuid", region, 30, 5),
     );
 
-    expect(getRanks).toHaveBeenCalledWith("summoner", "EUW");
-    expect(getMastery).toHaveBeenCalledWith("puuid", "EUW", 6);
-    expect(getMostPlayed).toHaveBeenCalledWith("puuid", "EUW", 30, 5);
+    expect(getRanks).toHaveBeenCalledWith("summoner", region);
+    expect(getMastery).toHaveBeenCalledWith("puuid", region, 6);
+    expect(getMostPlayed).toHaveBeenCalledWith("puuid", region, 30, 5);
   });
 
   it("delega la clasificación Challenger", async () => {
     const getChallenger = vi.fn().mockResolvedValue([]);
     const handler = new GetChallengerLeagueHandler({ getChallenger });
+    const region = Region.from("EUW");
+    const queue = QueueType.from("RANKED_SOLO_5x5");
 
     await handler.execute(
-      new GetChallengerLeagueQuery("EUW", "RANKED_SOLO_5x5", 5),
+      new GetChallengerLeagueQuery(region, queue, 5),
     );
 
     expect(getChallenger).toHaveBeenCalledWith(
-      "EUW",
-      "RANKED_SOLO_5x5",
+      region,
+      queue,
       5,
     );
   });

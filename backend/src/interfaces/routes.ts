@@ -15,7 +15,9 @@ import { GetChampionMasteryHandler } from "../account/app/query/GetChampionMaste
 import { GetChampionMasteryQuery } from "../account/app/query/GetChampionMasteryQuery.js";
 import { GetMostPlayedChampionHandler } from "../account/app/query/GetMostPlayedChampionHandler.js";
 import { GetMostPlayedChampionQuery } from "../account/app/query/GetMostPlayedChampionQuery.js";
-import { riotAccountService } from "../account/infra/RiotAccountService.js";
+import { QueueType } from "../account/domain/value-object/QueueType.js";
+import { Region } from "../account/domain/value-object/Region.js";
+import { riotAccountRepository } from "../account/infra/RiotAccountRepository.js";
 import { GetChampionByIdHandler } from "../champion/app/query/GetChampionByIdHandler.js";
 import { GetChampionByIdQuery } from "../champion/app/query/GetChampionByIdQuery.js";
 import { GetChampionDataHandler } from "../champion/app/query/GetChampionDataHandler.js";
@@ -25,13 +27,19 @@ import { dataDragonClient } from "../champion/infra/DataDragonClient.js";
 export const apiRouter = Router();
 
 // Composition root: infrastructure is wired to application handlers only here.
-const getAccountProfile = new GetAccountProfileHandler(riotAccountService);
-const getAccountRank = new GetAccountRankHandler(riotAccountService);
-const getChampionMastery = new GetChampionMasteryHandler(riotAccountService);
-const getMostPlayedChampion = new GetMostPlayedChampionHandler(
-  riotAccountService,
+const getAccountProfile = new GetAccountProfileHandler(
+  riotAccountRepository,
 );
-const getChallengerLeague = new GetChallengerLeagueHandler(riotAccountService);
+const getAccountRank = new GetAccountRankHandler(riotAccountRepository);
+const getChampionMastery = new GetChampionMasteryHandler(
+  riotAccountRepository,
+);
+const getMostPlayedChampion = new GetMostPlayedChampionHandler(
+  riotAccountRepository,
+);
+const getChallengerLeague = new GetChallengerLeagueHandler(
+  riotAccountRepository,
+);
 const getChampionData = new GetChampionDataHandler(dataDragonClient);
 const getChampionById = new GetChampionByIdHandler(dataDragonClient);
 
@@ -68,7 +76,7 @@ apiRouter.get("/account/profile", async (request, response) => {
       new GetAccountProfileQuery(
         query.gameName,
         query.tagLine,
-        query.region,
+        Region.from(query.region),
       ),
     ),
   );
@@ -78,7 +86,10 @@ apiRouter.get("/account/rank", async (request, response) => {
   const query = rankQuerySchema.parse(request.query);
   response.json(
     await getAccountRank.execute(
-      new GetAccountRankQuery(query.summonerId, query.region),
+      new GetAccountRankQuery(
+        query.summonerId,
+        Region.from(query.region),
+      ),
     ),
   );
 });
@@ -89,7 +100,11 @@ apiRouter.get("/account/mastery", async (request, response) => {
     .parse(request.query);
   response.json(
     await getChampionMastery.execute(
-      new GetChampionMasteryQuery(query.puuid, query.region, query.top),
+      new GetChampionMasteryQuery(
+        query.puuid,
+        Region.from(query.region),
+        query.top,
+      ),
     ),
   );
 });
@@ -105,7 +120,7 @@ apiRouter.get("/account/most-played", async (request, response) => {
     await getMostPlayedChampion.execute(
       new GetMostPlayedChampionQuery(
         query.puuid,
-        query.region,
+        Region.from(query.region),
         query.matchCount,
         query.top,
       ),
@@ -124,8 +139,8 @@ apiRouter.get("/league/challenger", async (request, response) => {
   response.json(
     await getChallengerLeague.execute(
       new GetChallengerLeagueQuery(
-        query.region,
-        query.queue,
+        Region.from(query.region),
+        QueueType.from(query.queue),
         query.count,
       ),
     ),

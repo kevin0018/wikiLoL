@@ -1,14 +1,13 @@
-import type { AccountRank, Region } from "@wikilol/contracts";
+import type { AccountRank } from "../../domain/model/AccountReadModels.js";
+import type { AccountRepository } from "../../domain/repository/AccountRepository.js";
 import type { GetAccountRankQuery } from "./GetAccountRankQuery.js";
 
-export interface AccountRankReader {
-  getRanks(summonerId: string, region: Region): Promise<AccountRank[]>;
-}
-
 export class GetAccountRankHandler {
-  constructor(private readonly accounts: AccountRankReader) {}
+  constructor(
+    private readonly repository: Pick<AccountRepository, "getRanks">,
+  ) {}
 
   execute(query: GetAccountRankQuery): Promise<AccountRank[]> {
-    return this.accounts.getRanks(query.summonerId, query.region);
+    return this.repository.getRanks(query.summonerId, query.region);
   }
 }
