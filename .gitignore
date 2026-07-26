@@ -23,6 +23,7 @@ pnpm-debug.log*
 # editor directories and files
 .vscode/
 .idea/
+.vercel/
 .DS_Store
 Thumbs.db
 

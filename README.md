@@ -84,6 +84,24 @@ pnpm build
 
 El build se ejecuta en orden: contratos, backend y frontend.
 
+## Despliegue en Vercel
+
+La aplicación se despliega como un único proyecto de Vercel: la SPA se sirve
+desde `/` y Express atiende todas las rutas `/api/*` en una Function.
+
+1. Importa el repositorio y deja la raíz del proyecto en `./`.
+2. Añade `RIOT_API_KEY` en Production, Preview y Development.
+3. No definas `VITE_BACKEND_URL`; el frontend utiliza la API del mismo origen.
+4. Despliega. `vercel.json` ya configura pnpm, el build, la salida de Vite,
+   el fallback de React Router y la Function de Express.
+
+Antes de retirar despliegues anteriores, comprueba en la nueva URL:
+
+- `/`
+- `/champions/Akali`
+- `/api/champions`
+- `/api/league/challenger?region=EUW&count=5`
+
 ## API
 
 | Ruta | Descripción |
