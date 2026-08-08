@@ -25,6 +25,15 @@ describe("DataDragonClient", () => {
                 blurb: "Una leyenda caída.",
                 image: { full: "Aatrox.png" },
               },
+              Jade_Aatrox: {
+                id: "Jade_Aatrox",
+                key: "60266",
+                name: "Aatrox",
+                title: "la Espada de los Oscuros",
+                tags: ["Fighter"],
+                blurb: "La variante de LoL Classic.",
+                image: { full: "Jade_Aatrox.png" },
+              },
             },
           }),
           { status: 200 },
@@ -40,6 +49,61 @@ describe("DataDragonClient", () => {
       imageUrl: "/api/assets/champion/Aatrox.png",
     });
     expect(result.data[0]?.imageUrl).not.toContain("26.14.1");
+    expect(result.data).toHaveLength(1);
+    expect(result.data.some((champion) => champion.id.startsWith("Jade_"))).toBe(
+      false,
+    );
+    expect(result.classic).toEqual([
+      expect.objectContaining({
+        id: "Jade_Aatrox",
+        imageUrl: "/api/assets/champion/Jade_Aatrox.png",
+      }),
+    ]);
+  });
+
+  it("excluye LoL Classic del mapa de campeones usado por perfiles", async () => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(["26.14.1"]), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: {
+              Ahri: {
+                id: "Ahri",
+                key: "103",
+                name: "Ahri",
+                title: "la Vastaya de Nueve Colas",
+                tags: ["Mage"],
+                blurb: "Ahri manipula las emociones.",
+                image: { full: "Ahri.png" },
+              },
+              Jade_Ahri: {
+                id: "Jade_Ahri",
+                key: "60103",
+                name: "Ahri",
+                title: "la Vastaya de Nueve Colas",
+                tags: ["Mage"],
+                blurb: "La variante de LoL Classic.",
+                image: { full: "Jade_Ahri.png" },
+              },
+            },
+          }),
+          { status: 200 },
+        ),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const client = new DataDragonClient();
+
+    await expect(client.getChampionByNumericId(103, "es_ES")).resolves.toMatchObject(
+      { id: "Ahri" },
+    );
+    await expect(
+      client.getChampionByNumericId(60103, "es_ES"),
+    ).rejects.toThrow("Campeón 60103 no encontrado.");
   });
 
   it("excluye los chromas que Data Dragon mezcla con las skins", async () => {

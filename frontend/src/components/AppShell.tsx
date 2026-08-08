@@ -5,6 +5,7 @@ import { CloseIcon, MenuIcon } from "./Icons";
 const navigation = [
   { to: "/", label: "Buscador", end: true },
   { to: "/champions", label: "Campeones", end: false },
+  { to: "/compare", label: "Comparar", end: false },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -65,7 +66,19 @@ export function AppShell({ children }: { children: ReactNode }) {
       <footer className="site-footer">
         <div>
           <span className="utility-label">PROYECTO DE PORTFOLIO</span>
-          <p>Datos y recursos visuales servidos a través de Riot Games.</p>
+          <p>
+            React, TypeScript y una API propia sobre datos oficiales de Riot.
+          </p>
+          <div className="footer-links">
+            <NavLink to="/compare">Comparar jugadores</NavLink>
+            <a
+              href="https://github.com/kevin0018/wikiLoL"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Ver código fuente
+            </a>
+          </div>
         </div>
         <p>
           wikiLoL no está afiliado, respaldado ni patrocinado por Riot Games.

@@ -10,6 +10,7 @@ import { AppShell } from "./components/AppShell";
 import { AccountPage } from "./pages/AccountPage";
 import { ChampionPage } from "./pages/ChampionPage";
 import { ChampionsPage } from "./pages/ChampionsPage";
+import { ComparePage } from "./pages/ComparePage";
 import { HomePage } from "./pages/HomePage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 
@@ -41,6 +42,14 @@ export function App() {
       }
     };
   }, []);
+
+  useEffect(() => {
+    const metadata = routeMetadata(location.pathname);
+    document.title = metadata.title;
+    document
+      .querySelector('meta[name="description"]')
+      ?.setAttribute("content", metadata.description);
+  }, [location.pathname]);
 
   const restoreScrollAfterTransition = () => {
     if (restoreFrame.current !== null) {
@@ -78,10 +87,40 @@ export function App() {
             <Route path="/champions" element={<ChampionsPage />} />
             <Route path="/champions/:championId" element={<ChampionPage />} />
             <Route path="/account" element={<AccountPage />} />
+            <Route path="/compare" element={<ComparePage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </AnimatePresence>
       </AppShell>
     </MotionConfig>
   );
+}
+
+function routeMetadata(pathname: string) {
+  if (pathname === "/compare") {
+    return {
+      title: "Comparar jugadores — wikiLoL",
+      description:
+        "Compara clasificación, rendimiento y maestrías de dos jugadores de League of Legends.",
+    };
+  }
+  if (pathname === "/champions" || pathname.startsWith("/champions/")) {
+    return {
+      title: "Archivo de campeones — wikiLoL",
+      description:
+        "Consulta lore, roles y aspectos del archivo de campeones de League of Legends.",
+    };
+  }
+  if (pathname === "/account") {
+    return {
+      title: "Perfil de jugador — wikiLoL",
+      description:
+        "Consulta rangos, maestrías y campeones recientes de un Riot ID.",
+    };
+  }
+  return {
+    title: "wikiLoL — Archivo competitivo de Runaterra",
+    description:
+      "Consulta perfiles, rangos, maestrías y campeones de League of Legends.",
+  };
 }

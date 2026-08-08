@@ -6,7 +6,7 @@ import { GetChampionDataQuery } from "./GetChampionDataQuery.js";
 
 describe("champion query handlers", () => {
   it("delega el archivo de campeones con el locale", async () => {
-    const response = { data: [], patch: "16.14.1" };
+    const response = { data: [], classic: [], patch: "16.14.1" };
     const getChampions = vi.fn().mockResolvedValue(response);
     const handler = new GetChampionDataHandler({ getChampions });
 

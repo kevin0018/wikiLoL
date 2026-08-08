@@ -27,5 +27,6 @@ export interface ChampionDetail extends ChampionSummary {
 
 export interface ChampionsResult {
   data: ChampionSummary[];
+  classic: ChampionSummary[];
   patch: string;
 }

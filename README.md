@@ -1,11 +1,55 @@
 # wikiLoL
 
-Aplicación full stack para consultar perfiles, rangos, maestrías y campeones de
-League of Legends.
+Aplicación full stack para consultar y comparar perfiles, rangos, maestrías y
+campeones de League of Legends.
+
+[Explorar el código](https://github.com/kevin0018/wikiLoL) ·
+[Riot Developer Portal](https://developer.riotgames.com/apis)
+
+## Qué puedes hacer
+
+- Buscar un Riot ID y consultar su nivel, clasificación y maestrías.
+- Comparar dos jugadores —incluso de regiones distintas— mediante una URL
+  compartible.
+- Recorrer los catálogos actual y LoL Classic, filtrarlos por rol y abrir el
+  lore y la galería de aspectos de cada personaje.
+- Consultar la clasificación Challenger de EUW desde la portada.
+
+La interfaz utiliza una dirección visual propia inspirada en los archivos de
+Runaterra. No es una capa directa sobre la API: la aplicación controla sus
+contratos, errores, caché y recursos visuales.
+
+## Arquitectura
+
+```mermaid
+flowchart LR
+  browser["React SPA"] --> api["Express API / BFF"]
+  api --> handlers["Queries + Handlers"]
+  handlers --> account["AccountRepository"]
+  handlers --> champions["ChampionRepository"]
+  account --> riot["Riot APIs"]
+  champions --> dragon["Data Dragon"]
+  api --> assets["Proxy cacheable de assets"]
+  contracts["@wikilol/contracts · Zod"] --> browser
+  contracts --> api
+```
 
 El navegador nunca contacta directamente con Riot ni conoce la versión de Data
 Dragon. El backend compone los datos, valida las respuestas externas y actúa
 como proxy de todos los assets.
+
+### Decisiones que merece la pena revisar
+
+- Contratos Zod compartidos entre frontend y backend sin filtrar modelos
+  internos de Riot al cliente.
+- Casos de uso organizados con CQRS y dependencias conectadas desde un único
+  composition root.
+- Value objects para región y tipo de cola antes de alcanzar infraestructura.
+- Validación de todas las respuestas externas y traducción consistente de
+  errores HTTP.
+- Cacheado de la versión de Data Dragon, Riot IDs resueltos y assets servidos
+  desde URLs estables.
+- Estados de carga, error, vacío y movimiento reducido en la interfaz.
 
 ## Stack
 
@@ -24,6 +68,7 @@ wikiLoL/
 ├── backend/                  # API Express + proxy de Riot
 ├── packages/
 │   └── contracts/            # DTOs, esquemas Zod y tipos compartidos
+├── tokens.css                 # Tokens de la interfaz
 ├── package.json
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json

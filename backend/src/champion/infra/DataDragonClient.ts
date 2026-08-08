@@ -2,6 +2,7 @@ import type {
   ChampionDetail,
   ChampionRole,
   ChampionSummary,
+  ChampionsResult,
 } from "../domain/model/Champion.js";
 import type { ChampionRepository } from "../domain/repository/ChampionRepository.js";
 import { fetchJson } from "../../shared/http.js";
@@ -36,9 +37,23 @@ const VERSIONS_URL =
   "https://ddragon.leagueoflegends.com/api/versions.json";
 const DATA_DRAGON_URL = "https://ddragon.leagueoflegends.com/cdn";
 const CACHE_TTL_MS = 60 * 60 * 1000;
+const CLASSIC_CHAMPION_PREFIX = "Jade_";
 
 function isChroma(skin: DataDragonSkin): boolean {
   return skin.parentSkin !== undefined;
+}
+
+function isStandardChampion(champion: DataDragonChampion): boolean {
+  return !champion.id.startsWith(CLASSIC_CHAMPION_PREFIX);
+}
+
+function sortChampions(
+  champions: ChampionSummary[],
+  locale: string,
+): ChampionSummary[] {
+  return champions.sort((left, right) =>
+    left.name.localeCompare(right.name, locale.replace("_", "-")),
+  );
 }
 
 export class DataDragonClient implements ChampionRepository {
@@ -66,20 +81,25 @@ export class DataDragonClient implements ChampionRepository {
     return version;
   }
 
-  async getChampions(locale = "es_ES"): Promise<{
-    data: ChampionSummary[];
-    patch: string;
-  }> {
+  async getChampions(locale = "es_ES"): Promise<ChampionsResult> {
     const patch = await this.getCurrentPatch();
     const payload = await this.getChampionList(locale, patch);
+    const champions = Object.values(payload.data);
 
     return {
       patch,
-      data: Object.values(payload.data)
-        .map((champion) => this.toSummary(champion))
-        .sort((left, right) =>
-          left.name.localeCompare(right.name, locale.replace("_", "-")),
-        ),
+      data: sortChampions(
+        champions
+          .filter(isStandardChampion)
+          .map((champion) => this.toSummary(champion)),
+        locale,
+      ),
+      classic: sortChampions(
+        champions
+          .filter((champion) => !isStandardChampion(champion))
+          .map((champion) => this.toSummary(champion)),
+        locale,
+      ),
     };
   }
 
@@ -136,10 +156,9 @@ export class DataDragonClient implements ChampionRepository {
     const patch = await this.getCurrentPatch();
     const payload = await this.getChampionList(locale, patch);
     const value = new Map(
-      Object.values(payload.data).map((champion) => [
-        Number(champion.key),
-        champion,
-      ]),
+      Object.values(payload.data)
+        .filter(isStandardChampion)
+        .map((champion) => [Number(champion.key), champion]),
     );
 
     this.championMapCache = {

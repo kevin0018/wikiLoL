@@ -59,6 +59,7 @@ export type ChampionDetail = z.infer<typeof championDetailSchema>;
 
 export const championsResponseSchema = z.object({
   data: z.array(championSummarySchema),
+  classic: z.array(championSummarySchema),
   patch: z.string(),
 });
 
