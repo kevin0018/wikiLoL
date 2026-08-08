@@ -15,6 +15,8 @@ campeones de League of Legends.
   compartible.
 - Recorrer los catálogos actual y LoL Classic, filtrarlos por rol y abrir el
   lore y la galería de aspectos de cada personaje.
+- Utilizar la interfaz en inglés o español, con detección del idioma del
+  navegador y preferencia manual persistente.
 - Consultar la clasificación Challenger de EUW desde la portada.
 
 La interfaz utiliza una dirección visual propia inspirada en los archivos de

@@ -7,6 +7,7 @@ import {
   useNavigationType,
 } from "react-router-dom";
 import { AppShell } from "./components/AppShell";
+import { useI18n, type TranslationKey } from "./i18n/I18nProvider";
 import { AccountPage } from "./pages/AccountPage";
 import { ChampionPage } from "./pages/ChampionPage";
 import { ChampionsPage } from "./pages/ChampionsPage";
@@ -16,6 +17,7 @@ import { NotFoundPage } from "./pages/NotFoundPage";
 
 export function App() {
   const location = useLocation();
+  const { language, t } = useI18n();
   const navigationType = useNavigationType();
   const scrollPositions = useRef(new Map<string, number>());
   const pendingScrollPosition = useRef(0);
@@ -44,12 +46,23 @@ export function App() {
   }, []);
 
   useEffect(() => {
-    const metadata = routeMetadata(location.pathname);
+    const metadata = routeMetadata(location.pathname, t);
     document.title = metadata.title;
     document
       .querySelector('meta[name="description"]')
       ?.setAttribute("content", metadata.description);
-  }, [location.pathname]);
+    setMetaContent('meta[property="og:title"]', metadata.title);
+    setMetaContent('meta[property="og:description"]', metadata.description);
+    setMetaContent(
+      'meta[property="og:locale"]',
+      language === "es" ? "es_ES" : "en_US",
+    );
+    setMetaContent('meta[name="twitter:title"]', metadata.title);
+    setMetaContent(
+      'meta[name="twitter:description"]',
+      metadata.description,
+    );
+  }, [language, location.pathname, t]);
 
   const restoreScrollAfterTransition = () => {
     if (restoreFrame.current !== null) {
@@ -96,31 +109,34 @@ export function App() {
   );
 }
 
-function routeMetadata(pathname: string) {
+function setMetaContent(selector: string, content: string) {
+  document.querySelector(selector)?.setAttribute("content", content);
+}
+
+function routeMetadata(
+  pathname: string,
+  t: (key: TranslationKey) => string,
+) {
   if (pathname === "/compare") {
     return {
-      title: "Comparar jugadores — wikiLoL",
-      description:
-        "Compara clasificación, rendimiento y maestrías de dos jugadores de League of Legends.",
+      title: t("meta.compare.title"),
+      description: t("meta.compare.description"),
     };
   }
   if (pathname === "/champions" || pathname.startsWith("/champions/")) {
     return {
-      title: "Archivo de campeones — wikiLoL",
-      description:
-        "Consulta lore, roles y aspectos del archivo de campeones de League of Legends.",
+      title: t("meta.champions.title"),
+      description: t("meta.champions.description"),
     };
   }
   if (pathname === "/account") {
     return {
-      title: "Perfil de jugador — wikiLoL",
-      description:
-        "Consulta rangos, maestrías y campeones recientes de un Riot ID.",
+      title: t("meta.account.title"),
+      description: t("meta.account.description"),
     };
   }
   return {
-    title: "wikiLoL — Archivo competitivo de Runaterra",
-    description:
-      "Consulta perfiles, rangos, maestrías y campeones de League of Legends.",
+    title: t("meta.home.title"),
+    description: t("meta.home.description"),
   };
 }

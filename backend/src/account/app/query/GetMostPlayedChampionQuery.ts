@@ -6,5 +6,6 @@ export class GetMostPlayedChampionQuery {
     public readonly region: Region,
     public readonly matchCount = 20,
     public readonly top = 4,
+    public readonly locale = "es_ES",
   ) {}
 }

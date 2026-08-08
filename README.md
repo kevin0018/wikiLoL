@@ -14,6 +14,8 @@ profiles, ranks, champion masteries, and champion data.
 - Compare two players—even across different regions—through a shareable URL.
 - Browse the current and LoL Classic champion rosters, filter them by role, and
   open each champion's lore and skin gallery.
+- Use the interface in English or Spanish, with browser-language detection and
+  a persisted manual preference.
 - Check the EUW Challenger leaderboard directly from the home page.
 
 The interface has a custom visual direction inspired by the archives of

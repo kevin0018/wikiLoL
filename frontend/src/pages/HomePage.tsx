@@ -5,9 +5,11 @@ import heroImage from "../assets/images/hero.jpg";
 import { ArrowIcon } from "../components/Icons";
 import { PageTransition } from "../components/PageTransition";
 import { PlayerSearch } from "../components/PlayerSearch";
+import { useI18n } from "../i18n/I18nProvider";
 import { api } from "../services/api";
 
 export function HomePage() {
+  const { locale, t } = useI18n();
   const ladder = useQuery({
     queryKey: ["challenger", "EUW"],
     queryFn: () => api.challenger("EUW"),
@@ -23,24 +25,25 @@ export function HomePage() {
     <PageTransition className="home-page">
       <section className="hero-section">
         <div className="hero-copy">
-          <p className="eyebrow">RUNATERRA / ARCHIVO COMPETITIVO</p>
+          <p className="eyebrow">{t("home.eyebrow")}</p>
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.08, duration: 0.52 }}
           >
-            Todo jugador deja una <em>huella</em> en la Grieta.
+            {t("home.title.before")}
+            <em>{t("home.title.emphasis")}</em>
+            {t("home.title.after")}
           </motion.h1>
           <p className="hero-intro">
-            Consulta rangos, maestrías y campeones recientes desde un único
-            perfil.
+            {t("home.intro")}
           </p>
           <PlayerSearch />
           <div className="hero-links">
             <Link to="/champions">
-              Abrir archivo de campeones <ArrowIcon />
+              {t("home.openArchive")} <ArrowIcon />
             </Link>
-            <span>Datos oficiales · Actualización dinámica</span>
+            <span>{t("home.officialData")}</span>
           </div>
         </div>
 
@@ -56,7 +59,7 @@ export function HomePage() {
           }}
           transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
         >
-          <img src={heroImage} alt="Ekko en una escena de energía temporal" />
+          <img src={heroImage} alt={t("home.heroAlt")} />
           <figcaption>
             <span>CRONORRUPTURA</span>
             <strong>Ekko</strong>
@@ -67,8 +70,8 @@ export function HomePage() {
       <section className="ladder-section">
         <header>
           <div>
-            <span className="utility-label">CLASIFICATORIA SOLO/DÚO · EUW</span>
-            <h2>La cima del servidor</h2>
+            <span className="utility-label">{t("home.ladder.eyebrow")}</span>
+            <h2>{t("home.ladder.title")}</h2>
           </div>
           <span className="live-marker">Riot API</span>
         </header>
@@ -80,7 +83,7 @@ export function HomePage() {
             ))}
           {ladder.isError && (
             <li className="ladder-message">
-              El ranking necesita una API key de Riot activa.
+              {t("home.ladder.error")}
             </li>
           )}
           {ladder.data?.map((player, index) => {
@@ -108,12 +111,12 @@ export function HomePage() {
                 </span>
                 <div>
                   <strong>{player.riotIdForDisplay}</strong>
-                  <small>{player.leaguePoints.toLocaleString()} LP</small>
+                  <small>{player.leaguePoints.toLocaleString(locale)} LP</small>
                 </div>
                 <span className="ladder-winrate">{winRate}% WR</span>
                 {player.gameName && player.tagLine ? (
                   <Link to={`/account?${search.toString()}`}>
-                    Ver perfil <ArrowIcon />
+                    {t("home.ladder.profile")} <ArrowIcon />
                   </Link>
                 ) : (
                   <span />

@@ -1,14 +1,17 @@
-export function LoadingState({ label = "Cargando datos" }: { label?: string }) {
+import { useI18n } from "../i18n/I18nProvider";
+
+export function LoadingState({ label }: { label?: string }) {
+  const { t } = useI18n();
   return (
     <div className="loading-state" role="status">
       <span className="loading-rune" aria-hidden="true" />
-      <span>{label}</span>
+      <span>{label ?? t("common.loading")}</span>
     </div>
   );
 }
 
 export function ErrorState({
-  title = "No se han podido cargar los datos",
+  title,
   message,
   retry,
 }: {
@@ -16,14 +19,15 @@ export function ErrorState({
   message?: string;
   retry?: () => void;
 }) {
+  const { t } = useI18n();
   return (
     <div className="error-state" role="alert">
-      <span className="utility-label">INTERRUPCIÓN EN LA GRIETA</span>
-      <h2>{title}</h2>
-      <p>{message ?? "Comprueba la conexión con el backend e inténtalo de nuevo."}</p>
+      <span className="utility-label">{t("common.error.eyebrow")}</span>
+      <h2>{title ?? t("common.error.title")}</h2>
+      <p>{message ?? t("common.error.message")}</p>
       {retry && (
         <button className="text-button" type="button" onClick={retry}>
-          Reintentar
+          {t("common.retry")}
         </button>
       )}
     </div>

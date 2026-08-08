@@ -205,6 +205,44 @@ img {
   left: 0;
 }
 
+.language-switcher {
+  display: inline-flex;
+  padding: 0.3rem 0.45rem;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1px solid var(--line);
+  color: #596a73;
+  background: rgba(76, 201, 192, 0.025);
+  font-family: var(--utility);
+  font-size: 0.57rem;
+  letter-spacing: 0.08em;
+}
+
+.language-switcher button {
+  padding: 0.2rem;
+  border: 0;
+  color: var(--muted);
+  background: transparent;
+  font: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.language-switcher button:hover,
+.language-switcher button.is-active {
+  color: var(--gold-pale);
+}
+
+.language-switcher button.is-active {
+  text-shadow: 0 0 16px rgba(201, 155, 59, 0.5);
+}
+
+.language-switcher button:focus-visible {
+  outline: 1px solid var(--hextech);
+  outline-offset: 3px;
+}
+
 .menu-button {
   display: none;
   width: 42px;
@@ -2389,6 +2427,11 @@ main {
 
   .main-navigation a::after {
     display: none;
+  }
+
+  .language-switcher {
+    width: fit-content;
+    margin-top: 0.75rem;
   }
 
   .hero-section {

@@ -1,3 +1,5 @@
+import { useI18n } from "../i18n/I18nProvider";
+
 interface ChampionStat {
   championId: number;
   championName: string;
@@ -9,13 +11,14 @@ export function ChampionStatList({
   title,
   label,
   champions,
-  emptyMessage = "Todavía no hay datos suficientes.",
+  emptyMessage,
 }: {
   title: string;
   label: string;
   champions: ChampionStat[];
   emptyMessage?: string;
 }) {
+  const { t } = useI18n();
   return (
     <section className="champion-stat-panel">
       <header>
@@ -34,7 +37,7 @@ export function ChampionStatList({
           ))}
         </ol>
       ) : (
-        <p className="panel-empty">{emptyMessage}</p>
+        <p className="panel-empty">{emptyMessage ?? t("stats.empty")}</p>
       )}
     </section>
   );

@@ -9,6 +9,7 @@ import {
   type PlayerLookup,
 } from "@wikilol/contracts";
 import { z } from "zod";
+import type { DataDragonLocale } from "../i18n/I18nProvider";
 
 const apiBaseUrl = (import.meta.env.VITE_BACKEND_URL ?? "").replace(/\/$/, "");
 
@@ -23,7 +24,7 @@ async function request<T>(path: string, schema: z.ZodType<T>): Promise<T> {
       "error" in body &&
       typeof body.error === "string"
         ? body.error
-        : "No se pudo completar la solicitud.";
+        : "The request could not be completed.";
     throw new Error(message);
   }
 
@@ -37,10 +38,14 @@ function params(values: Record<string, string | number>): string {
 }
 
 export const api = {
-  champions: () => request("/api/champions", championsResponseSchema),
-  champion: (id: string) =>
+  champions: (locale: DataDragonLocale) =>
     request(
-      `/api/champions/${encodeURIComponent(id)}`,
+      `/api/champions?${params({ locale })}`,
+      championsResponseSchema,
+    ),
+  champion: (id: string, locale: DataDragonLocale) =>
+    request(
+      `/api/champions/${encodeURIComponent(id)}?${params({ locale })}`,
       championDetailSchema,
     ),
   profile: (lookup: PlayerLookup) =>
@@ -53,14 +58,14 @@ export const api = {
       `/api/account/rank?${params({ puuid, region })}`,
       z.array(accountRankSchema),
     ),
-  mastery: (puuid: string, region: string) =>
+  mastery: (puuid: string, region: string, locale: DataDragonLocale) =>
     request(
-      `/api/account/mastery?${params({ puuid, region })}`,
+      `/api/account/mastery?${params({ puuid, region, locale })}`,
       z.array(championMasterySchema),
     ),
-  mostPlayed: (puuid: string, region: string) =>
+  mostPlayed: (puuid: string, region: string, locale: DataDragonLocale) =>
     request(
-      `/api/account/most-played?${params({ puuid, region })}`,
+      `/api/account/most-played?${params({ puuid, region, locale })}`,
       z.array(mostPlayedChampionSchema),
     ),
   challenger: (region = "EUW") =>

@@ -58,10 +58,10 @@ function sortChampions(
 
 export class DataDragonClient implements ChampionRepository {
   private versionCache?: { value: string; expiresAt: number };
-  private championMapCache?: {
+  private championMapCache = new Map<string, {
     value: Map<number, DataDragonChampion>;
     expiresAt: number;
-  };
+  }>();
 
   async getCurrentPatch(): Promise<string> {
     if (this.versionCache && this.versionCache.expiresAt > Date.now()) {
@@ -110,7 +110,9 @@ export class DataDragonClient implements ChampionRepository {
     );
     const champion = payload.data[id];
     if (!champion) {
-      throw new Error("Campeón no encontrado.");
+      throw new Error(
+        locale.startsWith("es") ? "Campeón no encontrado." : "Champion not found.",
+      );
     }
     const skins = champion.skins ?? [];
 
@@ -124,7 +126,9 @@ export class DataDragonClient implements ChampionRepository {
           num: skin.num,
           name:
             skin.name === "default" || skin.name === champion.name
-              ? "Aspecto original"
+              ? locale.startsWith("es")
+                ? "Aspecto original"
+                : "Original skin"
               : skin.name,
           imageUrl: `/api/assets/skin/${champion.id}/${skin.num}.jpg`,
         })),
@@ -146,11 +150,9 @@ export class DataDragonClient implements ChampionRepository {
   private async getChampionMap(
     locale: string,
   ): Promise<Map<number, DataDragonChampion>> {
-    if (
-      this.championMapCache &&
-      this.championMapCache.expiresAt > Date.now()
-    ) {
-      return this.championMapCache.value;
+    const cached = this.championMapCache.get(locale);
+    if (cached && cached.expiresAt > Date.now()) {
+      return cached.value;
     }
 
     const patch = await this.getCurrentPatch();
@@ -161,10 +163,10 @@ export class DataDragonClient implements ChampionRepository {
         .map((champion) => [Number(champion.key), champion]),
     );
 
-    this.championMapCache = {
+    this.championMapCache.set(locale, {
       value,
       expiresAt: Date.now() + CACHE_TTL_MS,
-    };
+    });
     return value;
   }
 

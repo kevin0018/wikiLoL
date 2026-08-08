@@ -42,15 +42,21 @@ describe("account query handlers", () => {
       new GetAccountRankQuery("puuid", region),
     );
     await new GetChampionMasteryHandler({ getMastery }).execute(
-      new GetChampionMasteryQuery("puuid", region, 6),
+      new GetChampionMasteryQuery("puuid", region, 6, "en_US"),
     );
     await new GetMostPlayedChampionHandler({ getMostPlayed }).execute(
-      new GetMostPlayedChampionQuery("puuid", region, 30, 5),
+      new GetMostPlayedChampionQuery("puuid", region, 30, 5, "en_US"),
     );
 
     expect(getRanks).toHaveBeenCalledWith("puuid", region);
-    expect(getMastery).toHaveBeenCalledWith("puuid", region, 6);
-    expect(getMostPlayed).toHaveBeenCalledWith("puuid", region, 30, 5);
+    expect(getMastery).toHaveBeenCalledWith("puuid", region, 6, "en_US");
+    expect(getMostPlayed).toHaveBeenCalledWith(
+      "puuid",
+      region,
+      30,
+      5,
+      "en_US",
+    );
   });
 
   it("delega la clasificación Challenger", async () => {

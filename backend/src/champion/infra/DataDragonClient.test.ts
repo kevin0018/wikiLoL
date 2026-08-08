@@ -106,6 +106,43 @@ describe("DataDragonClient", () => {
     ).rejects.toThrow("Campeón 60103 no encontrado.");
   });
 
+  it("mantiene una caché independiente para cada locale", async () => {
+    const champion = (name: string) => ({
+      data: {
+        Ahri: {
+          id: "Ahri",
+          key: "103",
+          name,
+          title: "title",
+          tags: ["Mage"],
+          blurb: "lore",
+          image: { full: "Ahri.png" },
+        },
+      },
+    });
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(["26.14.1"]), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(champion("Ahri EN")), { status: 200 }),
+      )
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify(champion("Ahri ES")), { status: 200 }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const client = new DataDragonClient();
+
+    await expect(
+      client.getChampionByNumericId(103, "en_US"),
+    ).resolves.toMatchObject({ name: "Ahri EN" });
+    await expect(
+      client.getChampionByNumericId(103, "es_ES"),
+    ).resolves.toMatchObject({ name: "Ahri ES" });
+  });
+
   it("excluye los chromas que Data Dragon mezcla con las skins", async () => {
     const fetchMock = vi
       .fn<typeof fetch>()

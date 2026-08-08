@@ -8,8 +8,10 @@ import { PlayerSearch } from "../components/PlayerSearch";
 import { RankCard } from "../components/RankCard";
 import { ErrorState, LoadingState } from "../components/States";
 import { api } from "../services/api";
+import { useI18n } from "../i18n/I18nProvider";
 
 export function AccountPage() {
+  const { dataDragonLocale, locale, t } = useI18n();
   const [searchParams] = useSearchParams();
   const lookupResult = playerLookupSchema.safeParse({
     gameName: searchParams.get("gameName"),
@@ -29,13 +31,20 @@ export function AccountPage() {
     enabled: Boolean(profile.data && lookup),
   });
   const mastery = useQuery({
-    queryKey: ["mastery", profile.data?.puuid, lookup?.region],
-    queryFn: () => api.mastery(profile.data!.puuid, lookup!.region),
+    queryKey: ["mastery", profile.data?.puuid, lookup?.region, dataDragonLocale],
+    queryFn: () =>
+      api.mastery(profile.data!.puuid, lookup!.region, dataDragonLocale),
     enabled: Boolean(profile.data && lookup),
   });
   const mostPlayed = useQuery({
-    queryKey: ["most-played", profile.data?.puuid, lookup?.region],
-    queryFn: () => api.mostPlayed(profile.data!.puuid, lookup!.region),
+    queryKey: [
+      "most-played",
+      profile.data?.puuid,
+      lookup?.region,
+      dataDragonLocale,
+    ],
+    queryFn: () =>
+      api.mostPlayed(profile.data!.puuid, lookup!.region, dataDragonLocale),
     enabled: Boolean(profile.data && lookup),
   });
 
@@ -43,8 +52,8 @@ export function AccountPage() {
     return (
       <PageTransition className="account-page">
         <section className="missing-profile">
-          <p className="eyebrow">PERFIL / NUEVA CONSULTA</p>
-          <h1>Busca un jugador para abrir su historial.</h1>
+          <p className="eyebrow">{t("account.new.eyebrow")}</p>
+          <h1>{t("account.new.title")}</h1>
           <PlayerSearch compact />
         </section>
       </PageTransition>
@@ -54,7 +63,11 @@ export function AccountPage() {
   if (profile.isPending) {
     return (
       <PageTransition className="account-page">
-        <LoadingState label={`Buscando a ${lookup.gameName}#${lookup.tagLine}`} />
+        <LoadingState
+          label={t("account.loading", {
+            name: `${lookup.gameName}#${lookup.tagLine}`,
+          })}
+        />
       </PageTransition>
     );
   }
@@ -63,8 +76,7 @@ export function AccountPage() {
     return (
       <PageTransition className="account-page">
         <ErrorState
-          title="No hemos encontrado ese jugador"
-          message={profile.error.message}
+          title={t("account.notFound")}
           retry={() => void profile.refetch()}
         />
         <div className="retry-search">
@@ -102,7 +114,10 @@ export function AccountPage() {
         </motion.div>
         <div>
           <p className="eyebrow">
-            PERFIL / {profile.data.region} / NIVEL {profile.data.summonerLevel}
+            {t("account.profileEyebrow", {
+              region: profile.data.region,
+              level: profile.data.summonerLevel,
+            })}
           </p>
           <h1>
             {profile.data.gameName}
@@ -119,7 +134,7 @@ export function AccountPage() {
             void mostPlayed.refetch();
           }}
         >
-          Actualizar datos
+          {t("account.refresh")}
         </button>
       </section>
 
@@ -127,28 +142,31 @@ export function AccountPage() {
         <section className="rank-section">
           <header>
             <div>
-              <span className="utility-label">TEMPORADA ACTUAL</span>
-              <h2>Clasificación</h2>
+              <span className="utility-label">{t("account.season")}</span>
+              <h2>{t("account.ranking")}</h2>
             </div>
             {!ranks.isPending && !ranks.isError && visibleRanks.length > 0 && (
               <span className="rank-queue-count">
-                {visibleRanks.length}{" "}
-                {visibleRanks.length === 1 ? "cola activa" : "colas activas"}
+                {t(
+                  visibleRanks.length === 1
+                    ? "account.activeQueue"
+                    : "account.activeQueues",
+                  { count: visibleRanks.length },
+                )}
               </span>
             )}
           </header>
           {ranks.isPending ? (
-            <LoadingState label="Consultando ligas" />
+            <LoadingState label={t("account.loadingRanks")} />
           ) : ranks.isError ? (
-            <ErrorState message={ranks.error.message} />
+            <ErrorState />
           ) : visibleRanks.length === 0 ? (
             <div className="rank-empty-state">
-              <span className="utility-label">SIN ACTIVIDAD CLASIFICATORIA</span>
-              <h3>Sin rango esta temporada</h3>
-              <p>
-                Este jugador todavía no ha disputado clasificatorias en la
-                temporada actual.
-              </p>
+              <span className="utility-label">
+                {t("account.unrankedEyebrow")}
+              </span>
+              <h3>{t("account.unranked")}</h3>
+              <p>{t("account.unrankedDescription")}</p>
             </div>
           ) : (
             <div className="rank-grid">
@@ -165,32 +183,32 @@ export function AccountPage() {
 
         <aside className="account-side">
           {mastery.isPending ? (
-            <LoadingState label="Leyendo maestrías" />
+            <LoadingState label={t("account.loadingMastery")} />
           ) : mastery.isError ? (
-            <ErrorState message={mastery.error.message} />
+            <ErrorState />
           ) : (
             <ChampionStatList
-              label="EXPERIENCIA TOTAL"
-              title="Maestrías"
-              emptyMessage="Este jugador todavía no tiene maestrías registradas."
+              label={t("account.masteryEyebrow")}
+              title={t("account.masteries")}
+              emptyMessage={t("account.masteriesEmpty")}
               champions={(mastery.data ?? []).map((champion) => ({
                 ...champion,
-                value: `${champion.masteryPoints.toLocaleString()} pts`,
+                value: `${champion.masteryPoints.toLocaleString(locale)} ${t("common.points")}`,
               }))}
             />
           )}
           {mostPlayed.isPending ? (
-            <LoadingState label="Analizando partidas" />
+            <LoadingState label={t("account.loadingMatches")} />
           ) : mostPlayed.isError ? (
-            <ErrorState message={mostPlayed.error.message} />
+            <ErrorState />
           ) : (
             <ChampionStatList
-              label="ÚLTIMAS 20 PARTIDAS"
-              title="Más jugados"
-              emptyMessage="No hay partidas disponibles en el historial reciente."
+              label={t("account.matchesEyebrow")}
+              title={t("account.mostPlayed")}
+              emptyMessage={t("account.matchesEmpty")}
               champions={(mostPlayed.data ?? []).map((champion) => ({
                 ...champion,
-                value: `${champion.gamesPlayed} partidas`,
+                value: `${champion.gamesPlayed} ${t("common.games")}`,
               }))}
             />
           )}

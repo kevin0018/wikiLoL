@@ -155,6 +155,7 @@ export class RiotAccountRepository implements AccountRepository {
     puuid: string,
     region: Region,
     top: number,
+    locale: string,
   ): Promise<ChampionMastery[]> {
     const masteries = await this.riotFetch(
       platformHosts[region.value],
@@ -166,6 +167,7 @@ export class RiotAccountRepository implements AccountRepository {
       masteries.slice(0, top).map(async (mastery) => {
         const champion = await this.dataDragon.getChampionByNumericId(
           mastery.championId,
+          locale,
         );
         return {
           championId: mastery.championId,
@@ -182,6 +184,7 @@ export class RiotAccountRepository implements AccountRepository {
     region: Region,
     matchCount: number,
     top: number,
+    locale: string,
   ): Promise<MostPlayedChampion[]> {
     const matchIds = await this.riotFetch(
       regionalHosts[region.value],
@@ -226,7 +229,7 @@ export class RiotAccountRepository implements AccountRepository {
     return Promise.all(
       topChampions.map(async ([championId, gamesPlayed]) => {
         const champion =
-          await this.dataDragon.getChampionByNumericId(championId);
+          await this.dataDragon.getChampionByNumericId(championId, locale);
         return {
           championId,
           championName: champion.name,

@@ -15,6 +15,7 @@ export class GetMostPlayedChampionHandler {
       query.region,
       query.matchCount,
       query.top,
+      query.locale,
     );
   }
 }

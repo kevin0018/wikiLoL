@@ -18,4 +18,11 @@ describe("API", () => {
     expect(response.status).toBe(404);
     expect(response.body).toEqual({ error: "Ruta no encontrada." });
   });
+
+  it("rechaza locales no soportados antes de consultar Data Dragon", async () => {
+    const response = await request(app).get("/api/champions?locale=fr_FR");
+
+    expect(response.status).toBe(400);
+    expect(response.body).toHaveProperty("error");
+  });
 });

@@ -8,6 +8,11 @@ export class GetChampionMasteryHandler {
   ) {}
 
   execute(query: GetChampionMasteryQuery): Promise<ChampionMastery[]> {
-    return this.repository.getMastery(query.puuid, query.region, query.top);
+    return this.repository.getMastery(
+      query.puuid,
+      query.region,
+      query.top,
+      query.locale,
+    );
   }
 }

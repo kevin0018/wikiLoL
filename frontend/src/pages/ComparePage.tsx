@@ -17,10 +17,12 @@ import {
   type ComparisonDraft,
 } from "../lib/compare";
 import { api } from "../services/api";
+import { useI18n } from "../i18n/I18nProvider";
 
-type ComparisonErrors = Record<"left" | "right", string>;
+type ComparisonErrors = Record<"left" | "right", boolean>;
 
 export function ComparePage() {
+  const { t } = useI18n();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialDraft = useMemo(
     () => comparisonFromSearchParams(searchParams),
@@ -28,8 +30,8 @@ export function ComparePage() {
   );
   const [draft, setDraft] = useState<ComparisonDraft>(initialDraft);
   const [errors, setErrors] = useState<ComparisonErrors>({
-    left: "",
-    right: "",
+    left: false,
+    right: false,
   });
   const leftLookup = lookupFromComparisonSide(initialDraft.left);
   const rightLookup = lookupFromComparisonSide(initialDraft.right);
@@ -41,13 +43,13 @@ export function ComparePage() {
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const nextErrors: ComparisonErrors = { left: "", right: "" };
+    const nextErrors: ComparisonErrors = { left: false, right: false };
 
     if (!lookupFromComparisonSide(draft.left)) {
-      nextErrors.left = "Completa el primer Riot ID con el formato Nombre#TAG.";
+      nextErrors.left = true;
     }
     if (!lookupFromComparisonSide(draft.right)) {
-      nextErrors.right = "Completa el segundo Riot ID con el formato Nombre#TAG.";
+      nextErrors.right = true;
     }
 
     setErrors(nextErrors);
@@ -59,17 +61,14 @@ export function ComparePage() {
   return (
     <PageTransition className="compare-page">
       <header className="compare-heading">
-        <h1>Pon dos perfiles frente a frente.</h1>
-        <p>
-          Contrasta clasificación, rendimiento y maestrías con datos oficiales
-          de Riot. La URL conserva la comparación para que puedas compartirla.
-        </p>
+        <h1>{t("compare.title")}</h1>
+        <p>{t("compare.intro")}</p>
       </header>
 
       <form className="compare-form" onSubmit={submit} noValidate>
         <ComparisonField
           side="left"
-          legend="Primer jugador"
+          legend={t("compare.first")}
           value={draft.left.riotId}
           region={draft.left.region}
           error={errors.left}
@@ -78,7 +77,7 @@ export function ComparePage() {
               ...current,
               left: { ...current.left, riotId },
             }));
-            setErrors((current) => ({ ...current, left: "" }));
+            setErrors((current) => ({ ...current, left: false }));
           }}
           onRegionChange={(region) =>
             setDraft((current) => ({
@@ -94,7 +93,7 @@ export function ComparePage() {
 
         <ComparisonField
           side="right"
-          legend="Segundo jugador"
+          legend={t("compare.second")}
           value={draft.right.riotId}
           region={draft.right.region}
           error={errors.right}
@@ -103,7 +102,7 @@ export function ComparePage() {
               ...current,
               right: { ...current.right, riotId },
             }));
-            setErrors((current) => ({ ...current, right: "" }));
+            setErrors((current) => ({ ...current, right: false }));
           }}
           onRegionChange={(region) =>
             setDraft((current) => ({
@@ -114,7 +113,7 @@ export function ComparePage() {
         />
 
         <button className="compare-submit" type="submit">
-          Comparar perfiles <ArrowIcon />
+          {t("compare.submit")} <ArrowIcon />
         </button>
       </form>
 
@@ -125,11 +124,8 @@ export function ComparePage() {
         </section>
       ) : (
         <section className="comparison-empty">
-          <strong>La comparación empieza con dos Riot IDs.</strong>
-          <p>
-            Puedes combinar regiones distintas. Cada expediente se consulta de
-            forma independiente y muestra su estado sin bloquear al contrario.
-          </p>
+          <strong>{t("compare.emptyTitle")}</strong>
+          <p>{t("compare.emptyDescription")}</p>
         </section>
       )}
     </PageTransition>
@@ -149,10 +145,11 @@ function ComparisonField({
   legend: string;
   value: string;
   region: Region;
-  error: string;
+  error: boolean;
   onValueChange: (value: string) => void;
   onRegionChange: (region: Region) => void;
 }) {
+  const { t } = useI18n();
   const errorId = `${side}-comparison-error`;
 
   return (
@@ -160,17 +157,17 @@ function ComparisonField({
       <legend>{legend}</legend>
       <div className="comparison-controls">
         <label>
-          <span>Riot ID</span>
+          <span>{t("common.riotId")}</span>
           <input
             value={value}
-            placeholder="Nombre#TAG"
-            aria-invalid={Boolean(error)}
+            placeholder={t("search.placeholder")}
+            aria-invalid={error}
             aria-describedby={errorId}
             onChange={(event) => onValueChange(event.target.value)}
           />
         </label>
         <label>
-          <span>Región</span>
+          <span>{t("common.region")}</span>
           <select
             value={region}
             onChange={(event) => onRegionChange(event.target.value as Region)}
@@ -182,7 +179,9 @@ function ComparisonField({
         </label>
       </div>
       <span className="comparison-helper" id={errorId}>
-        {error || "Incluye el identificador que aparece después de #."}
+        {error
+          ? t(side === "left" ? "compare.firstError" : "compare.secondError")
+          : t("compare.helper")}
       </span>
     </fieldset>
   );
@@ -195,6 +194,7 @@ function PlayerDossier({
   side: "left" | "right";
   lookup: PlayerLookup;
 }) {
+  const { dataDragonLocale, locale, t } = useI18n();
   const profile = useQuery({
     queryKey: ["compare-profile", lookup],
     queryFn: () => api.profile(lookup),
@@ -205,15 +205,23 @@ function PlayerDossier({
     enabled: Boolean(profile.data),
   });
   const mastery = useQuery({
-    queryKey: ["compare-mastery", profile.data?.puuid, lookup.region],
-    queryFn: () => api.mastery(profile.data!.puuid, lookup.region),
+    queryKey: [
+      "compare-mastery",
+      profile.data?.puuid,
+      lookup.region,
+      dataDragonLocale,
+    ],
+    queryFn: () =>
+      api.mastery(profile.data!.puuid, lookup.region, dataDragonLocale),
     enabled: Boolean(profile.data),
   });
 
   if (profile.isPending) {
     return (
       <div className={`comparison-dossier is-${side}`}>
-        <LoadingState label={`Buscando a ${lookup.gameName}`} />
+        <LoadingState
+          label={t("compare.loading", { name: lookup.gameName })}
+        />
       </div>
     );
   }
@@ -222,8 +230,7 @@ function PlayerDossier({
     return (
       <div className={`comparison-dossier is-${side}`}>
         <ErrorState
-          title={`No encontramos a ${lookup.gameName}`}
-          message={profile.error.message}
+          title={t("compare.notFound", { name: lookup.gameName })}
           retry={() => void profile.refetch()}
         />
       </div>
@@ -247,41 +254,47 @@ function PlayerDossier({
         <div>
           <h2>{profile.data.gameName}</h2>
           <p>
-            #{profile.data.tagLine} · {profile.data.region} · nivel{" "}
-            {profile.data.summonerLevel.toLocaleString("es-ES")}
+            #{profile.data.tagLine} · {profile.data.region} · {t("common.level")}{" "}
+            {profile.data.summonerLevel.toLocaleString(locale)}
           </p>
         </div>
       </header>
 
       <dl className="dossier-rank">
         <div>
-          <dt>Clasificación</dt>
+          <dt>{t("compare.ranking")}</dt>
           <dd>
             {ranks.isPending
-              ? "Consultando…"
+              ? t("compare.checking")
               : ranks.isError
-                ? "No disponible"
-              : primaryRank
-                ? `${titleCase(primaryRank.tier)} ${primaryRank.rank}`
-                : "Sin rango"}
+                ? t("compare.unavailable")
+                : primaryRank
+                  ? `${titleCase(primaryRank.tier, locale)} ${primaryRank.rank}`
+                  : t("compare.unranked")}
           </dd>
         </div>
         <div>
-          <dt>Puntos de liga</dt>
+          <dt>{t("compare.leaguePoints")}</dt>
           <dd>{primaryRank ? `${primaryRank.leaguePoints} LP` : "—"}</dd>
         </div>
         <div>
-          <dt>Rendimiento</dt>
-          <dd>{primaryRank ? `${winRate}% · ${games} partidas` : "—"}</dd>
+          <dt>{t("compare.performance")}</dt>
+          <dd>
+            {primaryRank
+              ? `${winRate}% · ${games} ${t("common.games")}`
+              : "—"}
+          </dd>
         </div>
       </dl>
 
       <section className="dossier-mastery">
-        <h3>Maestrías principales</h3>
+        <h3>{t("compare.topMasteries")}</h3>
         {mastery.isPending ? (
-          <p className="dossier-status">Consultando maestrías…</p>
+          <p className="dossier-status">{t("compare.loadingMasteries")}</p>
         ) : mastery.isError ? (
-          <p className="dossier-status is-error">{mastery.error.message}</p>
+          <p className="dossier-status is-error">
+            {t("common.error.message")}
+          </p>
         ) : mastery.data?.length ? (
           <ol>
             {mastery.data.slice(0, 3).map((champion, index) => (
@@ -290,18 +303,19 @@ function PlayerDossier({
                 <img src={champion.championImageUrl} alt="" loading="lazy" />
                 <strong>{champion.championName}</strong>
                 <small>
-                  {champion.masteryPoints.toLocaleString("es-ES")} pts
+                  {champion.masteryPoints.toLocaleString(locale)}{" "}
+                  {t("common.points")}
                 </small>
               </li>
             ))}
           </ol>
         ) : (
-          <p className="dossier-status">No hay maestrías disponibles.</p>
+          <p className="dossier-status">{t("compare.noMasteries")}</p>
         )}
       </section>
 
       <Link className="dossier-link" to={`/account?${profileSearch.toString()}`}>
-        Abrir perfil completo <ArrowIcon />
+        {t("compare.openProfile")} <ArrowIcon />
       </Link>
     </article>
   );
@@ -313,6 +327,6 @@ function selectPrimaryRank(ranks: AccountRank[]): AccountRank | undefined {
   );
 }
 
-function titleCase(value: string): string {
-  return value.charAt(0) + value.slice(1).toLocaleLowerCase("es");
+function titleCase(value: string, locale: string): string {
+  return value.charAt(0) + value.slice(1).toLocaleLowerCase(locale);
 }

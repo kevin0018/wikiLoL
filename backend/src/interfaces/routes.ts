@@ -53,18 +53,27 @@ const playerResourceSchema = z.object({
   region: regionSchema,
 });
 
+const localeSchema = z.enum(["en_US", "es_ES"]);
+const localeQuerySchema = z.object({
+  locale: localeSchema.default("es_ES"),
+});
+
 apiRouter.get("/meta", async (_request, response) => {
   response.json({ patch: await dataDragonClient.getCurrentPatch() });
 });
 
-apiRouter.get("/champions", async (_request, response) => {
-  response.json(await getChampionData.execute(new GetChampionDataQuery()));
+apiRouter.get("/champions", async (request, response) => {
+  const query = localeQuerySchema.parse(request.query);
+  response.json(
+    await getChampionData.execute(new GetChampionDataQuery(query.locale)),
+  );
 });
 
 apiRouter.get("/champions/:id", async (request, response) => {
+  const query = localeQuerySchema.parse(request.query);
   response.json(
     await getChampionById.execute(
-      new GetChampionByIdQuery(request.params.id),
+      new GetChampionByIdQuery(request.params.id, query.locale),
     ),
   );
 });
@@ -96,7 +105,10 @@ apiRouter.get("/account/rank", async (request, response) => {
 
 apiRouter.get("/account/mastery", async (request, response) => {
   const query = playerResourceSchema
-    .extend({ top: z.coerce.number().int().min(1).max(10).default(4) })
+    .extend({
+      top: z.coerce.number().int().min(1).max(10).default(4),
+      locale: localeSchema.default("es_ES"),
+    })
     .parse(request.query);
   response.json(
     await getChampionMastery.execute(
@@ -104,6 +116,7 @@ apiRouter.get("/account/mastery", async (request, response) => {
         query.puuid,
         Region.from(query.region),
         query.top,
+        query.locale,
       ),
     ),
   );
@@ -114,6 +127,7 @@ apiRouter.get("/account/most-played", async (request, response) => {
     .extend({
       matchCount: z.coerce.number().int().min(1).max(50).default(20),
       top: z.coerce.number().int().min(1).max(10).default(4),
+      locale: localeSchema.default("es_ES"),
     })
     .parse(request.query);
   response.json(
@@ -123,6 +137,7 @@ apiRouter.get("/account/most-played", async (request, response) => {
         Region.from(query.region),
         query.matchCount,
         query.top,
+        query.locale,
       ),
     ),
   );

@@ -7,30 +7,32 @@ import { FilterIcon, SearchIcon } from "../components/Icons";
 import { PageTransition } from "../components/PageTransition";
 import { ErrorState, LoadingState } from "../components/States";
 import { api } from "../services/api";
+import { useI18n, type TranslationKey } from "../i18n/I18nProvider";
 
-const roles: { value: ChampionRole | "All"; label: string }[] = [
-  { value: "All", label: "Todos" },
-  { value: "Fighter", label: "Luchadores" },
-  { value: "Tank", label: "Tanques" },
-  { value: "Mage", label: "Magos" },
-  { value: "Assassin", label: "Asesinos" },
-  { value: "Marksman", label: "Tiradores" },
-  { value: "Support", label: "Soportes" },
+const roles: { value: ChampionRole | "All"; label: TranslationKey }[] = [
+  { value: "All", label: "common.role.all" },
+  { value: "Fighter", label: "common.role.Fighter" },
+  { value: "Tank", label: "common.role.Tank" },
+  { value: "Mage", label: "common.role.Mage" },
+  { value: "Assassin", label: "common.role.Assassin" },
+  { value: "Marksman", label: "common.role.Marksman" },
+  { value: "Support", label: "common.role.Support" },
 ];
 
 type ChampionEra = "current" | "classic";
 
 export function ChampionsPage() {
+  const { dataDragonLocale, locale, t } = useI18n();
   const champions = useQuery({
-    queryKey: ["champions"],
-    queryFn: api.champions,
+    queryKey: ["champions", dataDragonLocale],
+    queryFn: () => api.champions(dataDragonLocale),
   });
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<ChampionRole | "All">("All");
   const [era, setEra] = useState<ChampionEra>("current");
 
   const filteredChampions = useMemo(() => {
-    const normalizedSearch = search.trim().toLocaleLowerCase("es");
+    const normalizedSearch = search.trim().toLocaleLowerCase(locale);
     const catalog =
       era === "classic" ? champions.data?.classic : champions.data?.data;
 
@@ -38,27 +40,24 @@ export function ChampionsPage() {
       (champion) =>
         (role === "All" || champion.roles.includes(role)) &&
         (!normalizedSearch ||
-          champion.name.toLocaleLowerCase("es").includes(normalizedSearch)),
+          champion.name.toLocaleLowerCase(locale).includes(normalizedSearch)),
     );
-  }, [champions.data, era, role, search]);
+  }, [champions.data, era, locale, role, search]);
 
   return (
     <PageTransition className="champions-page">
       <header className="archive-header">
         <div>
-          <p className="eyebrow">ARCHIVO / CAMPEONES</p>
-          <h1>Conoce a quienes dan forma a la Grieta.</h1>
+          <p className="eyebrow">{t("champions.eyebrow")}</p>
+          <h1>{t("champions.title")}</h1>
         </div>
-        <p>
-          Lore, roles y aspectos de cada campeón, servidos directamente desde
-          el archivo de Riot.
-        </p>
+        <p>{t("champions.intro")}</p>
       </header>
 
       <div
         className="era-switcher"
         role="tablist"
-        aria-label="Versión de League of Legends"
+        aria-label={t("champions.eraLabel")}
       >
         <button
           type="button"
@@ -69,7 +68,7 @@ export function ChampionsPage() {
           className={era === "current" ? "is-active" : ""}
           onClick={() => setEra("current")}
         >
-          <span>League actual</span>
+          <span>{t("champions.current")}</span>
           <small>{champions.data?.data.length ?? "—"}</small>
         </button>
         <button
@@ -81,24 +80,24 @@ export function ChampionsPage() {
           className={era === "classic" ? "is-active is-classic" : "is-classic"}
           onClick={() => setEra("classic")}
         >
-          <span>LoL Classic</span>
+          <span>{t("champions.classic")}</span>
           <small>{champions.data?.classic.length ?? "—"}</small>
         </button>
         <p aria-live="polite">
           {era === "current"
-            ? "El plantel de la temporada actual."
-            : "El plantel original recuperado por Riot."}
+            ? t("champions.currentDescription")
+            : t("champions.classicDescription")}
         </p>
       </div>
 
-      <section className="filter-bar" aria-label="Filtros de campeones">
+      <section className="filter-bar" aria-label={t("champions.filters")}>
         <label className="champion-search">
           <SearchIcon />
-          <span className="sr-only">Buscar campeón</span>
+          <span className="sr-only">{t("champions.search")}</span>
           <input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar por nombre"
+            placeholder={t("champions.searchPlaceholder")}
           />
         </label>
         <div className="role-filters">
@@ -110,20 +109,25 @@ export function ChampionsPage() {
               className={role === option.value ? "is-active" : ""}
               onClick={() => setRole(option.value)}
             >
-              {option.label}
+              {t(option.label)}
             </button>
           ))}
         </div>
         <span className="result-count">
-          {String(filteredChampions.length).padStart(3, "0")} campeones
-          {champions.data?.patch ? ` · parche ${champions.data.patch}` : ""}
+          {t("champions.count", {
+            count: String(filteredChampions.length).padStart(3, "0"),
+          })}
+          {champions.data?.patch
+            ? ` · ${t("champions.patch", { patch: champions.data.patch })}`
+            : ""}
         </span>
       </section>
 
-      {champions.isPending && <LoadingState label="Abriendo el archivo" />}
+      {champions.isPending && (
+        <LoadingState label={t("champions.loading")} />
+      )}
       {champions.isError && (
         <ErrorState
-          message={champions.error.message}
           retry={() => void champions.refetch()}
         />
       )}
@@ -147,7 +151,7 @@ export function ChampionsPage() {
           </div>
           {filteredChampions.length === 0 && (
             <div className="empty-state">
-              <h2>No hay campeones con esos filtros.</h2>
+              <h2>{t("champions.empty")}</h2>
               <button
                 className="text-button"
                 type="button"
@@ -156,7 +160,7 @@ export function ChampionsPage() {
                   setRole("All");
                 }}
               >
-                Limpiar filtros
+                {t("champions.clear")}
               </button>
             </div>
           )}

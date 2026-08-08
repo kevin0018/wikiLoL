@@ -16,9 +16,11 @@ import {
 } from "../components/Icons";
 import { PageTransition } from "../components/PageTransition";
 import { ErrorState, LoadingState } from "../components/States";
+import { useI18n, type TranslationKey } from "../i18n/I18nProvider";
 import { api } from "../services/api";
 
 export function ChampionPage() {
+  const { dataDragonLocale, t } = useI18n();
   const { championId = "" } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -28,8 +30,8 @@ export function ChampionPage() {
     "fromChampionArchive" in location.state &&
     location.state.fromChampionArchive === true;
   const champion = useQuery({
-    queryKey: ["champion", championId],
-    queryFn: () => api.champion(championId),
+    queryKey: ["champion", championId, dataDragonLocale],
+    queryFn: () => api.champion(championId, dataDragonLocale),
     enabled: Boolean(championId),
   });
   const [skinIndex, setSkinIndex] = useState(0);
@@ -121,7 +123,7 @@ export function ChampionPage() {
   if (champion.isPending) {
     return (
       <PageTransition className="champion-page">
-        <LoadingState label="Consultando el expediente" />
+        <LoadingState label={t("champion.loading")} />
       </PageTransition>
     );
   }
@@ -130,8 +132,7 @@ export function ChampionPage() {
     return (
       <PageTransition className="champion-page">
         <ErrorState
-          title="Ese expediente no está disponible"
-          message={champion.error.message}
+          title={t("champion.error")}
           retry={() => void champion.refetch()}
         />
       </PageTransition>
@@ -153,7 +154,7 @@ export function ChampionPage() {
           }
         }}
       >
-        <ArrowIcon /> Volver al archivo
+        <ArrowIcon /> {t("champion.back")}
       </Link>
 
       <div className="champion-detail-layout">
@@ -164,15 +165,24 @@ export function ChampionPage() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 140, damping: 18 }}
           >
-            <img src={data.imageUrl} alt={`Retrato de ${data.name}`} />
+            <img
+              src={data.imageUrl}
+              alt={t("champion.portraitAlt", { name: data.name })}
+            />
           </motion.div>
           <div className="champion-heading">
-            <p className="eyebrow">{data.roles.join(" / ")}</p>
+            <p className="eyebrow">
+              {data.roles
+                .map((role) =>
+                  t(`common.role.${role}` as TranslationKey),
+                )
+                .join(" / ")}
+            </p>
             <h1>{data.name}</h1>
             <h2>{data.title}</h2>
           </div>
           <div className="champion-lore">
-            <span className="utility-label">LORE</span>
+            <span className="utility-label">{t("champion.lore")}</span>
             <p>{data.lore}</p>
           </div>
         </section>
@@ -181,7 +191,7 @@ export function ChampionPage() {
           <section className="skins-section">
             <header>
               <div>
-                <span className="utility-label">GALERÍA DE ASPECTOS</span>
+                <span className="utility-label">{t("champion.skins")}</span>
                 <h2 title={activeSkin.name}>{activeSkin.name}</h2>
               </div>
               <span>
@@ -195,7 +205,10 @@ export function ChampionPage() {
                 <motion.img
                   key={activeSkin.imageUrl}
                   src={activeSkin.imageUrl}
-                  alt={`${activeSkin.name} de ${data.name}`}
+                  alt={t("champion.skinAlt", {
+                    skin: activeSkin.name,
+                    champion: data.name,
+                  })}
                   initial={{ opacity: 0, scale: 1.025 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0 }}
@@ -206,7 +219,7 @@ export function ChampionPage() {
                 <button
                   type="button"
                   className="skin-expand"
-                  aria-label={`Ampliar imagen de ${activeSkin.name}`}
+                  aria-label={t("champion.expand", { skin: activeSkin.name })}
                   aria-describedby="skin-expand-tooltip"
                   onClick={() => setIsViewerOpen(true)}
                 >
@@ -217,7 +230,7 @@ export function ChampionPage() {
                   className="skin-expand-tooltip"
                   role="tooltip"
                 >
-                  Ampliar imagen
+                  {t("champion.expandShort")}
                 </span>
               </div>
               {data.skins.length > 1 && (
@@ -225,7 +238,7 @@ export function ChampionPage() {
                   <button
                     type="button"
                     className="skin-prev"
-                    aria-label="Aspecto anterior"
+                    aria-label={t("champion.previous")}
                     onClick={() =>
                       setSkinIndex(
                         (current) =>
@@ -239,7 +252,7 @@ export function ChampionPage() {
                   <button
                     type="button"
                     className="skin-next"
-                    aria-label="Aspecto siguiente"
+                    aria-label={t("champion.next")}
                     onClick={() =>
                       setSkinIndex(
                         (current) => (current + 1) % data.skins.length,
@@ -255,7 +268,7 @@ export function ChampionPage() {
             <div
               ref={skinStripRef}
               className="skin-strip"
-              aria-label="Seleccionar aspecto"
+              aria-label={t("champion.select")}
             >
               {data.skins.map((skin, index) => (
                 <button
@@ -283,7 +296,7 @@ export function ChampionPage() {
             className="skin-viewer"
             role="dialog"
             aria-modal="true"
-            aria-label={`${activeSkin.name} a pantalla completa`}
+            aria-label={t("champion.fullscreen", { skin: activeSkin.name })}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -302,7 +315,10 @@ export function ChampionPage() {
                   <motion.img
                     key={activeSkin.imageUrl}
                     src={activeSkin.imageUrl}
-                    alt={`${activeSkin.name} de ${data.name}`}
+                    alt={t("champion.skinAlt", {
+                      skin: activeSkin.name,
+                      champion: data.name,
+                    })}
                     initial={{ opacity: 0, scale: 1.035 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.99 }}
@@ -314,7 +330,7 @@ export function ChampionPage() {
                     <button
                       type="button"
                       className="skin-prev"
-                      aria-label="Aspecto anterior"
+                      aria-label={t("champion.previous")}
                       onClick={() =>
                         setSkinIndex(
                           (current) =>
@@ -328,7 +344,7 @@ export function ChampionPage() {
                     <button
                       type="button"
                       className="skin-next"
-                      aria-label="Aspecto siguiente"
+                      aria-label={t("champion.next")}
                       onClick={() =>
                         setSkinIndex(
                           (current) => (current + 1) % data.skins.length,
@@ -343,7 +359,7 @@ export function ChampionPage() {
               <div
                 ref={viewerStripRef}
                 className="skin-viewer-strip"
-                aria-label="Seleccionar aspecto en el visor"
+                aria-label={t("champion.viewerSelect")}
               >
                 {data.skins.map((skin, index) => (
                   <motion.button
@@ -375,7 +391,7 @@ export function ChampionPage() {
                   download={`${data.id}-${activeSkin.num}.jpg`}
                   className="skin-viewer-action"
                 >
-                  <DownloadIcon /> Descargar
+                  <DownloadIcon /> {t("champion.download")}
                 </a>
                 <button
                   ref={viewerCloseRef}
@@ -383,7 +399,7 @@ export function ChampionPage() {
                   className="skin-viewer-action"
                   onClick={() => setIsViewerOpen(false)}
                 >
-                  <CloseIcon /> Cerrar
+                  <CloseIcon /> {t("champion.close")}
                 </button>
               </div>
             </motion.div>

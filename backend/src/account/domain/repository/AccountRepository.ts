@@ -19,12 +19,14 @@ export interface AccountRepository {
     puuid: string,
     region: Region,
     top: number,
+    locale: string,
   ): Promise<ChampionMastery[]>;
   getMostPlayed(
     puuid: string,
     region: Region,
     matchCount: number,
     top: number,
+    locale: string,
   ): Promise<MostPlayedChampion[]>;
   getChallenger(
     region: Region,
