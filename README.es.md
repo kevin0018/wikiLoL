@@ -2,11 +2,15 @@
 
 [English version](./README.md)
 
+[![CI](https://github.com/kevin0018/wikiLoL/actions/workflows/ci.yml/badge.svg)](https://github.com/kevin0018/wikiLoL/actions/workflows/ci.yml)
+
 Aplicación full stack para consultar y comparar perfiles, rangos, maestrías y
 campeones de League of Legends.
 
-[Explorar el código](https://github.com/kevin0018/wikiLoL) ·
+[Demo en vivo](https://wiki-lol-k.vercel.app/) ·
 [Riot Developer Portal](https://developer.riotgames.com/apis)
+
+[![Vista previa de la interfaz de wikiLoL](./docs/wikiLoL-preview-es.png)](https://wiki-lol-k.vercel.app/)
 
 ## Características destacadas
 
