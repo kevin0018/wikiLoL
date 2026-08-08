@@ -8,7 +8,7 @@
     "dev": "pnpm --parallel --filter backend --filter frontend dev",
     "build": "pnpm --filter @wikilol/contracts build && pnpm --filter backend build && pnpm --filter frontend build",
     "typecheck": "pnpm -r typecheck",
-    "test": "pnpm --filter backend test && pnpm --filter frontend test"
+    "test": "pnpm --filter @wikilol/contracts build && pnpm --filter backend test && pnpm --filter frontend test"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
