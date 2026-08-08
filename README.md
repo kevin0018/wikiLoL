@@ -1,25 +1,26 @@
 # wikiLoL
 
-Aplicación full stack para consultar y comparar perfiles, rangos, maestrías y
-campeones de League of Legends.
+[Versión en español](./README.es.md)
 
-[Explorar el código](https://github.com/kevin0018/wikiLoL) ·
+A full-stack League of Legends application for exploring and comparing player
+profiles, ranks, champion masteries, and champion data.
+
+[Explore the source](https://github.com/kevin0018/wikiLoL) ·
 [Riot Developer Portal](https://developer.riotgames.com/apis)
 
-## Qué puedes hacer
+## Highlights
 
-- Buscar un Riot ID y consultar su nivel, clasificación y maestrías.
-- Comparar dos jugadores —incluso de regiones distintas— mediante una URL
-  compartible.
-- Recorrer los catálogos actual y LoL Classic, filtrarlos por rol y abrir el
-  lore y la galería de aspectos de cada personaje.
-- Consultar la clasificación Challenger de EUW desde la portada.
+- Look up a Riot ID to view its level, ranked standings, and champion masteries.
+- Compare two players—even across different regions—through a shareable URL.
+- Browse the current and LoL Classic champion rosters, filter them by role, and
+  open each champion's lore and skin gallery.
+- Check the EUW Challenger leaderboard directly from the home page.
 
-La interfaz utiliza una dirección visual propia inspirada en los archivos de
-Runaterra. No es una capa directa sobre la API: la aplicación controla sus
-contratos, errores, caché y recursos visuales.
+The interface has a custom visual direction inspired by the archives of
+Runeterra. It is more than a thin layer over Riot's APIs: the application owns
+its public contracts, error handling, caching strategy, and visual assets.
 
-## Arquitectura
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -29,88 +30,85 @@ flowchart LR
   handlers --> champions["ChampionRepository"]
   account --> riot["Riot APIs"]
   champions --> dragon["Data Dragon"]
-  api --> assets["Proxy cacheable de assets"]
+  api --> assets["Cacheable asset proxy"]
   contracts["@wikilol/contracts · Zod"] --> browser
   contracts --> api
 ```
 
-El navegador nunca contacta directamente con Riot ni conoce la versión de Data
-Dragon. El backend compone los datos, valida las respuestas externas y actúa
-como proxy de todos los assets.
+The browser never contacts Riot directly or needs to know the active Data
+Dragon version. The backend composes the data, validates upstream responses,
+and proxies every visual asset.
 
-### Decisiones que merece la pena revisar
+### Decisions worth reviewing
 
-- Contratos Zod compartidos entre frontend y backend sin filtrar modelos
-  internos de Riot al cliente.
-- Casos de uso organizados con CQRS y dependencias conectadas desde un único
-  composition root.
-- Value objects para región y tipo de cola antes de alcanzar infraestructura.
-- Validación de todas las respuestas externas y traducción consistente de
-  errores HTTP.
-- Cacheado de la versión de Data Dragon, Riot IDs resueltos y assets servidos
-  desde URLs estables.
-- Estados de carga, error, vacío y movimiento reducido en la interfaz.
+- Shared Zod contracts between the frontend and backend without leaking Riot's
+  internal models to the client.
+- CQRS-style use cases, with dependencies wired from a single composition root.
+- Value objects for regions and queue types before data reaches infrastructure.
+- Validation for every upstream response and consistent HTTP error translation.
+- Caching for the Data Dragon version, resolved Riot IDs, and assets exposed
+  through stable URLs.
+- Purpose-built loading, error, empty, and reduced-motion states.
 
 ## Stack
 
 - **Workspace:** pnpm
-- **Frontend:** React 19, TypeScript, Vite, TanStack Query, Motion y Tailwind CSS
-- **Backend:** Node.js, Express 5, TypeScript y Zod
-- **Contratos:** paquete compartido `@wikilol/contracts`
-- **Aplicación:** CQRS con `Query` y `Handler` por caso de uso
-- **Tests:** Vitest y Supertest
+- **Frontend:** React 19, TypeScript, Vite, TanStack Query, Motion, and Tailwind CSS
+- **Backend:** Node.js, Express 5, TypeScript, and Zod
+- **Contracts:** shared `@wikilol/contracts` package
+- **Application:** one `Query` and `Handler` per CQRS use case
+- **Testing:** Vitest and Supertest
 
-## Estructura
+## Project structure
 
 ```text
 wikiLoL/
-├── frontend/                 # SPA React + TypeScript
-├── backend/                  # API Express + proxy de Riot
+├── frontend/                  # React + TypeScript SPA
+├── backend/                   # Express API and Riot proxy
 ├── packages/
-│   └── contracts/            # DTOs, esquemas Zod y tipos compartidos
-├── tokens.css                 # Tokens de la interfaz
+│   └── contracts/             # Shared DTOs, Zod schemas, and types
+├── tokens.css                 # Interface design tokens
 ├── package.json
 ├── pnpm-workspace.yaml
 └── tsconfig.base.json
 ```
 
-Los contratos compartidos representan exclusivamente la API pública. Las
-respuestas internas de Riot y Data Dragon permanecen encapsuladas en el
-backend. Las rutas validan la entrada y despachan queries; los handlers
-dependen de `AccountRepository` o `ChampionRepository` y reciben los
-adaptadores desde un único composition root. `Region` y `QueueType` son value
-objects del dominio; la capa HTTP transforma hacia ellos después de validar los
-DTO con Zod.
+The shared contracts describe the public API exclusively. Internal Riot and
+Data Dragon responses remain encapsulated in the backend. Routes validate
+input and dispatch queries; handlers depend on `AccountRepository` or
+`ChampionRepository`, with adapters provided by a single composition root.
+`Region` and `QueueType` are domain value objects created by the HTTP layer
+after validating its DTOs with Zod.
 
-## Desarrollo
+## Local development
 
-Requisitos:
+Requirements:
 
-- Node.js 22 o superior
+- Node.js 22 or newer
 - pnpm 10
-- Una API key de Riot para las rutas de jugadores y clasificación
+- A Riot API key for player and leaderboard routes
 
-Instala todas las dependencias desde la raíz:
+Install all dependencies from the repository root:
 
 ```bash
 pnpm install
 ```
 
-Crea `backend/.env`:
+Create `backend/.env`:
 
 ```dotenv
 RIOT_API_KEY=RGAPI-...
 PORT=3000
 ```
 
-Opcionalmente, crea `frontend/.env` si el backend no se encuentra en el mismo
-origen:
+Optionally create `frontend/.env` when the backend is hosted on a different
+origin:
 
 ```dotenv
 VITE_BACKEND_URL=http://localhost:3000
 ```
 
-Inicia frontend y backend:
+Start the frontend and backend:
 
 ```bash
 pnpm dev
@@ -119,7 +117,7 @@ pnpm dev
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:3000`
 
-## Comandos
+## Commands
 
 ```bash
 pnpm typecheck
@@ -127,20 +125,21 @@ pnpm test
 pnpm build
 ```
 
-El build se ejecuta en orden: contratos, backend y frontend.
+The production build runs in dependency order: contracts, backend, then
+frontend.
 
-## Despliegue en Vercel
+## Vercel deployment
 
-La aplicación se despliega como un único proyecto de Vercel: la SPA se sirve
-desde `/` y Express atiende todas las rutas `/api/*` en una Function.
+The application deploys as a single Vercel project: the SPA is served from `/`,
+while Express handles every `/api/*` route through a Function.
 
-1. Importa el repositorio y deja la raíz del proyecto en `./`.
-2. Añade `RIOT_API_KEY` en Production, Preview y Development.
-3. No definas `VITE_BACKEND_URL`; el frontend utiliza la API del mismo origen.
-4. Despliega. `vercel.json` ya configura pnpm, el build, la salida de Vite,
-   el fallback de React Router y la Function de Express.
+1. Import the repository and keep the project root set to `./`.
+2. Add `RIOT_API_KEY` to the Production, Preview, and Development environments.
+3. Leave `VITE_BACKEND_URL` unset so the frontend uses the same-origin API.
+4. Deploy. `vercel.json` already configures pnpm, the build, Vite's output,
+   React Router's fallback, and the Express Function.
 
-Antes de retirar despliegues anteriores, comprueba en la nueva URL:
+Before removing previous deployments, verify these routes on the new URL:
 
 - `/`
 - `/champions/Akali`
@@ -149,24 +148,24 @@ Antes de retirar despliegues anteriores, comprueba en la nueva URL:
 
 ## API
 
-| Ruta | Descripción |
+| Route | Description |
 | --- | --- |
-| `GET /api/meta` | Parche actual de Data Dragon |
-| `GET /api/champions` | Archivo de campeones |
-| `GET /api/champions/:id` | Lore y aspectos de un campeón |
-| `GET /api/account/profile` | Perfil por Riot ID |
-| `GET /api/account/rank` | Rangos por invocador |
-| `GET /api/account/mastery` | Mejores maestrías |
-| `GET /api/account/most-played` | Campeones de partidas recientes |
-| `GET /api/league/challenger` | Clasificación Challenger |
-| `GET /api/assets/*` | Proxy cacheable de imágenes |
+| `GET /api/meta` | Current Data Dragon patch |
+| `GET /api/champions` | Current and LoL Classic champion rosters |
+| `GET /api/champions/:id` | Champion lore and skins |
+| `GET /api/account/profile` | Player profile by Riot ID |
+| `GET /api/account/rank` | Player ranked standings |
+| `GET /api/account/mastery` | Highest champion masteries |
+| `GET /api/account/most-played` | Most-played champions from recent matches |
+| `GET /api/league/challenger` | Challenger leaderboard |
+| `GET /api/assets/*` | Cacheable image proxy |
 
-La versión actual de Data Dragon se descubre y cachea en el backend. Las URLs
-públicas de assets son estables y no contienen el parche.
+The backend discovers and caches the current Data Dragon version. Public asset
+URLs remain stable and do not expose the patch number.
 
-## Aviso legal
+## Legal notice
 
-League of Legends, sus personajes, imágenes y datos relacionados son propiedad
-de Riot Games, Inc. wikiLoL no está afiliado, respaldado ni patrocinado por
-Riot Games. Este repositorio es un proyecto personal y educativo sin fines
-comerciales.
+League of Legends, its characters, images, and related data are property of
+Riot Games, Inc. wikiLoL is not affiliated with, endorsed by, or sponsored by
+Riot Games. This repository is a non-commercial personal and educational
+project.
