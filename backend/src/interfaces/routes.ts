@@ -57,6 +57,7 @@ const localeSchema = z.enum(["en_US", "es_ES"]);
 const localeQuerySchema = z.object({
   locale: localeSchema.default("es_ES"),
 });
+const playerCacheControl = "public, s-maxage=60";
 const championCacheControl = "public, s-maxage=3600, stale-while-revalidate=300";
 
 apiRouter.get("/meta", async (_request, response) => {
@@ -81,27 +82,25 @@ apiRouter.get("/champions/:id", async (request, response) => {
 
 apiRouter.get("/account/profile", async (request, response) => {
   const query = playerLookupSchema.parse(request.query);
-  response.json(
-    await getAccountProfile.execute(
-      new GetAccountProfileQuery(
-        query.gameName,
-        query.tagLine,
-        Region.from(query.region),
-      ),
+  const profile = await getAccountProfile.execute(
+    new GetAccountProfileQuery(
+      query.gameName,
+      query.tagLine,
+      Region.from(query.region),
     ),
   );
+  response.set("Vercel-CDN-Cache-Control", playerCacheControl).json(profile);
 });
 
 apiRouter.get("/account/rank", async (request, response) => {
   const query = rankQuerySchema.parse(request.query);
-  response.json(
-    await getAccountRank.execute(
-      new GetAccountRankQuery(
-        query.puuid,
-        Region.from(query.region),
-      ),
+  const ranks = await getAccountRank.execute(
+    new GetAccountRankQuery(
+      query.puuid,
+      Region.from(query.region),
     ),
   );
+  response.set("Vercel-CDN-Cache-Control", playerCacheControl).json(ranks);
 });
 
 apiRouter.get("/account/mastery", async (request, response) => {
@@ -111,16 +110,15 @@ apiRouter.get("/account/mastery", async (request, response) => {
       locale: localeSchema.default("es_ES"),
     })
     .parse(request.query);
-  response.json(
-    await getChampionMastery.execute(
-      new GetChampionMasteryQuery(
-        query.puuid,
-        Region.from(query.region),
-        query.top,
-        query.locale,
-      ),
+  const mastery = await getChampionMastery.execute(
+    new GetChampionMasteryQuery(
+      query.puuid,
+      Region.from(query.region),
+      query.top,
+      query.locale,
     ),
   );
+  response.set("Vercel-CDN-Cache-Control", playerCacheControl).json(mastery);
 });
 
 apiRouter.get("/account/most-played", async (request, response) => {

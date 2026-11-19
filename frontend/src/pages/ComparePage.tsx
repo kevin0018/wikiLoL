@@ -17,6 +17,7 @@ import {
   type ComparisonDraft,
 } from "../lib/compare";
 import { api, ApiError } from "../services/api";
+import { playerQueryKeys } from "../lib/playerQueryKeys";
 import { useI18n } from "../i18n/I18nProvider";
 
 type ComparisonErrors = Record<"left" | "right", boolean>;
@@ -181,21 +182,16 @@ function PlayerDossier({
 }) {
   const { dataDragonLocale, locale, t } = useI18n();
   const profile = useQuery({
-    queryKey: ["compare-profile", lookup],
+    queryKey: playerQueryKeys.profile(lookup),
     queryFn: () => api.profile(lookup),
   });
   const ranks = useQuery({
-    queryKey: ["compare-ranks", profile.data?.puuid, lookup.region],
+    queryKey: playerQueryKeys.ranks(profile.data?.puuid, lookup.region),
     queryFn: () => api.ranks(profile.data!.puuid, lookup.region),
     enabled: Boolean(profile.data),
   });
   const mastery = useQuery({
-    queryKey: [
-      "compare-mastery",
-      profile.data?.puuid,
-      lookup.region,
-      dataDragonLocale,
-    ],
+    queryKey: playerQueryKeys.mastery(profile.data?.puuid, lookup.region, dataDragonLocale),
     queryFn: () =>
       api.mastery(profile.data!.puuid, lookup.region, dataDragonLocale),
     enabled: Boolean(profile.data),
