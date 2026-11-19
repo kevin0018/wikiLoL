@@ -1910,11 +1910,15 @@ main {
 /* Comparison · match preview · amber and teal · mirrored champion splash banners */
 /* Hallmark pre-emit critique: P4 H5 E4 S5 R5 V4 */
 
+.compare-route {
+  --arena-shade: color-mix(in oklch, var(--color-paper) 84%, black);
+  isolation: isolate;
+}
+
 .compare-page {
   --comparison-gap: clamp(0.75rem, 2vw, 1.5rem);
   --arena-amber: var(--color-accent-soft);
   --arena-teal: var(--color-focus);
-  --arena-shade: color-mix(in oklch, var(--color-paper) 84%, black);
   max-width: 76rem;
   margin-inline: auto;
   padding-block-start: clamp(1.75rem, 4vw, 3.5rem);
@@ -1922,25 +1926,21 @@ main {
 }
 
 .compare-heading {
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  min-height: clamp(10.5rem, 18vw, 14rem);
-  place-items: center;
   margin-bottom: var(--space-lg);
-  overflow: hidden;
-  padding: var(--space-lg) var(--space-md);
-  border-block: 1px solid var(--color-rule);
-  background: var(--arena-shade);
+  padding: clamp(2.5rem, 6vw, 5rem) var(--space-md);
   text-align: center;
+  text-shadow: 0 0.1em 0.6em var(--arena-shade);
 }
 
 .compare-rivals {
-  position: absolute;
+  position: fixed;
   z-index: -1;
   inset: 0;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 1fr);
+  background: var(--arena-shade);
+  pointer-events: none;
 }
 
 .compare-rivals img {
@@ -1948,26 +1948,20 @@ main {
   height: 100%;
   min-height: 0;
   object-fit: cover;
-  object-position: 50% 21%;
+  object-position: 54% 42%;
 }
 
 .compare-rivals .compare-rival-darius {
-  object-position: 58% 20%;
+  object-position: 38% 43%;
 }
 
 .compare-rivals::after {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(90deg, transparent, var(--arena-shade) 46%, var(--arena-shade) 54%, transparent),
-    linear-gradient(0deg, var(--arena-shade), transparent 65%);
+    linear-gradient(90deg, transparent 5%, var(--arena-shade) 47%, var(--arena-shade) 53%, transparent 95%),
+    linear-gradient(0deg, var(--arena-shade), transparent 80%);
   content: "";
-}
-
-.compare-heading-copy {
-  position: relative;
-  max-width: 37rem;
-  min-width: 0;
 }
 
 .compare-heading h1 {
@@ -2347,13 +2341,20 @@ main {
 }
 
 @media (max-width: 580px) {
+  .compare-rivals img {
+    object-position: 43% 42%;
+  }
+
+  .compare-rivals .compare-rival-darius {
+    object-position: 54% 42%;
+  }
+
   .compare-rivals::after {
-    background: linear-gradient(0deg, var(--arena-shade) 12%, transparent 100%);
+    background: linear-gradient(0deg, var(--arena-shade) 20%, color-mix(in oklch, var(--arena-shade) 28%, transparent));
   }
 
   .compare-heading {
-    min-height: 12rem;
-    align-items: end;
+    padding-block: 4.5rem 2rem;
   }
 
   .compare-heading p {

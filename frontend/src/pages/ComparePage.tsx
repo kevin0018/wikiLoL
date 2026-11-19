@@ -60,78 +60,78 @@ export function ComparePage() {
   }
 
   return (
-    <PageTransition className="compare-page">
-      <header className="compare-heading">
-        <div className="compare-rivals">
-          <img src="/api/assets/skin/Garen/13.jpg" alt="Garen" />
-          <img className="compare-rival-darius" src="/api/assets/skin/Darius/15.jpg" alt="Darius" />
-        </div>
-        <div className="compare-heading-copy">
+    <div className="compare-route">
+      <div className="compare-rivals">
+        <img src="/api/assets/skin/Garen/13.jpg" alt="Garen" />
+        <img className="compare-rival-darius" src="/api/assets/skin/Darius/15.jpg" alt="Darius" />
+      </div>
+      <PageTransition className="compare-page">
+        <header className="compare-heading">
           <h1>{t("compare.title")}</h1>
           <p>{t("compare.intro")}</p>
-        </div>
-      </header>
+        </header>
 
-      <form className="compare-form" onSubmit={submit} noValidate>
-        <ComparisonField
-          side="left"
-          legend={t("compare.first")}
-          value={draft.left.riotId}
-          region={draft.left.region}
-          error={errors.left}
-          onValueChange={(riotId) => {
-            setDraft((current) => ({
-              ...current,
-              left: { ...current.left, riotId },
-            }));
-            setErrors((current) => ({ ...current, left: false }));
-          }}
-          onRegionChange={(region) =>
-            setDraft((current) => ({
-              ...current,
-              left: { ...current.left, region },
-            }))
-          }
-        />
+        <form className="compare-form" onSubmit={submit} noValidate>
+          <ComparisonField
+            side="left"
+            legend={t("compare.first")}
+            value={draft.left.riotId}
+            region={draft.left.region}
+            error={errors.left}
+            onValueChange={(riotId) => {
+              setDraft((current) => ({
+                ...current,
+                left: { ...current.left, riotId },
+              }));
+              setErrors((current) => ({ ...current, left: false }));
+            }}
+            onRegionChange={(region) =>
+              setDraft((current) => ({
+                ...current,
+                left: { ...current.left, region },
+              }))
+            }
+          />
 
-        <ComparisonField
-          side="right"
-          legend={t("compare.second")}
-          value={draft.right.riotId}
-          region={draft.right.region}
-          error={errors.right}
-          onValueChange={(riotId) => {
-            setDraft((current) => ({
-              ...current,
-              right: { ...current.right, riotId },
-            }));
-            setErrors((current) => ({ ...current, right: false }));
-          }}
-          onRegionChange={(region) =>
-            setDraft((current) => ({
-              ...current,
-              right: { ...current.right, region },
-            }))
-          }
-        />
+          <ComparisonField
+            side="right"
+            legend={t("compare.second")}
+            value={draft.right.riotId}
+            region={draft.right.region}
+            error={errors.right}
+            onValueChange={(riotId) => {
+              setDraft((current) => ({
+                ...current,
+                right: { ...current.right, riotId },
+              }));
+              setErrors((current) => ({ ...current, right: false }));
+            }}
+            onRegionChange={(region) =>
+              setDraft((current) => ({
+                ...current,
+                right: { ...current.right, region },
+              }))
+            }
+          />
 
-        <button className="compare-submit" type="submit">
-          {t("compare.submit")} <ArrowIcon />
-        </button>
-      </form>
+          <button className="compare-submit" type="submit">
+            {t("compare.submit")} <ArrowIcon />
+          </button>
+        </form>
 
-      {leftLookup && rightLookup ? (
-        <section className="comparison-stage" aria-live="polite">
-          <span className="comparison-versus" aria-hidden="true">VS</span>
-          <PlayerDossier side="left" lookup={leftLookup} />
-          <PlayerDossier side="right" lookup={rightLookup} />
-        </section>
-      ) : (
-        <section className="comparison-empty">
-          <strong>{t("compare.emptyTitle")}</strong>
-        </section>
-      )}
-    </PageTransition>
+        {leftLookup && rightLookup ? (
+          <section className="comparison-stage" aria-live="polite">
+            <span className="comparison-versus" aria-hidden="true">VS</span>
+            <PlayerDossier side="left" lookup={leftLookup} />
+            <PlayerDossier side="right" lookup={rightLookup} />
+          </section>
+        ) : (
+          <section className="comparison-empty">
+            <strong>{t("compare.emptyTitle")}</strong>
+          </section>
+        )}
+      </PageTransition>
+    </div>
   );
 }
 
