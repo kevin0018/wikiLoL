@@ -147,7 +147,7 @@
   "account.loadingMatchPage": "Loading…",
   "account.moreMatchesError": "Could not load older matches. Try again.",
   "account.matchesEmpty": "No matches are available in the recent history.",
-  "rank.queue": "Queue",
+  "rank.showQueue": "Show {queue}",
   "rank.solo": "Solo / Duo",
   "rank.flex": "Flex",
   "rank.wins": "Wins",

@@ -1,5 +1,7 @@
+import { useState } from "react";
 import type { AccountRank } from "@wikilol/contracts";
 import { useI18n } from "../i18n/I18nProvider";
+import { ChevronIcon } from "./Icons";
 
 export function RankCard({ rank }: { rank: AccountRank }) {
   const { locale, t } = useI18n();
@@ -27,39 +29,35 @@ export function RankCard({ rank }: { rank: AccountRank }) {
   );
 }
 
-export function RankComparison({ ranks }: { ranks: AccountRank[] }) {
-  const { locale, t } = useI18n();
+export function RankQueueSwitcher({ solo, flex }: { solo: AccountRank; flex: AccountRank }) {
+  const { t } = useI18n();
+  const [showFlex, setShowFlex] = useState(false);
+  const rank = showFlex ? flex : solo;
+  const target = t(showFlex ? "rank.solo" : "rank.flex");
 
   return (
-    <table className="rank-comparison" aria-labelledby="account-rank-title">
-      <thead>
-        <tr>
-          <th scope="col">{t("rank.queue")}</th>
-          <th scope="col">{t("rank.wins")}</th>
-          <th scope="col">{t("rank.losses")}</th>
-          <th scope="col">{t("rank.winRate")}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {ranks.map((rank) => (
-          <tr key={rank.queueType}>
-            <th scope="row"><RankIdentity rank={rank} compact /></th>
-            <td>{rank.wins.toLocaleString(locale)}</td>
-            <td>{rank.losses.toLocaleString(locale)}</td>
-            <td>{formatWinRate(getWinRate(rank))}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <div className="rank-switcher">
+      <div aria-live="polite">
+        <RankCard key={rank.queueType} rank={rank} />
+      </div>
+      <button
+        type="button"
+        className={`rank-switch${showFlex ? " is-previous" : ""}`}
+        aria-label={t("rank.showQueue", { queue: target })}
+        onClick={() => setShowFlex(!showFlex)}
+      >
+        {target}
+        <ChevronIcon />
+      </button>
+    </div>
   );
 }
 
-function RankIdentity({ rank, compact = false }: { rank: AccountRank; compact?: boolean }) {
+function RankIdentity({ rank }: { rank: AccountRank }) {
   const { locale, t } = useI18n();
   const apexTier = ["MASTER", "GRANDMASTER", "CHALLENGER"].includes(rank.tier);
   const tierName = rank.tier.charAt(0) + rank.tier.slice(1).toLocaleLowerCase(locale);
   const tier = apexTier ? tierName : `${tierName} ${rank.rank}`;
-  const Title = compact ? "strong" : "h3";
 
   return (
     <div className="rank-identity">
@@ -68,7 +66,7 @@ function RankIdentity({ rank, compact = false }: { rank: AccountRank; compact?: 
       </div>
       <div className="rank-copy">
         <span className="rank-queue-name">{t(rank.queueType === "RANKED_SOLO_5x5" ? "rank.solo" : "rank.flex")}</span>
-        <Title>{tier}</Title>
+        <h3>{tier}</h3>
         <p>{rank.leaguePoints.toLocaleString(locale)} LP</p>
       </div>
     </div>

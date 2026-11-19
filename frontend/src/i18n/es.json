@@ -147,7 +147,7 @@
   "account.loadingMatchPage": "Cargando…",
   "account.moreMatchesError": "No se han podido cargar más partidas. Vuelve a intentarlo.",
   "account.matchesEmpty": "No hay partidas disponibles en el historial reciente.",
-  "rank.queue": "Cola",
+  "rank.showQueue": "Ver {queue}",
   "rank.solo": "Solo / Dúo",
   "rank.flex": "Flexible",
   "rank.wins": "Victorias",

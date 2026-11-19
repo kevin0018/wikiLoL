@@ -5,7 +5,7 @@ import { ChampionStatList } from "../components/ChampionStatList";
 import { RefreshIcon } from "../components/Icons";
 import { PageTransition } from "../components/PageTransition";
 import { PlayerSearch } from "../components/PlayerSearch";
-import { RankCard, RankComparison } from "../components/RankCard";
+import { RankCard, RankQueueSwitcher } from "../components/RankCard";
 import { RecentMatchHistory } from "../components/RecentMatchHistory";
 import { ErrorState, LoadingState } from "../components/States";
 import { api, ApiError } from "../services/api";
@@ -100,8 +100,7 @@ export function AccountPage() {
   const flexRank = ranks.data?.find(
     (rank) => rank.queueType === "RANKED_FLEX_SR",
   );
-  const visibleRanks = [soloRank, flexRank].filter((rank) => rank !== undefined);
-  const [primaryRank] = visibleRanks;
+  const primaryRank = soloRank ?? flexRank;
 
   const splashUrl = championSplashUrl(mastery.data?.[0]?.championImageUrl);
   const refreshing = profile.isFetching || ranks.isFetching || mastery.isFetching || activity.isFetching;
@@ -164,8 +163,8 @@ export function AccountPage() {
               <h3>{t("account.unranked")}</h3>
               <p>{t("account.unrankedDescription")}</p>
             </div>
-          ) : visibleRanks.length > 1 ? (
-            <RankComparison ranks={visibleRanks} />
+          ) : soloRank && flexRank ? (
+            <RankQueueSwitcher key={JSON.stringify([profile.data.puuid, profile.data.region])} solo={soloRank} flex={flexRank} />
           ) : (
             <RankCard rank={primaryRank} />
           )}
