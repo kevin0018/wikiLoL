@@ -41,9 +41,9 @@ export function RankQueueSwitcher({ solo, flex }: { solo: AccountRank; flex: Acc
         type="button"
         className={`rank-switch${showFlex ? " is-previous" : ""}`}
         aria-label={t("rank.showQueue", { queue: target })}
-        title={t("rank.showQueue", { queue: target })}
         onClick={() => setShowFlex((previous) => !previous)}
       >
+        {target}
         <ChevronIcon />
       </button>
       <span className="sr-only" role="status">{activeQueue}</span>
