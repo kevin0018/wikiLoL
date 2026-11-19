@@ -61,6 +61,7 @@ function sortChampions(
 }
 
 export class DataDragonClient implements ChampionRepository {
+  private readonly itemNameCache = new Map<string, Promise<ReadonlyMap<string, string>>>();
   private versionCache?: { value: string; expiresAt: number };
   private championMapCache = new Map<string, {
     value: Map<number, DataDragonChampion>;
@@ -83,6 +84,27 @@ export class DataDragonClient implements ChampionRepository {
       expiresAt: Date.now() + CACHE_TTL_MS,
     };
     return version;
+  }
+
+  getItemNames(locale: string, patch: string): Promise<ReadonlyMap<string, string>> {
+    const key = `${patch}:${locale}`;
+    const cached = this.itemNameCache.get(key);
+    if (cached) return cached;
+
+    if (this.itemNameCache.size >= 16) {
+      const oldest = this.itemNameCache.keys().next();
+      if (!oldest.done) this.itemNameCache.delete(oldest.value);
+    }
+
+    const request = fetchJson<{ data: Record<string, { name: string }> }>(
+      `${DATA_DRAGON_URL}/${patch}/data/${locale}/item.json`,
+    ).then(({ data }) => new Map(Object.entries(data).map(([id, item]) => [id, item.name])))
+      .catch((error: unknown) => {
+        if (this.itemNameCache.get(key) === request) this.itemNameCache.delete(key);
+        throw error;
+      });
+    this.itemNameCache.set(key, request);
+    return request;
   }
 
   async getChampions(locale = "es_ES"): Promise<ChampionsResult> {

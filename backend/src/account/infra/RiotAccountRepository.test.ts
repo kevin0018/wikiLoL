@@ -43,9 +43,14 @@ describe("RiotAccountRepository", () => {
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json(matchIds));
     for (const id of matchIds) {
       fetchMock.mockResolvedValueOnce(Response.json({
-        info: { gameDuration: 1700, gameStartTimestamp: 1234, queueId: 420, participants: [
-          { puuid: "player", championId: 103, win: id !== "EUW1_2", kills: 7, deaths: 2, assists: 9 },
-        ] },
+        info: {
+          gameDuration: 1700, gameStartTimestamp: 1234, queueId: 420, gameVersion: "16.23.4.123",
+          teams: [{ teamId: 100, win: true }, { teamId: 200, win: false }],
+          participants: [
+            { puuid: "player", championId: 103, win: id !== "EUW1_2", kills: 7, deaths: 2, assists: 9, teamId: 100, item0: 3157, riotIdGameName: "Kaori" },
+            { puuid: "opponent", championId: 103, kills: 2, teamId: 200 },
+          ],
+        },
       }));
     }
     vi.stubGlobal("fetch", fetchMock);
@@ -53,6 +58,7 @@ describe("RiotAccountRepository", () => {
     vi.spyOn(dataDragon, "getChampionByNumericId").mockResolvedValue({
       id: "Ahri", key: "103", name: "Ahri", title: "", tags: [], blurb: "", image: { full: "Ahri.png" },
     });
+    vi.spyOn(dataDragon, "getItemNames").mockResolvedValue(new Map([["3157", "Zhonya"]]));
     const repository = new RiotAccountRepository(dataDragon);
     const region = Region.from("EUW");
 
@@ -63,6 +69,13 @@ describe("RiotAccountRepository", () => {
     });
     expect(result.mostPlayed).toEqual([expect.objectContaining({ championName: "Ahri", gamesPlayed: 6 })]);
     await expect(repository.getMostPlayed("player", region, 20, 4, "en_US")).resolves.toEqual(result.mostPlayed);
+    const detail = await repository.getMatchDetails("EUW1_1", region, "es_ES");
+    expect(detail.teams).toMatchObject([
+      { teamId: 100, win: true, kills: 7, players: [{ playerName: "Kaori", items: [
+        { name: "Zhonya", imageUrl: "/api/assets/item/16.23.1/3157.png" }, null, null, null, null, null, null,
+      ] }] },
+      { teamId: 200, win: false, kills: 2 },
+    ]);
     expect(fetchMock).toHaveBeenCalledTimes(7);
   });
 

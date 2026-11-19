@@ -1,3 +1,4 @@
+import type { MatchDetails } from "@wikilol/contracts";
 import type {
   AccountActivity,
   AccountProfile,
@@ -70,16 +71,32 @@ const masterySchema = z.object({
   championPoints: z.number(),
 });
 
+const itemSlot = z.number().int().nonnegative().default(0);
+
 const matchSchema = z.object({
   info: z.object({
     queueId: z.number().int().nonnegative().default(0),
     gameDuration: z.number().int().nonnegative().default(0),
     gameStartTimestamp: z.number().int().nonnegative().default(0),
+    gameVersion: z.string().default(""),
+    teams: z.array(z.object({ teamId: z.number(), win: z.boolean().default(false) })).default([]),
     participants: z.array(
       z.object({
         puuid: z.string(),
         championId: z.number(),
         championName: z.string().optional(),
+        teamId: z.number().default(0),
+        playerSubteamId: z.number().default(0),
+        riotIdGameName: z.string().default(""),
+        riotIdTagline: z.string().default(""),
+        summonerName: z.string().default(""),
+        item0: itemSlot,
+        item1: itemSlot,
+        item2: itemSlot,
+        item3: itemSlot,
+        item4: itemSlot,
+        item5: itemSlot,
+        item6: itemSlot,
         win: z.boolean().default(false),
         kills: z.number().int().nonnegative().default(0),
         deaths: z.number().int().nonnegative().default(0),
@@ -114,6 +131,7 @@ interface PlayerMatch {
 
 const MATCH_HISTORY_TTL_MS = 60_000;
 const MATCH_HISTORY_CACHE_LIMIT = 256;
+const MATCH_DETAILS_CACHE_LIMIT = 512;
 const ACCOUNT_CACHE_TTL_MS = 15 * 60 * 1000;
 const MATCH_BATCH_SIZE = 8;
 const MATCH_BATCH_PAUSE_MS = 1000;
@@ -138,6 +156,8 @@ export class RiotAccountRepository implements AccountRepository {
     { matches: PlayerMatch[]; expiresAt: number }
   >();
   private readonly matchHistoryRequests = new Map<string, Promise<PlayerMatch[]>>();
+
+  private readonly matchDetailsCache = new Map<string, Promise<MatchInfo>>();
 
   constructor(private readonly dataDragon: DataDragonClient = dataDragonClient) {}
 
@@ -238,6 +258,72 @@ export class RiotAccountRepository implements AccountRepository {
     return { matches, mostPlayed };
   }
 
+  async getMatchDetails(matchId: string, region: Region, locale: string): Promise<MatchDetails> {
+    const match = await this.getMatch(regionalHosts[region.value], matchId);
+    const release = match.gameVersion.match(/^([0-9]+\.[0-9]+)\./)?.[1];
+    const patch = release ? `${release}.1` : await this.dataDragon.getCurrentPatch();
+    const itemNames = await this.dataDragon.getItemNames(locale, patch).catch(() => null);
+
+    const teams = new Map<number, MatchDetails["teams"][number]>();
+    const arena = match.participants.some((player) => player.playerSubteamId > 0);
+    const players = await Promise.all(match.participants.map(async (player) => {
+      const champion = await this.getChampionPortrait(player.championId, locale).catch(() => null);
+      const championName = champion?.championName ?? player.championName ?? String(player.championId);
+      const slots = [player.item0, player.item1, player.item2, player.item3, player.item4, player.item5, player.item6];
+      const items = slots.map((id) => id > 0 ? {
+        name: itemNames?.get(String(id)) ?? String(id),
+        imageUrl: `/api/assets/item/${patch}/${id}.png`,
+      } : null);
+      return {
+        teamId: arena ? player.playerSubteamId : player.teamId,
+        win: player.win,
+        entry: {
+          championName,
+          championImageUrl: champion?.championImageUrl ?? null,
+          playerName: player.riotIdGameName || player.summonerName || championName,
+          tagLine: player.riotIdTagline,
+          kills: player.kills,
+          deaths: player.deaths,
+          assists: player.assists,
+          items,
+        },
+      };
+    }));
+
+    for (const { teamId, win, entry } of players) {
+      let team = teams.get(teamId);
+      if (!team) {
+        const result = arena ? undefined : match.teams.find((team) => team.teamId === teamId);
+        team = { teamId, win: result?.win ?? win, kills: 0, players: [] };
+        teams.set(teamId, team);
+      }
+      team.kills += entry.kills;
+      team.players.push(entry);
+    }
+    return { teams: [...teams.values()].sort((left, right) => left.teamId - right.teamId) };
+  }
+
+  private getMatch(host: string, matchId: string): Promise<MatchInfo> {
+    const key = JSON.stringify([host, matchId]);
+    const existing = this.matchDetailsCache.get(key);
+    if (existing) return existing;
+
+    if (this.matchDetailsCache.size >= MATCH_DETAILS_CACHE_LIMIT) {
+      const oldest = this.matchDetailsCache.keys().next();
+      if (!oldest.done) this.matchDetailsCache.delete(oldest.value);
+    }
+    const request = Promise.resolve().then(() => this.riotFetch(
+      host,
+      `/lol/match/v5/matches/${encodeURIComponent(matchId)}`,
+      matchSchema,
+    )).then(({ info }) => info).catch((error: unknown) => {
+      if (this.matchDetailsCache.get(key) === request) this.matchDetailsCache.delete(key);
+      throw error;
+    });
+    this.matchDetailsCache.set(key, request);
+    return request;
+  }
+
   private getPlayerMatches(puuid: string, region: Region, matchCount: number): Promise<PlayerMatch[]> {
     const host = regionalHosts[region.value];
     const key = JSON.stringify([host, puuid, matchCount]);
@@ -274,11 +360,7 @@ export class RiotAccountRepository implements AccountRepository {
 
       const batch = await Promise.all(
         matchIds.slice(index, index + MATCH_BATCH_SIZE).map(async (matchId) => {
-          const { info: { participants, ...info } } = await this.riotFetch(
-            host,
-            `/lol/match/v5/matches/${encodeURIComponent(matchId)}`,
-            matchSchema,
-          );
+          const { participants, ...info } = await this.getMatch(host, matchId);
           const player = participants.find((candidate) => candidate.puuid === puuid);
           return player && { matchId, info, player };
         }),

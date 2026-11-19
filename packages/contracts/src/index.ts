@@ -117,6 +117,25 @@ export const accountActivitySchema = z.object({
 });
 export type RecentMatch = z.infer<typeof recentMatchSchema>;
 
+export const matchDetailsSchema = z.object({
+  teams: z.array(z.object({
+    teamId: z.number(),
+    win: z.boolean(),
+    kills: z.number(),
+    players: z.array(z.object({
+      championName: z.string(),
+      championImageUrl: z.string().nullable(),
+      playerName: z.string(),
+      tagLine: z.string(),
+      kills: z.number(),
+      deaths: z.number(),
+      assists: z.number(),
+      items: z.array(z.object({ name: z.string(), imageUrl: z.string() }).nullable()),
+    })),
+  })),
+});
+export type MatchDetails = z.infer<typeof matchDetailsSchema>;
+
 export const challengerPicksSchema = z.record(
   z.string(),
   z.array(mostPlayedChampionSchema).nullable(),

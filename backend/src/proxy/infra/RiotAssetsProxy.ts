@@ -51,6 +51,20 @@ assetsRouter.get(
   },
 );
 
+assetsRouter.get("/item/:patch/:itemId.png", async (request, response) => {
+  const { patch, itemId } = request.params;
+  if (!/^\d+\.\d+\.\d+$/.test(patch) || !/^\d+$/.test(itemId)) {
+    response.status(404).json({ error: "Asset no encontrado." });
+    return;
+  }
+
+  await proxyAsset(
+    `https://ddragon.leagueoflegends.com/cdn/${patch}/img/item/${itemId}.png`,
+    "image/png",
+    response,
+  );
+});
+
 async function proxyAsset(
   url: string,
   contentType: string,

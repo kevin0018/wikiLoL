@@ -18,6 +18,7 @@ import {
 } from "../account/app/query/GetChallengerPicksHandler.js";
 import { GetChampionMasteryHandler } from "../account/app/query/GetChampionMasteryHandler.js";
 import { GetChampionMasteryQuery } from "../account/app/query/GetChampionMasteryQuery.js";
+import { GetMatchDetailsHandler } from "../account/app/query/GetMatchDetailsHandler.js";
 import { GetMostPlayedChampionHandler } from "../account/app/query/GetMostPlayedChampionHandler.js";
 import { GetMostPlayedChampionQuery } from "../account/app/query/GetMostPlayedChampionQuery.js";
 import { QueueType } from "../account/domain/value-object/QueueType.js";
@@ -33,6 +34,7 @@ export const apiRouter = Router();
 
 // Composition root: infrastructure is wired to application handlers only here.
 const getAccountActivity = new GetAccountActivityHandler(riotAccountRepository);
+const getMatchDetails = new GetMatchDetailsHandler(riotAccountRepository);
 const getAccountProfile = new GetAccountProfileHandler(
   riotAccountRepository,
 );
@@ -134,6 +136,13 @@ apiRouter.get("/account/activity", async (request, response) => {
     query.puuid, Region.from(query.region), query.locale,
   );
   response.set("Vercel-CDN-Cache-Control", playerCacheControl).json(activity);
+});
+
+apiRouter.get("/account/matches/:matchId", async (request, response) => {
+  const matchId = z.string().max(40).regex(/^[A-Z0-9]+_[0-9]+$/i).parse(request.params.matchId);
+  const query = localeQuerySchema.extend({ region: regionSchema }).parse(request.query);
+  const match = await getMatchDetails.execute(matchId.toUpperCase(), Region.from(query.region), query.locale);
+  response.set("Vercel-CDN-Cache-Control", "public, s-maxage=86400").json(match);
 });
 
 apiRouter.get("/account/most-played", async (request, response) => {
