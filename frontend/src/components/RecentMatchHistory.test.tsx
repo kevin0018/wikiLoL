@@ -22,7 +22,17 @@ it("loads only the selected scoreboard and reuses it when reopened", async () =>
       value(this: HTMLDialogElement) { this.open = false; },
     },
   });
-  const fetchMock = vi.fn(async () => Response.json({ teams: [] }));
+  const fetchMock = vi.fn(async () => Response.json({
+    teams: [{
+      teamId: 100, win: true, kills: 5,
+      players: [{
+        championName: "Garen", championImageUrl: null, playerName: "Player", tagLine: "EUW",
+        kills: 5, deaths: 2, assists: 10, damage: 23456, gold: 12000, farm: 212, items: [],
+      }],
+    }, {
+      teamId: 200, win: false, kills: 0, players: [],
+    }],
+  }));
   vi.stubGlobal("fetch", fetchMock);
   const client = new QueryClient({ defaultOptions: { queries: { staleTime: 60_000 } } });
   const matches = ["Ahri", "Garen"].map((championName, index) => ({
@@ -58,7 +68,9 @@ it("loads only the selected scoreboard and reuses it when reopened", async () =>
   expect(fetchMock).not.toHaveBeenCalled();
   const selected = screen.getByRole("button", { name: /Open scoreboard: Garen/ });
   fireEvent.click(selected);
-  await screen.findByText("No scoreboard is available for this match.");
+  await screen.findByRole("table", { name: "Match scoreboard" });
+  expect(screen.getAllByRole("columnheader")).toHaveLength(6);
+  expect(screen.getByRole("cell", { name: "23,456" })).toBeTruthy();
   expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/account/matches/EUW1_2?region=EUW&locale=en_US");
 
   fireEvent.click(screen.getByRole("button", { name: "Close scoreboard" }));
