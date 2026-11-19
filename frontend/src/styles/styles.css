@@ -1907,12 +1907,15 @@ main {
   }
 }
 
-/* Comparison · competitive briefing · gold and teal · paired player cards */
+/* Comparison · match preview · amber and teal · mirrored champion splash banners */
 /* Hallmark pre-emit critique: P4 H5 E4 S5 R5 V4 */
 
 .compare-page {
   --comparison-gap: clamp(0.75rem, 2vw, 1.5rem);
-  max-width: 72rem;
+  --arena-amber: var(--color-accent-soft);
+  --arena-teal: var(--color-focus);
+  --arena-shade: color-mix(in oklch, var(--color-paper) 84%, black);
+  max-width: 76rem;
   margin-inline: auto;
   padding-block-start: clamp(1.75rem, 4vw, 3.5rem);
   font-variant-numeric: tabular-nums;
@@ -1925,7 +1928,7 @@ main {
 .compare-heading h1 {
   margin: 0 0 0.35rem;
   color: var(--color-ink);
-  font: 400 clamp(2.25rem, 4.25vw, 4rem)/1.04 var(--font-display);
+  font: 400 clamp(2.65rem, 5vw, 5rem)/0.98 var(--font-display);
   letter-spacing: -0.035em;
   overflow-wrap: anywhere;
 }
@@ -1942,10 +1945,10 @@ main {
   grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
   align-items: start;
   gap: var(--comparison-gap);
-  margin-bottom: var(--space-xl);
+  margin-bottom: clamp(1.7rem, 3vw, 2.7rem);
   padding: clamp(0.8rem, 2vw, 1.35rem);
-  border-block: 1px solid var(--color-rule);
-  background: var(--color-paper-2);
+  border: 1px solid var(--color-rule);
+  background: linear-gradient(110deg, var(--color-paper-2), var(--color-paper));
 }
 
 .comparison-fieldset {
@@ -2045,24 +2048,42 @@ main {
 }
 
 .comparison-stage {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--comparison-gap);
 }
 
+.comparison-versus {
+  position: absolute;
+  z-index: 1;
+  top: clamp(3.4rem, 7vw, 6.1rem);
+  left: 50%;
+  display: grid;
+  width: 3.45rem;
+  height: 3.15rem;
+  place-items: center;
+  transform: translateX(-50%) skewX(-10deg);
+  border: 1px solid var(--color-rule);
+  background: var(--arena-shade);
+  color: var(--color-ink);
+  box-shadow: 0 0 1.5rem var(--arena-shade);
+  font: 600 var(--text-md)/1 var(--font-utility);
+}
+
 .comparison-dossier {
-  --player-accent: var(--color-accent-soft);
+  --player-accent: var(--arena-amber);
+  --dossier-inset: clamp(0.9rem, 2.5vw, 1.75rem);
   display: flex;
   min-width: 0;
   flex-direction: column;
-  padding: clamp(0.9rem, 2.5vw, 1.75rem);
+  padding: 0 var(--dossier-inset) var(--dossier-inset);
   border: 1px solid var(--color-rule);
-  border-top: 2px solid var(--player-accent);
   background: var(--color-paper-2);
 }
 
 .comparison-dossier.is-right {
-  --player-accent: var(--color-focus);
+  --player-accent: var(--arena-teal);
 }
 
 .comparison-dossier > :is(.error-state, .loading-state) {
@@ -2071,29 +2092,64 @@ main {
 }
 
 .dossier-identity {
+  position: relative;
+  isolation: isolate;
   display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr);
-  align-items: center;
+  min-height: clamp(9rem, 16vw, 13.75rem);
+  grid-template-columns: clamp(3rem, 6vw, 5rem) minmax(0, 1fr);
+  align-items: end;
+  align-content: end;
   gap: var(--space-md);
-  margin-bottom: var(--space-lg);
+  margin: 0 calc(-1 * var(--dossier-inset)) var(--space-md);
+  overflow: hidden;
+  padding: var(--space-lg) var(--dossier-inset) var(--space-md);
+  border-top: 3px solid var(--player-accent);
+  background: var(--color-paper-3);
 }
 
-.dossier-identity img {
-  width: 4.5rem;
-  height: 4.5rem;
+.dossier-identity::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(0deg, var(--arena-shade) 0%, transparent 83%),
+    linear-gradient(120deg, var(--arena-shade), transparent 70%),
+    linear-gradient(115deg, transparent 75%, var(--player-accent) 75%);
+  content: "";
+}
+
+.dossier-splash {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 56% 25%;
+}
+
+.is-right .dossier-splash {
+  object-position: 64% 31%;
+}
+
+.dossier-avatar {
+  width: 100%;
+  aspect-ratio: 1;
   border: 1px solid var(--player-accent);
   object-fit: cover;
 }
 
 .dossier-identity h2 {
   margin: 0 0 0.25rem;
-  font: 400 clamp(1.6rem, 3.2vw, 2.65rem)/1.08 var(--font-display);
+  color: var(--color-ink);
+  font: 400 clamp(1.85rem, 3.6vw, 3.25rem)/1 var(--font-display);
   overflow-wrap: anywhere;
+  text-shadow: 0 0.1em 0.45em var(--arena-shade);
 }
 
 .dossier-identity p {
   margin: 0;
-  color: var(--color-muted);
+  color: var(--color-ink);
   font: var(--text-sm)/1.5 var(--font-utility);
   overflow-wrap: anywhere;
 }
@@ -2102,8 +2158,7 @@ main {
   display: grid;
   grid-template-columns: 1.25fr 0.9fr 1fr;
   margin: 0 0 var(--space-lg);
-  border-block: 1px solid var(--color-rule);
-  background: var(--color-paper);
+  border-bottom: 1px solid var(--color-rule);
 }
 
 .dossier-rank > div {
@@ -2258,6 +2313,10 @@ main {
 
   .compare-form {
     margin-bottom: var(--space-lg);
+  }
+
+  .comparison-versus {
+    display: none;
   }
 
   .dossier-rank dt {

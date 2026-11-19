@@ -116,6 +116,7 @@ export function ComparePage() {
 
       {leftLookup && rightLookup ? (
         <section className="comparison-stage" aria-live="polite">
+          <span className="comparison-versus" aria-hidden="true">VS</span>
           <PlayerDossier side="left" lookup={leftLookup} />
           <PlayerDossier side="right" lookup={rightLookup} />
         </section>
@@ -228,6 +229,12 @@ function PlayerDossier({
   const games = primaryRank ? primaryRank.wins + primaryRank.losses : 0;
   const winRate =
     primaryRank && games > 0 ? Math.round((primaryRank.wins / games) * 100) : 0;
+  const signatureChampion = mastery.data?.[0];
+  const signatureChampionId = signatureChampion?.championImageUrl
+    .match(/\/champion\/([A-Za-z0-9]+)\.png$/)?.[1];
+  const splashUrl = signatureChampionId
+    ? `/api/assets/skin/${signatureChampionId}/0.jpg`
+    : undefined;
   const profileSearch = new URLSearchParams({
     gameName: profile.data.gameName,
     tagLine: profile.data.tagLine,
@@ -237,7 +244,18 @@ function PlayerDossier({
   return (
     <article className={`comparison-dossier is-${side}`}>
       <header className="dossier-identity">
-        <img src={profile.data.iconUrl} alt="" />
+        {splashUrl && (
+          <img
+            key={splashUrl}
+            className="dossier-splash"
+            src={splashUrl}
+            alt=""
+            onError={(event) => {
+              event.currentTarget.hidden = true;
+            }}
+          />
+        )}
+        <img className="dossier-avatar" src={profile.data.iconUrl} alt="" />
         <div>
           <h2>{profile.data.gameName}</h2>
           <p>
