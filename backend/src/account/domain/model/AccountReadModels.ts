@@ -41,4 +41,5 @@ export interface ChallengerEntry {
   gameName: string | null;
   tagLine: string | null;
   riotIdForDisplay: string;
+  iconUrl?: string;
 }

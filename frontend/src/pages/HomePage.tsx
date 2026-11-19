@@ -104,8 +104,13 @@ export function HomePage() {
                 )}
                 <span className="ladder-position">#{index + 1}</span>
                 <div className="ladder-player">
-                  <strong>{hasRiotId ? player.gameName : t("home.ladder.unknownPlayer")}</strong>
-                  {hasRiotId && <small>#{player.tagLine}</small>}
+                  {player.iconUrl && (
+                    <img className="ladder-avatar" src={player.iconUrl} alt="" loading="lazy" />
+                  )}
+                  <div className="ladder-identity">
+                    <strong>{hasRiotId ? player.gameName : t("home.ladder.unknownPlayer")}</strong>
+                    {hasRiotId && <small>#{player.tagLine}</small>}
+                  </div>
                 </div>
                 <span className="ladder-points">
                   {player.leaguePoints.toLocaleString(locale)} <small>LP</small>

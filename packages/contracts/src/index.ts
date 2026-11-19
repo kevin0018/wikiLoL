@@ -106,6 +106,7 @@ export const challengerEntrySchema = z.object({
   gameName: z.string().nullable(),
   tagLine: z.string().nullable(),
   riotIdForDisplay: z.string(),
+  iconUrl: z.string().optional(),
 });
 
 export type AccountProfile = z.infer<typeof accountProfileSchema>;

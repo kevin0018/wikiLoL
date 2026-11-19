@@ -103,6 +103,10 @@ function wait(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
 
+function profileIconUrl(iconId: number): string {
+  return `/api/assets/profile-icon/${iconId}.png`;
+}
+
 export class RiotAccountRepository implements AccountRepository {
   private readonly accountCache = new Map<
     string,
@@ -122,11 +126,7 @@ export class RiotAccountRepository implements AccountRepository {
       `/riot/account/v1/accounts/by-riot-id/${encodeURIComponent(gameName)}/${encodeURIComponent(tagLine)}`,
       riotAccountSchema,
     );
-    const summoner = await this.riotFetch(
-      platformHosts[region.value],
-      `/lol/summoner/v4/summoners/by-puuid/${account.puuid}`,
-      summonerSchema,
-    );
+    const summoner = await this.getSummoner(account.puuid, region);
 
     return {
       gameName: account.gameName,
@@ -134,7 +134,7 @@ export class RiotAccountRepository implements AccountRepository {
       puuid: account.puuid,
       summonerLevel: summoner.summonerLevel,
       region: region.value,
-      iconUrl: `/api/assets/profile-icon/${summoner.profileIconId}.png`,
+      iconUrl: profileIconUrl(summoner.profileIconId),
     };
   }
 
@@ -253,29 +253,35 @@ export class RiotAccountRepository implements AccountRepository {
 
     return Promise.all(
       league.entries.slice(0, count).map(async (entry) => {
-        try {
-          const account = await this.getAccountByPuuid(entry.puuid, region);
-          return {
-            puuid: entry.puuid,
-            leaguePoints: entry.leaguePoints,
-            wins: entry.wins,
-            losses: entry.losses,
-            gameName: account.gameName,
-            tagLine: account.tagLine,
-            riotIdForDisplay: `${account.gameName}#${account.tagLine}`,
-          };
-        } catch {
-          return {
-            puuid: entry.puuid,
-            leaguePoints: entry.leaguePoints,
-            wins: entry.wins,
-            losses: entry.losses,
-            gameName: null,
-            tagLine: null,
-            riotIdForDisplay: "Riot ID no disponible",
-          };
-        }
+        const [account, summoner] = await Promise.allSettled([
+          this.getAccountByPuuid(entry.puuid, region),
+          this.getSummoner(entry.puuid, region),
+        ]);
+        const identity = account.status === "fulfilled" ? account.value : null;
+
+        return {
+          puuid: entry.puuid,
+          leaguePoints: entry.leaguePoints,
+          wins: entry.wins,
+          losses: entry.losses,
+          gameName: identity?.gameName ?? null,
+          tagLine: identity?.tagLine ?? null,
+          riotIdForDisplay: identity
+            ? `${identity.gameName}#${identity.tagLine}`
+            : "Riot ID no disponible",
+          ...(summoner.status === "fulfilled" && {
+            iconUrl: profileIconUrl(summoner.value.profileIconId),
+          }),
+        };
       }),
+    );
+  }
+
+  private getSummoner(puuid: string, region: Region) {
+    return this.riotFetch(
+      platformHosts[region.value],
+      `/lol/summoner/v4/summoners/by-puuid/${encodeURIComponent(puuid)}`,
+      summonerSchema,
     );
   }
 

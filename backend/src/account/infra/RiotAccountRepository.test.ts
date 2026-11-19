@@ -36,7 +36,7 @@ describe("RiotAccountRepository", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("reintenta identidades fallidas y conserva las resueltas en caché", async () => {
+  it("retries missing identities and preserves standings when a profile icon fails", async () => {
     process.env.RIOT_API_KEY = "test-key";
     const league = {
       entries: [
@@ -48,28 +48,17 @@ describe("RiotAccountRepository", () => {
         },
       ],
     };
-    const fetchMock = vi
-      .fn<typeof fetch>()
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify(league), { status: 200 }),
-      )
-      .mockResolvedValueOnce(new Response("", { status: 429 }))
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify(league), { status: 200 }),
-      )
-      .mockResolvedValueOnce(
-        new Response(
-          JSON.stringify({
-            puuid: "player-puuid",
-            gameName: "J1HUIV",
-            tagLine: "000",
-          }),
-          { status: 200 },
-        ),
-      )
-      .mockResolvedValueOnce(
-        new Response(JSON.stringify(league), { status: 200 }),
-      );
+    const identity = { puuid: "player-puuid", gameName: "J1HUIV", tagLine: "000" };
+    const summoner = { puuid: "player-puuid", profileIconId: 123, summonerLevel: 200 };
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json(league))
+      .mockResolvedValueOnce(new Response(null, { status: 429 }))
+      .mockResolvedValueOnce(Response.json(summoner))
+      .mockResolvedValueOnce(Response.json(league))
+      .mockResolvedValueOnce(Response.json(identity))
+      .mockResolvedValueOnce(new Response(null, { status: 429 }))
+      .mockResolvedValueOnce(Response.json(league))
+      .mockResolvedValueOnce(Response.json(summoner));
     vi.stubGlobal("fetch", fetchMock);
     const repository = new RiotAccountRepository();
     const region = Region.from("EUW");
@@ -82,6 +71,9 @@ describe("RiotAccountRepository", () => {
     expect(unresolved[0]?.riotIdForDisplay).toBe("Riot ID no disponible");
     expect(resolved[0]?.riotIdForDisplay).toBe("J1HUIV#000");
     expect(cached[0]?.riotIdForDisplay).toBe("J1HUIV#000");
-    expect(fetchMock).toHaveBeenCalledTimes(5);
+    expect(unresolved[0]?.iconUrl).toBe("/api/assets/profile-icon/123.png");
+    expect(resolved[0]?.iconUrl).toBeUndefined();
+    expect(cached[0]?.iconUrl).toBe("/api/assets/profile-icon/123.png");
+    expect(fetchMock).toHaveBeenCalledTimes(8);
   });
 });
