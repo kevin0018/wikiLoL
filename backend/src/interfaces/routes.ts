@@ -129,17 +129,16 @@ apiRouter.get("/account/most-played", async (request, response) => {
       locale: localeSchema.default("es_ES"),
     })
     .parse(request.query);
-  response.json(
-    await getMostPlayedChampion.execute(
-      new GetMostPlayedChampionQuery(
-        query.puuid,
-        Region.from(query.region),
-        query.matchCount,
-        query.top,
-        query.locale,
-      ),
+  const mostPlayed = await getMostPlayedChampion.execute(
+    new GetMostPlayedChampionQuery(
+      query.puuid,
+      Region.from(query.region),
+      query.matchCount,
+      query.top,
+      query.locale,
     ),
   );
+  response.set("Vercel-CDN-Cache-Control", playerCacheControl).json(mostPlayed);
 });
 
 apiRouter.get("/league/challenger", async (request, response) => {

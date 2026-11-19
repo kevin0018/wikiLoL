@@ -70,9 +70,14 @@ export const api = {
       `/api/account/mastery?${params({ puuid, region, locale })}`,
       z.array(championMasterySchema),
     ),
-  mostPlayed: (puuid: string, region: string, locale: DataDragonLocale) =>
+  mostPlayed: (
+    puuid: string,
+    region: string,
+    locale: DataDragonLocale,
+    options?: { matchCount: number; top: number },
+  ) =>
     request(
-      `/api/account/most-played?${params({ puuid, region, locale })}`,
+      `/api/account/most-played?${params({ puuid, region, locale, ...options })}`,
       z.array(mostPlayedChampionSchema),
     ),
   challenger: (region = "EUW") =>
