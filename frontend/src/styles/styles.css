@@ -1939,6 +1939,7 @@ main {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
   background: var(--arena-shade);
   pointer-events: none;
 }
@@ -1949,6 +1950,7 @@ main {
   min-height: 0;
   object-fit: cover;
   object-position: 54% 42%;
+  transform: translateY(clamp(2rem, 4.25vh, 3.25rem));
 }
 
 .compare-rivals .compare-rival-darius {
