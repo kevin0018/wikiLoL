@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  regionSchema,
   type AccountRank,
   type PlayerLookup,
   type Region,
@@ -9,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowIcon } from "../components/Icons";
 import { PageTransition } from "../components/PageTransition";
+import { RegionSelect } from "../components/RegionSelect";
 import { ErrorState, LoadingState } from "../components/States";
 import {
   comparisonFromSearchParams,
@@ -166,17 +166,7 @@ function ComparisonField({
             onChange={(event) => onValueChange(event.target.value)}
           />
         </label>
-        <label>
-          <span>{t("common.region")}</span>
-          <select
-            value={region}
-            onChange={(event) => onRegionChange(event.target.value as Region)}
-          >
-            {regionSchema.options.map((option) => (
-              <option key={option}>{option}</option>
-            ))}
-          </select>
-        </label>
+        <RegionSelect label={t("common.region")} value={region} onChange={onRegionChange} />
       </div>
       <span className="comparison-helper" id={errorId}>
         {error
