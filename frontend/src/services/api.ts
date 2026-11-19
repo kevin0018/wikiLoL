@@ -2,6 +2,7 @@ import {
   accountProfileSchema,
   accountRankSchema,
   challengerEntrySchema,
+  challengerPicksSchema,
   championDetailSchema,
   championMasterySchema,
   championsResponseSchema,
@@ -70,16 +71,16 @@ export const api = {
       `/api/account/mastery?${params({ puuid, region, locale })}`,
       z.array(championMasterySchema),
     ),
-  mostPlayed: (
-    puuid: string,
-    region: string,
-    locale: DataDragonLocale,
-    options?: { matchCount: number; top: number },
-  ) =>
+  mostPlayed: (puuid: string, region: string, locale: DataDragonLocale) =>
     request(
-      `/api/account/most-played?${params({ puuid, region, locale, ...options })}`,
+      `/api/account/most-played?${params({ puuid, region, locale })}`,
       z.array(mostPlayedChampionSchema),
     ),
+  challengerPicks: (puuids: string[], region: string, locale: DataDragonLocale) => {
+    const search = new URLSearchParams({ region, locale });
+    for (const puuid of puuids) search.append("puuid", puuid);
+    return request(`/api/league/challenger/picks?${search}`, challengerPicksSchema);
+  },
   challenger: (region = "EUW") =>
     request(
       `/api/league/challenger?${params({ region, count: 5 })}`,

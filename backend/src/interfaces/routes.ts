@@ -11,6 +11,10 @@ import { GetAccountRankHandler } from "../account/app/query/GetAccountRankHandle
 import { GetAccountRankQuery } from "../account/app/query/GetAccountRankQuery.js";
 import { GetChallengerLeagueHandler } from "../account/app/query/GetChallengerLeagueHandler.js";
 import { GetChallengerLeagueQuery } from "../account/app/query/GetChallengerLeagueQuery.js";
+import {
+  CHALLENGER_PICKS_TTL_SECONDS,
+  GetChallengerPicksHandler,
+} from "../account/app/query/GetChallengerPicksHandler.js";
 import { GetChampionMasteryHandler } from "../account/app/query/GetChampionMasteryHandler.js";
 import { GetChampionMasteryQuery } from "../account/app/query/GetChampionMasteryQuery.js";
 import { GetMostPlayedChampionHandler } from "../account/app/query/GetMostPlayedChampionHandler.js";
@@ -40,6 +44,7 @@ const getMostPlayedChampion = new GetMostPlayedChampionHandler(
 const getChallengerLeague = new GetChallengerLeagueHandler(
   riotAccountRepository,
 );
+const getChallengerPicks = new GetChallengerPicksHandler(riotAccountRepository);
 const getChampionData = new GetChampionDataHandler(dataDragonClient);
 const getChampionById = new GetChampionByIdHandler(dataDragonClient);
 
@@ -158,4 +163,21 @@ apiRouter.get("/league/challenger", async (request, response) => {
       ),
     ),
   );
+});
+
+apiRouter.get("/league/challenger/picks", async (request, response) => {
+  const playerId = z.string().min(1).max(128);
+  const query = z.object({
+    puuid: z.union([playerId, z.array(playerId).min(1).max(5)]),
+    region: regionSchema.default("EUW"),
+    locale: localeSchema.default("es_ES"),
+  }).parse(request.query);
+  const puuids = Array.isArray(query.puuid) ? query.puuid : [query.puuid];
+  const picks = await getChallengerPicks.execute(puuids, Region.from(query.region), query.locale);
+
+  if (Object.values(picks).every((player) => player !== null)) {
+    response.set("Cache-Control", "public, max-age=60");
+    response.set("Vercel-CDN-Cache-Control", `public, s-maxage=${CHALLENGER_PICKS_TTL_SECONDS}`);
+  }
+  response.json(picks);
 });

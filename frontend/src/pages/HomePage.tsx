@@ -1,4 +1,4 @@
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import heroImage from "../assets/images/hero.jpg";
@@ -9,8 +9,6 @@ import { useI18n } from "../i18n/I18nProvider";
 import { api } from "../services/api";
 
 const recentMatchCount = 5;
-const recentChampionCount = 3;
-const recentRequestSpacingMs = 1_200;
 
 export function HomePage() {
   const { dataDragonLocale, locale, t } = useI18n();
@@ -25,20 +23,12 @@ export function HomePage() {
         : false,
   });
 
-  const recentPicks = useQueries({
-    queries: (ladder.data ?? []).map((player, index) => ({
-      queryKey: ["ladder-recent-picks", player.puuid, "EUW", dataDragonLocale],
-      queryFn: async () => {
-        // Stagger match-history requests to stay within Riot's burst limits.
-        const delay = index * recentRequestSpacingMs;
-        if (delay > 0) await new Promise((resolve) => window.setTimeout(resolve, delay));
-        return api.mostPlayed(player.puuid, "EUW", dataDragonLocale, {
-          matchCount: recentMatchCount,
-          top: recentChampionCount,
-        });
-      },
-      retry: false,
-    })),
+  const rankedPlayers = ladder.data?.map((player) => player.puuid).sort() ?? [];
+  const recentPicks = useQuery({
+    queryKey: ["ladder-recent-picks", "EUW", dataDragonLocale, rankedPlayers],
+    queryFn: () => api.challengerPicks(rankedPlayers, "EUW", dataDragonLocale),
+    enabled: rankedPlayers.length > 0,
+    retry: false,
   });
 
   return (
@@ -108,7 +98,7 @@ export function HomePage() {
             <li className="ladder-message">{t("home.ladder.empty")}</li>
           )}
           {ladder.data?.map((player, index) => {
-            const picks = recentPicks[index];
+            const picks = recentPicks.data?.[player.puuid];
             const games = player.wins + player.losses;
             const winRate = games ? Math.round((player.wins / games) * 100) : null;
             const hasRiotId = Boolean(player.gameName && player.tagLine);
@@ -137,21 +127,20 @@ export function HomePage() {
                   <span className={index === 0 ? "ladder-picks-label" : "sr-only"}>
                     {t("home.ladder.recentPicks", { count: recentMatchCount })}
                   </span>
-                  <div className="ladder-pick-icons" aria-busy={picks?.isPending}>
-                    {picks?.data?.length ? picks.data.map((champion) => (
+                  <div className="ladder-pick-icons" aria-busy={recentPicks.isPending}>
+                    {picks?.length ? picks.map((champion) => (
                       <img
                         key={champion.championId}
                         src={champion.championImageUrl}
                         alt={champion.championName}
                         title={champion.championName}
-                        loading="lazy"
                       />
                     )) : (
                       <span
                         className="ladder-picks-status"
-                        aria-label={t(picks?.isPending ? "home.ladder.picksLoading" : "home.ladder.picksUnavailable")}
+                        aria-label={t(recentPicks.isPending ? "home.ladder.picksLoading" : "home.ladder.picksUnavailable")}
                       >
-                        {picks?.isPending ? "…" : "—"}
+                        {recentPicks.isPending ? "…" : "—"}
                       </span>
                     )}
                   </div>

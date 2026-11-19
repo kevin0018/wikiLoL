@@ -98,6 +98,11 @@ export const mostPlayedChampionSchema = z.object({
   gamesPlayed: z.number().int().nonnegative(),
 });
 
+export const challengerPicksSchema = z.record(
+  z.string(),
+  z.array(mostPlayedChampionSchema).nullable(),
+);
+
 export const challengerEntrySchema = z.object({
   puuid: z.string(),
   leaguePoints: z.number().default(0),
