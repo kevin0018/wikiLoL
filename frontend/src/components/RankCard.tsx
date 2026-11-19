@@ -32,24 +32,28 @@ export function RankCard({ rank }: { rank: AccountRank }) {
 export function RankQueueSwitcher({ solo, flex }: { solo: AccountRank; flex: AccountRank }) {
   const { t } = useI18n();
   const [showFlex, setShowFlex] = useState(false);
-  const rank = showFlex ? flex : solo;
+  const activeQueue = t(showFlex ? "rank.flex" : "rank.solo");
   const target = t(showFlex ? "rank.solo" : "rank.flex");
 
   return (
-    <div className="rank-switcher">
-      <div aria-live="polite">
-        <RankCard key={rank.queueType} rank={rank} />
-      </div>
+    <>
       <button
         type="button"
         className={`rank-switch${showFlex ? " is-previous" : ""}`}
         aria-label={t("rank.showQueue", { queue: target })}
-        onClick={() => setShowFlex(!showFlex)}
+        title={t("rank.showQueue", { queue: target })}
+        onClick={() => setShowFlex((previous) => !previous)}
       >
-        {target}
         <ChevronIcon />
       </button>
-    </div>
+      <span className="sr-only" role="status">{activeQueue}</span>
+      <div className="rank-switcher">
+        <div className={`rank-track${showFlex ? " is-flex" : ""}`}>
+          <div inert={showFlex} aria-hidden={showFlex}><RankCard rank={solo} /></div>
+          <div inert={!showFlex} aria-hidden={!showFlex}><RankCard rank={flex} /></div>
+        </div>
+      </div>
+    </>
   );
 }
 
