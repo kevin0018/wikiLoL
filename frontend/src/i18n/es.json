@@ -69,6 +69,7 @@
   "champions.patch": "parche {patch}",
   "champions.loading": "Abriendo el archivo",
   "champions.empty": "No hay campeones con esos filtros.",
+  "champions.classicUnavailable": "El catálogo de LoL Classic no está disponible para este parche.",
   "champions.clear": "Limpiar filtros",
   "champion.card.class": "Clase",
   "champion.card.open": "Abrir expediente",

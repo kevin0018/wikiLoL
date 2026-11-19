@@ -30,6 +30,8 @@ export function ChampionsPage() {
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<ChampionRole | "All">("All");
   const [era, setEra] = useState<ChampionEra>("current");
+  const classicUnavailable =
+    era === "classic" && champions.data?.classic.length === 0;
 
   const filteredChampions = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase(locale);
@@ -151,17 +153,21 @@ export function ChampionsPage() {
           </div>
           {filteredChampions.length === 0 && (
             <div className="empty-state">
-              <h2>{t("champions.empty")}</h2>
-              <button
-                className="text-button"
-                type="button"
-                onClick={() => {
-                  setSearch("");
-                  setRole("All");
-                }}
-              >
-                {t("champions.clear")}
-              </button>
+              <h2>
+                {t(classicUnavailable ? "champions.classicUnavailable" : "champions.empty")}
+              </h2>
+              {!classicUnavailable && (
+                <button
+                  className="text-button"
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setRole("All");
+                  }}
+                >
+                  {t("champions.clear")}
+                </button>
+              )}
             </div>
           )}
         </>

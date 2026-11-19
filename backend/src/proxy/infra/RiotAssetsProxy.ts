@@ -1,13 +1,18 @@
 import { Readable } from "node:stream";
 import { Router } from "express";
-import { dataDragonClient } from "../../champion/infra/DataDragonClient.js";
+import {
+  dataDragonClient,
+  isClassicChampion,
+} from "../../champion/infra/DataDragonClient.js";
 
 export const assetsRouter = Router();
 
 assetsRouter.get("/champion/:fileName", async (request, response) => {
   const patch = await dataDragonClient.getCurrentPatch();
+  const { fileName } = request.params;
+  const mode = isClassicChampion(fileName) ? "/mode/classic" : "";
   await proxyAsset(
-    `https://ddragon.leagueoflegends.com/cdn/${patch}/img/champion/${encodeURIComponent(request.params.fileName)}`,
+    `https://ddragon.leagueoflegends.com/cdn/${patch}/img${mode}/champion/${encodeURIComponent(fileName)}`,
     "image/png",
     response,
   );
@@ -16,8 +21,10 @@ assetsRouter.get("/champion/:fileName", async (request, response) => {
 assetsRouter.get(
   "/skin/:championName/:skinNum.jpg",
   async (request, response) => {
+    const { championName, skinNum } = request.params;
+    const mode = isClassicChampion(championName) ? "/mode/classic" : "";
     await proxyAsset(
-      `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${encodeURIComponent(request.params.championName)}_${encodeURIComponent(request.params.skinNum)}.jpg`,
+      `https://ddragon.leagueoflegends.com/cdn/img${mode}/champion/splash/${encodeURIComponent(championName)}_${encodeURIComponent(skinNum)}.jpg`,
       "image/jpeg",
       response,
     );

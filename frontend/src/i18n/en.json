@@ -69,6 +69,7 @@
   "champions.patch": "patch {patch}",
   "champions.loading": "Opening the archive",
   "champions.empty": "No champions match those filters.",
+  "champions.classicUnavailable": "The LoL Classic roster is unavailable for this patch.",
   "champions.clear": "Clear filters",
   "champion.card.class": "Class",
   "champion.card.open": "Open dossier",
