@@ -57,6 +57,7 @@ const localeSchema = z.enum(["en_US", "es_ES"]);
 const localeQuerySchema = z.object({
   locale: localeSchema.default("es_ES"),
 });
+const championCacheControl = "public, s-maxage=3600, stale-while-revalidate=300";
 
 apiRouter.get("/meta", async (_request, response) => {
   response.json({ patch: await dataDragonClient.getCurrentPatch() });
@@ -64,18 +65,18 @@ apiRouter.get("/meta", async (_request, response) => {
 
 apiRouter.get("/champions", async (request, response) => {
   const query = localeQuerySchema.parse(request.query);
-  response.json(
-    await getChampionData.execute(new GetChampionDataQuery(query.locale)),
+  const champions = await getChampionData.execute(
+    new GetChampionDataQuery(query.locale),
   );
+  response.set("Vercel-CDN-Cache-Control", championCacheControl).json(champions);
 });
 
 apiRouter.get("/champions/:id", async (request, response) => {
   const query = localeQuerySchema.parse(request.query);
-  response.json(
-    await getChampionById.execute(
-      new GetChampionByIdQuery(request.params.id, query.locale),
-    ),
+  const champion = await getChampionById.execute(
+    new GetChampionByIdQuery(request.params.id, query.locale),
   );
+  response.set("Vercel-CDN-Cache-Control", championCacheControl).json(champion);
 });
 
 apiRouter.get("/account/profile", async (request, response) => {
