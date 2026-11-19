@@ -11,7 +11,10 @@ export function RankCard({
   const { locale, t } = useI18n();
   const games = rank.wins + rank.losses;
   const winRate = games ? Math.round((rank.wins / games) * 100) : 0;
-  const tier = `${titleCase(rank.tier, locale)} ${rank.rank}`;
+  const apexTier = ["MASTER", "GRANDMASTER", "CHALLENGER"].includes(rank.tier);
+  const tier = apexTier
+    ? titleCase(rank.tier, locale)
+    : `${titleCase(rank.tier, locale)} ${rank.rank}`;
   const queueName =
     queueType === "RANKED_SOLO_5x5" ? t("rank.solo") : t("rank.flex");
 
@@ -23,20 +26,21 @@ export function RankCard({
       <div className="rank-copy">
         <span className="rank-queue-name">{queueName}</span>
         <h3>{tier}</h3>
-        <p>{rank.leaguePoints} LP</p>
+        <p>{rank.leaguePoints.toLocaleString(locale)} LP</p>
       </div>
       <dl>
         <div>
           <dt>{t("rank.wins")}</dt>
-          <dd>{rank.wins}</dd>
+          <dd>{rank.wins.toLocaleString(locale)}</dd>
         </div>
         <div>
           <dt>{t("rank.losses")}</dt>
-          <dd>{rank.losses}</dd>
+          <dd>{rank.losses.toLocaleString(locale)}</dd>
         </div>
         <div>
           <dt>{t("rank.winRate")}</dt>
-          <dd>{winRate}%</dd>
+          <dd>{games ? `${winRate}%` : "—"}</dd>
+          {games > 0 && <meter aria-hidden="true" min={0} max={100} value={winRate} />}
         </div>
       </dl>
     </article>

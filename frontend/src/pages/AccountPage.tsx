@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { playerLookupSchema } from "@wikilol/contracts";
-import { motion } from "motion/react";
 import { useSearchParams } from "react-router-dom";
 import { ChampionStatList } from "../components/ChampionStatList";
 import { PageTransition } from "../components/PageTransition";
@@ -8,6 +7,7 @@ import { PlayerSearch } from "../components/PlayerSearch";
 import { RankCard } from "../components/RankCard";
 import { ErrorState, LoadingState } from "../components/States";
 import { api, ApiError } from "../services/api";
+import { championSplashUrl } from "../lib/championAssets";
 import { playerQueryKeys } from "../lib/playerQueryKeys";
 import { useI18n } from "../i18n/I18nProvider";
 
@@ -103,33 +103,38 @@ export function AccountPage() {
     flexRank && { rank: flexRank, queueType: "RANKED_FLEX_SR" },
   ].filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
 
+  const splashUrl = championSplashUrl(mastery.data?.[0]?.championImageUrl);
+  const refreshing = profile.isFetching || ranks.isFetching || mastery.isFetching || mostPlayed.isFetching;
+
   return (
     <PageTransition className="account-page">
-      <section className="profile-header">
-        <motion.div
-          className="profile-icon"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", stiffness: 160, damping: 20 }}
-        >
-          <img src={profile.data.iconUrl} alt="" />
-          <span>{profile.data.summonerLevel}</span>
-        </motion.div>
-        <div>
-          <p className="eyebrow">
-            {t("account.profileEyebrow", {
-              region: profile.data.region,
-              level: profile.data.summonerLevel,
-            })}
-          </p>
-          <h1>
-            {profile.data.gameName}
-            <small>#{profile.data.tagLine}</small>
-          </h1>
+      <header className="profile-header">
+        {splashUrl && (
+          <img
+            key={splashUrl}
+            className="profile-splash"
+            src={splashUrl}
+            alt=""
+            onError={(event) => {
+              event.currentTarget.hidden = true;
+            }}
+          />
+        )}
+        <div className="profile-identity">
+          <img className="profile-icon" src={profile.data.iconUrl} alt="" />
+          <div>
+            <p className="profile-meta">
+              {profile.data.region} · {t("common.level")} {profile.data.summonerLevel.toLocaleString(locale)}
+            </p>
+            <h1>{profile.data.gameName}</h1>
+            <p className="profile-tag">#{profile.data.tagLine}</p>
+          </div>
         </div>
         <button
           className="text-button profile-refresh"
           type="button"
+          disabled={refreshing}
+          aria-busy={refreshing}
           onClick={() => {
             void profile.refetch();
             void ranks.refetch();
@@ -139,7 +144,7 @@ export function AccountPage() {
         >
           {t("account.refresh")}
         </button>
-      </section>
+      </header>
 
       <div className="account-layout">
         <section className="rank-section">
@@ -162,7 +167,7 @@ export function AccountPage() {
           {ranks.isPending ? (
             <LoadingState label={t("account.loadingRanks")} />
           ) : ranks.isError ? (
-            <ErrorState />
+            <ErrorState retry={() => void ranks.refetch()} />
           ) : visibleRanks.length === 0 ? (
             <div className="rank-empty-state">
               <span className="utility-label">
@@ -184,11 +189,11 @@ export function AccountPage() {
           )}
         </section>
 
-        <aside className="account-side">
+        <div className="account-champions">
           {mastery.isPending ? (
             <LoadingState label={t("account.loadingMastery")} />
           ) : mastery.isError ? (
-            <ErrorState />
+            <ErrorState retry={() => void mastery.refetch()} />
           ) : (
             <ChampionStatList
               label={t("account.masteryEyebrow")}
@@ -203,19 +208,20 @@ export function AccountPage() {
           {mostPlayed.isPending ? (
             <LoadingState label={t("account.loadingMatches")} />
           ) : mostPlayed.isError ? (
-            <ErrorState />
+            <ErrorState retry={() => void mostPlayed.refetch()} />
           ) : (
             <ChampionStatList
+              variant="recent"
               label={t("account.matchesEyebrow")}
               title={t("account.mostPlayed")}
               emptyMessage={t("account.matchesEmpty")}
               champions={(mostPlayed.data ?? []).map((champion) => ({
                 ...champion,
-                value: `${champion.gamesPlayed} ${t("common.games")}`,
+                value: `${champion.gamesPlayed.toLocaleString(locale)} ${t("common.games")}`,
               }))}
             />
           )}
-        </aside>
+        </div>
       </div>
     </PageTransition>
   );

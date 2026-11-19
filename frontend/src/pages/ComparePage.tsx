@@ -17,6 +17,7 @@ import {
   type ComparisonDraft,
 } from "../lib/compare";
 import { api, ApiError } from "../services/api";
+import { championSplashUrl } from "../lib/championAssets";
 import { playerQueryKeys } from "../lib/playerQueryKeys";
 import { useI18n } from "../i18n/I18nProvider";
 
@@ -235,12 +236,7 @@ function PlayerDossier({
   const games = primaryRank ? primaryRank.wins + primaryRank.losses : 0;
   const winRate =
     primaryRank && games > 0 ? Math.round((primaryRank.wins / games) * 100) : 0;
-  const signatureChampion = mastery.data?.[0];
-  const signatureChampionId = signatureChampion?.championImageUrl
-    .match(/\/champion\/([A-Za-z0-9]+)\.png$/)?.[1];
-  const splashUrl = signatureChampionId
-    ? `/api/assets/skin/${signatureChampionId}/0.jpg`
-    : undefined;
+  const splashUrl = championSplashUrl(mastery.data?.[0]?.championImageUrl);
   const profileSearch = new URLSearchParams({
     gameName: profile.data.gameName,
     tagLine: profile.data.tagLine,

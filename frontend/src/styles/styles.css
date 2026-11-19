@@ -1791,290 +1791,346 @@ main {
   text-align: left;
 }
 
+/* Player profile · ranked season overview · gold and teal · champion splash and two activity panels */
+/* Hallmark pre-emit critique: P4 H5 E4 S5 R5 V4 */
+
+.account-page {
+  padding-block-start: clamp(1.5rem, 4vw, 3.5rem);
+}
+
 .profile-header {
-  display: flex;
-  min-height: 190px;
-  padding-bottom: 2.5rem;
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  min-height: clamp(13rem, 23vw, 20rem);
+  gap: var(--space-md);
+  overflow: hidden;
+  padding: clamp(1rem, 4vw, 2.75rem);
+  border: 1px solid var(--color-rule);
+  border-bottom: 2px solid var(--gold);
+  background: linear-gradient(125deg, var(--color-paper-2), var(--color-paper));
+}
+
+.profile-splash {
+  position: absolute;
+  z-index: -2;
+  inset: 0 0 0 auto;
+  width: 76%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 62% 22%;
+  mask-image: linear-gradient(90deg, transparent, black 46%);
+}
+
+.profile-header::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background:
+    linear-gradient(0deg, var(--color-paper), transparent 80%),
+    linear-gradient(105deg, var(--color-paper) 12%, transparent 74%);
+  content: "";
+}
+
+.profile-identity {
+  display: grid;
+  grid-template-columns: clamp(3.5rem, 8vw, 6.5rem) minmax(0, 1fr);
   align-items: center;
-  gap: clamp(1.5rem, 4vw, 3rem);
-  border-bottom: 1px solid var(--line);
+  gap: clamp(0.7rem, 2vw, 1.4rem);
 }
 
 .profile-icon {
-  position: relative;
-  width: 124px;
-  height: 124px;
-  flex: 0 0 auto;
-  padding: 7px;
-  border: 1px solid var(--gold);
-}
-
-.profile-icon img {
+  display: block;
   width: 100%;
-  height: 100%;
+  aspect-ratio: 1;
+  padding: 0.25rem;
+  border: 1px solid var(--gold);
+  background: var(--color-paper);
   object-fit: cover;
 }
 
-.profile-icon span {
-  position: absolute;
-  right: -12px;
-  bottom: -12px;
-  display: grid;
-  min-width: 42px;
-  height: 30px;
-  padding: 0 0.35rem;
-  place-items: center;
-  border: 1px solid var(--gold);
-  color: var(--gold-pale);
-  background: var(--ink);
-  font-family: var(--utility);
-  font-size: 0.62rem;
+.profile-meta,
+.profile-tag {
+  margin: 0;
+  color: var(--color-accent-soft);
+  font: 500 var(--text-sm)/1.4 var(--font-utility);
+  overflow-wrap: anywhere;
 }
 
 .profile-header h1 {
-  margin: 0.5rem 0 0;
-  font-family: var(--display);
-  font-size: clamp(3rem, 6vw, 6rem);
-  font-weight: 400;
-  line-height: 0.95;
+  margin: 0.25rem 0;
+  color: var(--color-ink);
+  font: 400 clamp(2.35rem, 6vw, 5.5rem)/0.98 var(--font-display);
+  overflow-wrap: anywhere;
 }
 
-.profile-header h1 small {
-  margin-left: 0.5rem;
-  color: var(--muted);
-  font-family: var(--utility);
-  font-size: 0.22em;
-  letter-spacing: 0.04em;
+.profile-tag {
+  color: var(--color-muted);
 }
 
 .profile-refresh {
-  margin-left: auto;
+  min-height: 2.75rem;
+  justify-self: end;
+  background: var(--color-paper);
+  white-space: nowrap;
+}
+
+.profile-refresh:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .account-layout {
-  display: grid;
-  margin-top: 3rem;
-  grid-template-columns:
-    minmax(340px, 1.2fr)
-    repeat(2, minmax(280px, 0.9fr));
-  align-items: start;
-  gap: clamp(1.5rem, 3vw, 3rem);
-}
-
-.rank-section {
-  min-width: 0;
+  margin-top: clamp(1.25rem, 3vw, 2.5rem);
 }
 
 .rank-section > header {
   display: flex;
-  margin-bottom: 1.5rem;
-  align-items: flex-end;
+  align-items: end;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-sm);
 }
 
 .rank-queue-count {
-  padding-bottom: 0.35rem;
-  color: var(--gold);
-  font-family: var(--utility);
-  font-size: 0.55rem;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  color: var(--color-muted);
+  font: var(--text-xs)/1.4 var(--font-utility);
   white-space: nowrap;
 }
 
-.rank-grid {
+.rank-grid,
+.account-champions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
-  gap: 1px;
-  background: var(--line);
+  gap: var(--space-sm);
 }
 
 .rank-empty-state {
-  min-height: 220px;
-  padding: clamp(2rem, 4vw, 3.5rem) 0;
-  border-block: 1px solid var(--line);
-  background: transparent;
+  padding: var(--space-lg);
+  border: 1px solid var(--color-rule);
+  background: var(--color-paper-2);
 }
 
 .rank-empty-state h3 {
-  margin: 1.2rem 0 0.6rem;
-  font-family: var(--display);
-  font-size: clamp(2rem, 4vw, 3.5rem);
-  font-weight: 400;
+  margin: var(--space-xs) 0;
+  font: 400 var(--text-lg)/1.15 var(--font-display);
 }
 
 .rank-empty-state p {
-  max-width: 440px;
   margin: 0;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.75;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
 }
 
 .rank-card {
-  position: relative;
   display: grid;
-  min-width: 0;
-  min-height: 270px;
-  padding: clamp(1.25rem, 2.5vw, 2rem);
-  overflow: hidden;
-  grid-template-columns: 92px minmax(0, 1fr);
+  grid-template-columns: clamp(3rem, 7vw, 5rem) minmax(0, 1fr) minmax(0, 1.15fr);
   align-items: center;
-  gap: 1.25rem;
-  background: var(--deep-water);
-}
-
-.rank-card::before {
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 2px;
-  background: linear-gradient(90deg, var(--gold), transparent 72%);
-  content: "";
-}
-
-.rank-icon {
-  display: grid;
-  width: 88px;
-  height: 88px;
-  place-items: center;
-  background: radial-gradient(circle, rgba(76, 201, 192, 0.12), transparent 66%);
+  gap: var(--space-md);
+  min-width: 0;
+  padding: var(--space-sm) clamp(0.8rem, 2vw, 1.25rem);
+  border: 1px solid var(--color-rule);
+  border-inline-start: 2px solid var(--gold);
+  background: linear-gradient(115deg, var(--color-paper-3), var(--color-paper-2) 55%);
 }
 
 .rank-icon img {
-  width: 82px;
-  height: 82px;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
   object-fit: contain;
 }
 
-.rank-copy {
-  min-width: 0;
-}
-
 .rank-queue-name {
-  display: block;
-  overflow: hidden;
   color: var(--hextech);
-  font-family: var(--utility);
-  font-size: 0.58rem;
-  letter-spacing: 0.1em;
-  text-overflow: ellipsis;
+  font: 500 var(--text-xs)/1.4 var(--font-utility);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  white-space: nowrap;
 }
 
 .rank-copy h3 {
-  margin: 0.55rem 0 0.2rem;
-  font-family: var(--display);
-  font-size: clamp(1.65rem, 2.5vw, 2.35rem);
-  font-weight: 400;
-  line-height: 1;
+  margin: 0.15rem 0;
+  font: 400 clamp(1.45rem, 3vw, 2.35rem)/1.05 var(--font-display);
+  overflow-wrap: anywhere;
 }
 
 .rank-copy p {
   margin: 0;
   color: var(--gold-pale);
-  font-family: var(--utility);
-  font-size: 0.7rem;
+  font: var(--text-sm)/1.4 var(--font-utility);
 }
 
 .rank-card dl {
   display: grid;
-  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin: 0;
-  padding-top: 1rem;
-  grid-column: 1 / -1;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1px;
-  border-top: 1px solid var(--line);
-  background: var(--line);
 }
 
 .rank-card dl div {
-  display: flex;
   min-width: 0;
-  padding: 0.75rem 0.5rem;
-  align-items: baseline;
-  justify-content: center;
-  flex-direction: column;
-  gap: 0.25rem;
-  background: var(--deep-water);
+  padding-inline: clamp(0.45rem, 1.5vw, 0.9rem);
+  border-inline-start: 1px solid var(--color-rule);
 }
 
 .rank-card dt {
-  color: var(--muted);
-  font-size: 0.62rem;
+  margin-bottom: 0.25rem;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
 }
 
 .rank-card dd {
   margin: 0;
-  font-family: var(--utility);
-  font-size: 0.8rem;
+  font: 500 clamp(1rem, 2vw, 1.55rem)/1.25 var(--font-utility);
 }
 
-.account-side {
-  display: contents;
+.rank-card meter {
+  display: block;
+  width: 100%;
+  max-width: 8rem;
+  height: 0.35rem;
+  margin-top: 0.35rem;
+  accent-color: var(--hextech);
+}
+
+.rank-card meter::-webkit-meter-bar {
+  border: 0;
+  border-radius: 0;
+  background: var(--color-rule);
+}
+
+.rank-card meter::-webkit-meter-optimum-value {
+  background: var(--hextech);
+}
+
+.account-champions {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: clamp(1.3rem, 3vw, 2.25rem);
 }
 
 .champion-stat-panel {
+  --champion-panel-accent: var(--gold-pale);
   min-width: 0;
+  padding: clamp(0.85rem, 2vw, 1.4rem);
+  border: 1px solid var(--color-rule);
+  border-top: 2px solid var(--champion-panel-accent);
+  background: var(--color-paper-2);
+}
+
+.champion-stat-panel.is-recent {
+  --champion-panel-accent: var(--hextech);
 }
 
 .champion-stat-panel header {
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-sm);
+}
+
+.champion-stat-panel .utility-label {
+  color: var(--champion-panel-accent);
 }
 
 .champion-stat-panel ol {
   margin: 0;
   padding: 0;
   list-style: none;
-  border-bottom: 1px solid var(--line);
 }
 
 .champion-stat-panel li {
   display: grid;
-  min-height: 76px;
-  grid-template-columns: 28px 48px 1fr auto;
+  grid-template-columns: 1rem 2.2rem minmax(0, 1fr) auto;
   align-items: center;
-  gap: 0.75rem;
-  border-top: 1px solid var(--line);
+  gap: var(--space-xs);
+  padding: 0.45rem 0;
+  border-bottom: 1px solid var(--color-rule);
 }
 
-.champion-stat-panel li > span,
-.champion-stat-panel li small {
-  color: var(--muted);
-  font-family: var(--utility);
-  font-size: 0.55rem;
+.champion-stat-panel li:first-child {
+  grid-template-columns: 1rem 3rem minmax(0, 1fr) auto;
+  padding-inline: var(--space-xs);
+  border: 1px solid var(--color-rule);
+  background: var(--color-paper);
+}
+
+.champion-stat-position {
+  color: var(--champion-panel-accent);
+  font: var(--text-xs)/1.2 var(--font-utility);
 }
 
 .champion-stat-panel li img {
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 1px solid var(--color-rule);
   object-fit: cover;
 }
 
 .champion-stat-panel li strong {
-  overflow: hidden;
-  font-family: var(--display);
-  font-size: 0.95rem;
-  font-weight: 400;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.champion-stat-panel li:first-child strong {
+  font: 400 var(--text-md)/1.2 var(--font-display);
 }
 
 .champion-stat-panel li small {
-  text-align: right;
+  color: var(--color-muted);
+  font: var(--text-xs)/1.4 var(--font-utility);
+  text-align: end;
+  white-space: nowrap;
 }
 
 .panel-empty {
-  padding: 2rem 0;
-  border-block: 1px solid var(--line);
-  color: var(--muted);
-  font-size: 0.8rem;
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+}
+
+.account-layout .loading-state {
+  min-height: 8rem;
+}
+
+.account-layout .error-state {
+  width: 100%;
+  margin: 0;
+  padding: var(--space-md);
+}
+
+@media (max-width: 640px) {
+  .profile-header {
+    grid-template-columns: minmax(0, 1fr);
+    min-height: 13rem;
+    align-content: end;
+  }
+
+  .profile-splash {
+    width: 100%;
+    object-position: 64% 30%;
+    mask-image: none;
+  }
+
+  .profile-refresh {
+    justify-self: start;
+  }
+
+  .rank-card {
+    grid-template-columns: 3.25rem minmax(0, 1fr);
+    gap: var(--space-sm);
+  }
+
+  .rank-card dl {
+    grid-column: 1 / -1;
+    padding-top: var(--space-xs);
+    border-top: 1px solid var(--color-rule);
+  }
+
+  .rank-card dl div:first-child {
+    padding-inline-start: 0;
+    border-inline-start: 0;
+  }
+
+  .account-champions {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .retry-search {
@@ -2666,18 +2722,7 @@ main {
     width: 200px;
   }
 
-  .account-layout {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 3rem;
-  }
 
-  .rank-section {
-    grid-column: 1 / -1;
-  }
-
-  .account-side {
-    display: contents;
-  }
 }
 
 @media (max-width: 900px) {
@@ -2916,69 +2961,6 @@ main {
   .skin-viewer-strip button {
     width: 94px;
     min-width: 94px;
-  }
-
-  .profile-header {
-    position: relative;
-    align-items: flex-start;
-  }
-
-  .profile-icon {
-    width: 84px;
-    height: 84px;
-  }
-
-  .profile-header h1 {
-    font-size: clamp(2.3rem, 13vw, 4rem);
-  }
-
-  .profile-header h1 small {
-    display: block;
-    margin: 0.4rem 0 0;
-  }
-
-  .profile-refresh {
-    position: absolute;
-    right: 0;
-    bottom: 1rem;
-  }
-
-  .account-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .rank-section {
-    grid-column: auto;
-  }
-
-  .rank-card {
-    grid-template-columns: 76px 1fr;
-    gap: 1rem;
-  }
-
-  .rank-icon {
-    width: 70px;
-    height: 70px;
-  }
-
-  .rank-icon img {
-    width: 66px;
-    height: 66px;
-  }
-
-  .rank-card dl {
-    grid-column: 1 / -1;
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .rank-card dl div {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .champion-stat-panel li {
-    grid-template-columns: 24px 42px 1fr auto;
   }
 
 
