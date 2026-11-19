@@ -35,10 +35,10 @@ export function ComparePage() {
   });
   const leftLookup = lookupFromComparisonSide(initialDraft.left);
   const rightLookup = lookupFromComparisonSide(initialDraft.right);
-  const hasComparison = Boolean(leftLookup && rightLookup);
 
   useEffect(() => {
     setDraft(initialDraft);
+    setErrors({ left: false, right: false });
   }, [initialDraft]);
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -87,10 +87,6 @@ export function ComparePage() {
           }
         />
 
-        <span className="compare-versus" aria-hidden="true">
-          VS
-        </span>
-
         <ComparisonField
           side="right"
           legend={t("compare.second")}
@@ -117,15 +113,14 @@ export function ComparePage() {
         </button>
       </form>
 
-      {hasComparison ? (
+      {leftLookup && rightLookup ? (
         <section className="comparison-stage" aria-live="polite">
-          <PlayerDossier side="left" lookup={leftLookup!} />
-          <PlayerDossier side="right" lookup={rightLookup!} />
+          <PlayerDossier side="left" lookup={leftLookup} />
+          <PlayerDossier side="right" lookup={rightLookup} />
         </section>
       ) : (
         <section className="comparison-empty">
           <strong>{t("compare.emptyTitle")}</strong>
-          <p>{t("compare.emptyDescription")}</p>
         </section>
       )}
     </PageTransition>
@@ -162,17 +157,17 @@ function ComparisonField({
             value={value}
             placeholder={t("search.placeholder")}
             aria-invalid={error}
-            aria-describedby={errorId}
+            aria-describedby={error ? errorId : undefined}
             onChange={(event) => onValueChange(event.target.value)}
           />
         </label>
         <RegionSelect label={t("common.region")} value={region} onChange={onRegionChange} />
       </div>
-      <span className="comparison-helper" id={errorId}>
-        {error
-          ? t(side === "left" ? "compare.firstError" : "compare.secondError")
-          : t("compare.helper")}
-      </span>
+      {error && (
+        <p className="comparison-helper" id={errorId}>
+          {t(side === "left" ? "compare.firstError" : "compare.secondError")}
+        </p>
+      )}
     </fieldset>
   );
 }
@@ -257,9 +252,10 @@ function PlayerDossier({
       </header>
 
       <dl className="dossier-rank">
-        <div>
+        <div className="dossier-tier">
           <dt>{t("compare.ranking")}</dt>
           <dd>
+            {primaryRank && <img src={primaryRank.rankIconUrl} alt="" />}
             {ranks.isPending
               ? t("compare.checking")
               : ranks.isError
@@ -271,15 +267,17 @@ function PlayerDossier({
         </div>
         <div>
           <dt>{t("compare.leaguePoints")}</dt>
-          <dd>{primaryRank ? `${primaryRank.leaguePoints} LP` : "—"}</dd>
+          <dd>{primaryRank ? `${primaryRank.leaguePoints.toLocaleString(locale)} LP` : "—"}</dd>
         </div>
         <div>
-          <dt>{t("compare.performance")}</dt>
-          <dd>
-            {primaryRank
-              ? `${winRate}% · ${games} ${t("common.games")}`
-              : "—"}
-          </dd>
+          <dt>{t("rank.winRate")}</dt>
+          <dd>{primaryRank && games > 0 ? `${winRate}%` : "—"}</dd>
+          {primaryRank && games > 0 && (
+            <dd className="dossier-games">
+              <meter aria-hidden="true" min={0} max={100} value={winRate} />
+              {games.toLocaleString(locale)} {t("common.games")}
+            </dd>
+          )}
         </div>
       </dl>
 
@@ -293,9 +291,8 @@ function PlayerDossier({
           </p>
         ) : mastery.data?.length ? (
           <ol>
-            {mastery.data.slice(0, 3).map((champion, index) => (
+            {mastery.data.slice(0, 3).map((champion) => (
               <li key={champion.championId}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
                 <img src={champion.championImageUrl} alt="" loading="lazy" />
                 <strong>{champion.championName}</strong>
                 <small>

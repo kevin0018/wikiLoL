@@ -1907,376 +1907,296 @@ main {
   }
 }
 
-/* Compare */
+/* Comparison · competitive briefing · gold and teal · paired player cards */
+/* Hallmark pre-emit critique: P4 H5 E4 S5 R5 V4 */
 
 .compare-page {
-  padding-top: var(--space-2xl);
+  --comparison-gap: clamp(0.75rem, 2vw, 1.5rem);
+  max-width: 72rem;
+  margin-inline: auto;
+  padding-block-start: clamp(1.75rem, 4vw, 3.5rem);
+  font-variant-numeric: tabular-nums;
 }
 
 .compare-heading {
-  display: grid;
-  margin-bottom: var(--space-2xl);
-  grid-template-columns: minmax(0, 1.35fr) minmax(18rem, 0.65fr);
-  align-items: end;
-  gap: var(--space-2xl);
+  margin-bottom: var(--space-lg);
 }
 
 .compare-heading h1 {
-  min-width: 0;
-  margin: 0;
+  margin: 0 0 0.35rem;
   color: var(--color-ink);
-  font-family: var(--font-display);
-  font-size: var(--text-display);
-  font-style: normal;
-  font-weight: 400;
-  line-height: 0.96;
-  letter-spacing: -0.045em;
+  font: 400 clamp(2.25rem, 4.25vw, 4rem)/1.04 var(--font-display);
+  letter-spacing: -0.035em;
   overflow-wrap: anywhere;
 }
 
 .compare-heading p {
-  max-width: 50ch;
+  max-width: 58ch;
   margin: 0;
   color: var(--color-muted);
-  font-family: var(--font-body);
-  font-size: var(--text-base);
-  line-height: 1.65;
+  line-height: 1.6;
 }
 
 .compare-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 3.5rem minmax(0, 1fr);
-  align-items: stretch;
-  gap: var(--space-md);
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  align-items: start;
+  gap: var(--comparison-gap);
+  margin-bottom: var(--space-xl);
+  padding: clamp(0.8rem, 2vw, 1.35rem);
+  border-block: 1px solid var(--color-rule);
+  background: var(--color-paper-2);
 }
 
 .comparison-fieldset {
-  min-width: 0;
+  min-inline-size: 0;
   margin: 0;
-  padding: var(--space-lg) 0;
+  padding: 0;
   border: 0;
-  border-block: var(--rule-thin) solid var(--color-rule);
 }
 
 .comparison-fieldset legend {
+  margin-bottom: 0.55rem;
   padding: 0;
-  color: var(--color-accent-soft);
-  font-family: var(--font-display);
-  font-size: var(--text-md);
+  color: var(--color-ink);
+  font-size: var(--text-sm);
+  font-weight: 700;
 }
 
 .comparison-controls {
   display: grid;
-  margin-top: var(--space-lg);
-  grid-template-columns: minmax(0, 1fr) 6.5rem;
-  gap: var(--space-sm);
+  grid-template-columns: minmax(0, 1fr) 5.5rem;
+  align-items: end;
+  gap: 0.5rem;
 }
 
 .comparison-controls label {
-  display: flex;
+  display: grid;
+  gap: 0.35rem;
   min-width: 0;
-  flex-direction: column;
-  gap: var(--space-xs);
 }
 
 .comparison-controls label > span {
   color: var(--color-muted);
-  font-family: var(--font-utility);
-  font-size: var(--text-xs);
+  font: 500 var(--text-xs)/1.4 var(--font-utility);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.comparison-controls input,
-.comparison-controls select {
+.comparison-controls input {
   width: 100%;
-  height: 3.25rem;
-  min-width: 0;
-  padding: 0 var(--space-md);
-  border: var(--rule-thin) solid var(--color-rule);
-  border-radius: var(--radius-control);
-  outline: 2px solid transparent;
-  outline-offset: 1px;
+  min-height: 2.875rem;
+  padding: 0 0.7rem;
+  border: 1px solid var(--line);
+  background: var(--color-paper);
   color: var(--color-ink);
-  background: var(--color-paper-2);
-  font-family: var(--font-body);
+  font-size: var(--text-base);
 }
 
-.comparison-controls select {
-  cursor: pointer;
+.comparison-controls .region-select-trigger {
+  background: var(--color-paper);
 }
 
-.comparison-controls option {
-  color: var(--color-ink);
-  background: var(--color-paper-2);
-}
-
-.comparison-controls input::placeholder {
-  color: var(--color-muted);
-}
-
-.comparison-controls input:focus-visible,
-.comparison-controls select:focus-visible {
-  outline-color: var(--color-focus);
-}
-
-.comparison-controls input:active,
-.comparison-controls select:active {
+.comparison-controls input:hover,
+.comparison-controls .region-select-trigger:hover {
   background: var(--color-paper-3);
 }
 
-.comparison-controls input:disabled,
-.comparison-controls select:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
+.comparison-controls input:focus-visible {
+  outline: 1px solid var(--color-focus);
+  outline-offset: -2px;
 }
 
-.comparison-controls input[aria-busy="true"],
-.comparison-controls select[aria-busy="true"] {
-  cursor: progress;
-}
-
-.comparison-controls input[aria-invalid="true"],
-.comparison-controls select[aria-invalid="true"] {
+.comparison-controls input[aria-invalid="true"] {
   border-color: var(--color-error);
-  border-style: dashed;
-}
-
-.comparison-controls input[data-state="success"],
-.comparison-controls select[data-state="success"] {
-  border-color: var(--color-focus);
 }
 
 .comparison-helper {
-  display: block;
-  min-height: 1lh;
-  margin-top: var(--space-xs);
-  color: var(--color-muted);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-}
-
-.comparison-fieldset:has([aria-invalid="true"]) .comparison-helper {
+  margin: 0.4rem 0 0;
   color: var(--color-error);
-}
-
-.compare-versus {
-  display: grid;
-  place-items: center;
-  color: var(--color-focus);
-  font-family: var(--font-utility);
   font-size: var(--text-sm);
-  font-variant-numeric: tabular-nums;
 }
 
 .compare-submit {
   display: inline-flex;
-  min-height: 3.25rem;
-  padding: 0 var(--space-lg);
-  grid-column: 1 / -1;
-  justify-self: start;
+  min-height: 2.875rem;
   align-items: center;
-  gap: var(--space-sm);
-  border: var(--rule-thin) solid var(--color-accent);
-  border-radius: var(--radius-control);
-  color: var(--color-accent-ink);
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: calc(0.55rem + 1.5em + 0.35rem + var(--text-xs) * 1.4);
+  padding: 0 1rem;
+  border: 1px solid var(--color-accent);
   background: var(--color-accent);
-  font-family: var(--font-utility);
+  color: var(--color-accent-ink);
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: 700;
   white-space: nowrap;
   cursor: pointer;
-  transition:
-    color var(--dur-short) var(--ease-out),
-    background-color var(--dur-short) var(--ease-out),
-    transform var(--dur-micro) var(--ease-out);
 }
 
-.compare-submit svg {
-  width: 1.1rem;
+.compare-submit:hover {
+  background: var(--color-accent-soft);
 }
 
-.compare-submit:focus-visible {
-  outline-color: var(--color-focus);
-  box-shadow: 0 0 0 2px var(--color-paper);
-}
-
-.compare-submit:active {
-  transform: translateY(1px);
-}
-
-.compare-submit:disabled,
-.compare-submit[aria-disabled="true"] {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.compare-submit[aria-busy="true"] {
-  cursor: progress;
-}
-
-.compare-submit[data-state="error"] {
-  border-color: var(--color-error);
-  border-style: dashed;
-}
-
-.compare-submit[data-state="success"] {
-  border-color: var(--color-focus);
+.compare-submit svg,
+.dossier-link svg {
+  width: 1rem;
+  height: 1rem;
 }
 
 .comparison-stage {
   display: grid;
-  margin-top: var(--space-3xl);
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--rule-thin);
-  border-block: var(--rule-thin) solid var(--color-rule);
-  background: var(--color-rule);
+  gap: var(--comparison-gap);
 }
 
 .comparison-dossier {
+  --player-accent: var(--color-accent-soft);
+  display: flex;
   min-width: 0;
-  padding: clamp(var(--space-lg), 4vw, var(--space-2xl));
-  color: var(--color-ink);
-  background: var(--color-paper);
-}
-
-.comparison-dossier.is-right {
+  flex-direction: column;
+  padding: clamp(0.9rem, 2.5vw, 1.75rem);
+  border: 1px solid var(--color-rule);
+  border-top: 2px solid var(--player-accent);
   background: var(--color-paper-2);
 }
 
-.comparison-dossier > .loading-state {
-  min-height: 28rem;
+.comparison-dossier.is-right {
+  --player-accent: var(--color-focus);
 }
 
-.comparison-dossier > .error-state {
-  margin-block: var(--space-2xl);
+.comparison-dossier > :is(.error-state, .loading-state) {
+  margin: auto;
+  padding: var(--space-xl) 0;
 }
 
 .dossier-identity {
   display: grid;
-  grid-template-columns: 5.5rem minmax(0, 1fr);
+  grid-template-columns: 4.5rem minmax(0, 1fr);
   align-items: center;
-  gap: var(--space-lg);
+  gap: var(--space-md);
+  margin-bottom: var(--space-lg);
 }
 
 .dossier-identity img {
-  width: 5.5rem;
-  height: 5.5rem;
-  border: var(--rule-thin) solid var(--color-accent);
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 1px solid var(--player-accent);
   object-fit: cover;
 }
 
 .dossier-identity h2 {
-  min-width: 0;
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: clamp(var(--text-xl), 3vw, var(--text-3xl));
-  font-weight: 400;
-  line-height: 1;
+  margin: 0 0 0.25rem;
+  font: 400 clamp(1.6rem, 3.2vw, 2.65rem)/1.08 var(--font-display);
   overflow-wrap: anywhere;
 }
 
 .dossier-identity p {
-  margin: var(--space-xs) 0 0;
+  margin: 0;
   color: var(--color-muted);
-  font-family: var(--font-utility);
-  font-size: var(--text-xs);
-  font-variant-numeric: tabular-nums;
+  font: var(--text-sm)/1.5 var(--font-utility);
+  overflow-wrap: anywhere;
 }
 
 .dossier-rank {
-  margin: var(--space-xl) 0 0;
-  border-top: var(--rule-thin) solid var(--color-rule);
-  font-variant-numeric: tabular-nums;
+  display: grid;
+  grid-template-columns: 1.25fr 0.9fr 1fr;
+  margin: 0 0 var(--space-lg);
+  border-block: 1px solid var(--color-rule);
+  background: var(--color-paper);
 }
 
 .dossier-rank > div {
-  display: grid;
-  min-height: 4.5rem;
-  grid-template-columns: minmax(7.5rem, 0.65fr) minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-md);
-  border-bottom: var(--rule-thin) solid var(--color-rule);
+  min-width: 0;
+  padding: 0.75rem clamp(0.45rem, 1.5vw, 0.85rem);
+}
+
+.dossier-rank > div + div {
+  border-inline-start: 1px solid var(--color-rule);
 }
 
 .dossier-rank dt {
+  margin-bottom: 0.35rem;
   color: var(--color-muted);
-  font-family: var(--font-body);
   font-size: var(--text-sm);
 }
 
 .dossier-rank dd {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
   margin: 0;
-  color: var(--color-accent-soft);
-  font-family: var(--font-utility);
-  font-size: var(--text-sm);
-  text-align: end;
+  color: var(--player-accent);
+  font: 500 clamp(0.9rem, 1.6vw, 1.25rem)/1.25 var(--font-utility);
+  overflow-wrap: anywhere;
 }
 
-.dossier-mastery {
-  margin-top: var(--space-xl);
+.dossier-tier img {
+  width: 1.55rem;
+  height: 1.55rem;
+  object-fit: contain;
+  flex: none;
+}
+
+.dossier-rank .dossier-games {
+  display: grid;
+  margin-top: 0.3rem;
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+.dossier-games meter {
+  width: 100%;
+  height: 0.35rem;
+  accent-color: var(--player-accent);
+}
+
+.dossier-games meter::-webkit-meter-bar {
+  border: 0;
+  border-radius: 0;
+  background: var(--color-rule);
+}
+
+.dossier-games meter::-webkit-meter-optimum-value {
+  background: var(--player-accent);
 }
 
 .dossier-mastery h3 {
-  margin: 0 0 var(--space-md);
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 400;
+  margin: 0 0 var(--space-xs);
+  font: 400 var(--text-md)/1.25 var(--font-display);
 }
 
 .dossier-mastery ol {
   margin: 0;
   padding: 0;
-  border-bottom: var(--rule-thin) solid var(--color-rule);
   list-style: none;
 }
 
 .dossier-mastery li {
   display: grid;
-  min-height: 4.5rem;
-  grid-template-columns: 1.5rem 2.75rem minmax(0, 1fr) auto;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--space-sm);
-  border-top: var(--rule-thin) solid var(--color-rule);
-  font-variant-numeric: tabular-nums;
-}
-
-.dossier-mastery li > span,
-.dossier-mastery li small {
-  color: var(--color-muted);
-  font-family: var(--font-utility);
-  font-size: var(--text-xs);
+  gap: 0.65rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--color-rule);
 }
 
 .dossier-mastery li img {
-  width: 2.75rem;
-  height: 2.75rem;
-  border-radius: 50%;
+  width: 2.25rem;
+  height: 2.25rem;
   object-fit: cover;
 }
 
 .dossier-mastery li strong {
-  overflow: hidden;
-  font-family: var(--font-display);
-  font-size: var(--text-base);
-  font-weight: 400;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.dossier-mastery li small {
-  text-align: end;
-  white-space: nowrap;
-}
-
-.dossier-status {
-  min-height: 4.5rem;
-  margin: 0;
-  padding-block: var(--space-lg);
-  border-block: var(--rule-thin) solid var(--color-rule);
-  color: var(--color-muted);
-  font-family: var(--font-body);
+  color: var(--color-ink);
   font-size: var(--text-sm);
+  overflow-wrap: anywhere;
+}
+
+.dossier-mastery li small,
+.dossier-status {
+  color: var(--color-muted);
+  font: var(--text-xs)/1.5 var(--font-utility);
 }
 
 .dossier-status.is-error {
@@ -2286,46 +2206,63 @@ main {
 .dossier-link {
   display: inline-flex;
   min-height: 2.75rem;
-  margin-top: var(--space-xl);
+  align-self: flex-start;
   align-items: center;
-  gap: var(--space-sm);
-  color: var(--color-accent-soft);
-  font-family: var(--font-utility);
-  font-size: var(--text-xs);
+  gap: 0.45rem;
+  margin-top: auto;
+  padding-top: var(--space-sm);
+  color: var(--player-accent);
+  font-size: var(--text-sm);
   white-space: nowrap;
 }
 
-.dossier-link svg {
-  width: 1rem;
-  transition: transform var(--dur-micro) var(--ease-out);
-}
-
-.dossier-link:active svg {
-  transform: translateX(1px);
+.dossier-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 .comparison-empty {
-  display: grid;
-  margin-top: var(--space-3xl);
-  padding: var(--space-xl) 0;
-  grid-template-columns: minmax(0, 0.8fr) minmax(18rem, 1.2fr);
-  gap: var(--space-2xl);
-  border-block: var(--rule-thin) solid var(--color-rule);
+  padding: var(--space-lg) 0;
+  border-bottom: 1px solid var(--color-rule);
+  color: var(--color-muted);
 }
 
 .comparison-empty strong {
-  font-family: var(--font-display);
-  font-size: var(--text-lg);
-  font-weight: 400;
+  font-weight: 500;
 }
 
-.comparison-empty p {
-  max-width: 60ch;
-  margin: 0;
-  color: var(--color-muted);
-  font-family: var(--font-body);
-  font-size: var(--text-sm);
-  line-height: 1.65;
+@media (max-width: 800px) {
+  .compare-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .compare-submit {
+    grid-column: 1 / -1;
+    margin-top: 0;
+  }
+
+  .dossier-tier img {
+    display: none;
+  }
+}
+
+@media (max-width: 580px) {
+  .compare-heading p {
+    font-size: var(--text-sm);
+  }
+
+  .compare-form,
+  .comparison-stage {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .compare-form {
+    margin-bottom: var(--space-lg);
+  }
+
+  .dossier-rank dt {
+    font-size: 0.7rem;
+  }
 }
 
 .footer-links {
@@ -2345,26 +2282,8 @@ main {
 .ladder-list,
 .rank-card,
 .champion-stat-panel,
-.skins-section,
-.comparison-stage {
+.skins-section {
   font-variant-numeric: tabular-nums;
-}
-
-@media (hover: hover) and (pointer: fine) {
-  .comparison-controls input:hover,
-  .comparison-controls select:hover {
-    background: var(--color-paper-3);
-  }
-
-  .compare-submit:hover {
-    color: var(--color-accent-soft);
-    background: var(--color-paper-2);
-    transform: translateY(-1px);
-  }
-
-  .dossier-link:hover svg {
-    transform: translateX(var(--space-2xs));
-  }
 }
 
 @media (max-width: 1180px) {
@@ -2510,24 +2429,6 @@ main {
     aspect-ratio: 1.65;
   }
 
-  .compare-heading,
-  .comparison-empty {
-    grid-template-columns: 1fr;
-    gap: var(--space-lg);
-  }
-
-  .compare-form,
-  .comparison-stage {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .compare-versus {
-    min-height: 2.5rem;
-  }
-
-  .compare-submit {
-    grid-column: auto;
-  }
 
 }
 
@@ -2730,63 +2631,7 @@ main {
     grid-template-columns: 24px 42px 1fr auto;
   }
 
-  .compare-page {
-    padding-top: var(--space-xl);
-  }
 
-  .compare-heading {
-    margin-bottom: var(--space-xl);
-  }
-
-  .compare-heading h1 {
-    font-size: clamp(var(--text-2xl), 14vw, var(--text-3xl));
-  }
-
-  .comparison-controls {
-    grid-template-columns: minmax(0, 1fr) 5.75rem;
-  }
-
-  .compare-submit {
-    width: 100%;
-    justify-content: center;
-  }
-
-  .comparison-stage,
-  .comparison-empty {
-    margin-top: var(--space-2xl);
-  }
-
-  .comparison-dossier {
-    padding: var(--space-lg) var(--space-md);
-  }
-
-  .dossier-identity {
-    grid-template-columns: 4.5rem minmax(0, 1fr);
-  }
-
-  .dossier-identity img {
-    width: 4.5rem;
-    height: 4.5rem;
-  }
-
-  .dossier-rank > div {
-    grid-template-columns: minmax(0, 1fr);
-    padding-block: var(--space-sm);
-    gap: var(--space-2xs);
-  }
-
-  .dossier-rank dd {
-    text-align: start;
-  }
-
-  .dossier-mastery li {
-    grid-template-columns: 1.25rem 2.5rem minmax(0, 1fr) auto;
-  }
-
-  .dossier-mastery li img {
-    width: 2.5rem;
-    height: 2.5rem;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
