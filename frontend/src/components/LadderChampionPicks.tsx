@@ -28,19 +28,20 @@ export function LadderChampionPicks({
           {champions.map((champion) => {
             const { championId, championImageUrl, championName } = champion;
 
-            return settled[championId] === "failed" ? (
-              <span className="ladder-pick-missing" key={championId} role="img" aria-label={championName}>
-                —
+            return (
+              <span className="ladder-pick" key={championId} tabIndex={busy ? -1 : 0}>
+                {settled[championId] === "failed" ? (
+                  <span className="ladder-pick-missing" role="img" aria-label={championName}>—</span>
+                ) : (
+                  <img
+                    src={championImageUrl}
+                    alt={championName}
+                    onLoad={() => setSettled((current) => ({ ...current, [championId]: "loaded" }))}
+                    onError={() => setSettled((current) => ({ ...current, [championId]: "failed" }))}
+                  />
+                )}
+                <span className="ladder-pick-tooltip" aria-hidden="true">{championName}</span>
               </span>
-            ) : (
-              <img
-                key={championId}
-                src={championImageUrl}
-                alt={championName}
-                title={championName}
-                onLoad={() => setSettled((current) => ({ ...current, [championId]: "loaded" }))}
-                onError={() => setSettled((current) => ({ ...current, [championId]: "failed" }))}
-              />
             );
           })}
         </div>
