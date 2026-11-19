@@ -94,6 +94,7 @@
   "account.new.title": "Busca un jugador para abrir su historial.",
   "account.loading": "Buscando a {name}",
   "account.notFound": "No hemos encontrado ese jugador",
+  "account.lookupUnavailable": "La búsqueda de jugadores no está disponible",
   "account.profileEyebrow": "PERFIL / {region} / NIVEL {level}",
   "account.refresh": "Actualizar datos",
   "account.season": "TEMPORADA ACTUAL",

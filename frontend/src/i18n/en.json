@@ -94,6 +94,7 @@
   "account.new.title": "Search for a player to open their history.",
   "account.loading": "Searching for {name}",
   "account.notFound": "We could not find that player",
+  "account.lookupUnavailable": "Player lookup is unavailable",
   "account.profileEyebrow": "PROFILE / {region} / LEVEL {level}",
   "account.refresh": "Refresh data",
   "account.season": "CURRENT SEASON",

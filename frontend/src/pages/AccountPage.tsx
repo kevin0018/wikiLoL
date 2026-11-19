@@ -7,7 +7,7 @@ import { PageTransition } from "../components/PageTransition";
 import { PlayerSearch } from "../components/PlayerSearch";
 import { RankCard } from "../components/RankCard";
 import { ErrorState, LoadingState } from "../components/States";
-import { api } from "../services/api";
+import { api, ApiError } from "../services/api";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function AccountPage() {
@@ -73,10 +73,12 @@ export function AccountPage() {
   }
 
   if (profile.isError) {
+    const notFound =
+      profile.error instanceof ApiError && profile.error.status === 404;
     return (
       <PageTransition className="account-page">
         <ErrorState
-          title={t("account.notFound")}
+          title={t(notFound ? "account.notFound" : "account.lookupUnavailable")}
           retry={() => void profile.refetch()}
         />
         <div className="retry-search">

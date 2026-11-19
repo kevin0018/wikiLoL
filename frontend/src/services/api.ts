@@ -13,6 +13,13 @@ import type { DataDragonLocale } from "../i18n/I18nProvider";
 
 const apiBaseUrl = (import.meta.env.VITE_BACKEND_URL ?? "").replace(/\/$/, "");
 
+export class ApiError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
+
 async function request<T>(path: string, schema: z.ZodType<T>): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`);
 
@@ -25,7 +32,7 @@ async function request<T>(path: string, schema: z.ZodType<T>): Promise<T> {
       typeof body.error === "string"
         ? body.error
         : "The request could not be completed.";
-    throw new Error(message);
+    throw new ApiError(response.status, message);
   }
 
   return schema.parse(await response.json());

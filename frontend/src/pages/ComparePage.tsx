@@ -16,7 +16,7 @@ import {
   lookupFromComparisonSide,
   type ComparisonDraft,
 } from "../lib/compare";
-import { api } from "../services/api";
+import { api, ApiError } from "../services/api";
 import { useI18n } from "../i18n/I18nProvider";
 
 type ComparisonErrors = Record<"left" | "right", boolean>;
@@ -227,10 +227,16 @@ function PlayerDossier({
   }
 
   if (profile.isError) {
+    const notFound =
+      profile.error instanceof ApiError && profile.error.status === 404;
     return (
       <div className={`comparison-dossier is-${side}`}>
         <ErrorState
-          title={t("compare.notFound", { name: lookup.gameName })}
+          title={
+            notFound
+              ? t("compare.notFound", { name: lookup.gameName })
+              : t("account.lookupUnavailable")
+          }
           retry={() => void profile.refetch()}
         />
       </div>
