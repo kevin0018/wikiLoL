@@ -109,7 +109,9 @@ export function MatchDetailsDialog({
                         <dl className="scoreboard-stats">
                           <div>
                             <dt>{t("account.kda")}</dt>
-                            <dd>{player.kills} / {player.deaths} / {player.assists}</dd>
+                            <dd className="scoreboard-kda">
+                              {player.kills}<span>/</span>{player.deaths}<span>/</span>{player.assists}
+                            </dd>
                           </div>
                           <div>
                             <dt>{t("account.damage")}</dt>

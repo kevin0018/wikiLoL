@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 import type { MatchHistoryPage, RecentMatch } from "@wikilol/contracts";
 import { useI18n, type TranslationKey } from "../i18n/I18nProvider";
 import { api } from "../services/api";
-import { ArrowIcon } from "./Icons";
+import { ChevronIcon } from "./Icons";
 import { MatchDetailsDialog } from "./MatchDetailsDialog";
 import { ErrorState } from "./States";
 
@@ -59,11 +59,31 @@ export function RecentMatchHistory({
   });
   const [selectedMatch, setSelectedMatch] = useState<RecentMatch | null>(null);
   const selectedTrigger = useRef<HTMLButtonElement>(null);
+  const wins = matches.filter((match) => match.win).length;
+  const winRate = matches.length ? Math.round((wins / matches.length) * 100) : 0;
   const date = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" });
 
   return (
     <section className="profile-history" aria-labelledby="recent-match-title">
-      <h2 id="recent-match-title">{t("account.recentMatches")}</h2>
+      <header className="match-feed-header">
+        <h2 id="recent-match-title">{t("account.recentMatches")}</h2>
+        {!loading && !error && matches.length > 0 && (
+          <div className="match-overview">
+            <div className="match-overview-rate">
+              <strong>{winRate}%</strong>
+              <span>{t("rank.winRate")}</span>
+            </div>
+            <div className="match-overview-record">
+              <p>{t("account.matchRecord", { count: matches.length, wins, losses: matches.length - wins })}</p>
+              <div className="match-form-chart" aria-hidden="true">
+                {matches.map((match) => (
+                  <span className={match.win ? "is-win" : "is-loss"} key={match.matchId} />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </header>
       {error ? (
         <ErrorState retry={retry} />
       ) : loading ? (
@@ -90,14 +110,16 @@ export function RecentMatchHistory({
                   setSelectedMatch(match);
                 }}
               >
-                <span className="match-result">
-                  <strong>{t(match.win ? "account.matchWin" : "account.matchLoss")}</strong>
-                  <small>{t(queueLabels[match.queueId] ?? "account.matchOther")}</small>
-                </span>
                 <span className="match-champion">
-                  {match.championImageUrl && <img src={match.championImageUrl} alt="" />}
-                  <strong>{match.championName}</strong>
+                  <span className="match-portrait">
+                    {match.championImageUrl && <img src={match.championImageUrl} alt="" loading="lazy" />}
+                  </span>
+                  <span className="match-identity">
+                    <strong>{match.championName}</strong>
+                    <small>{t(queueLabels[match.queueId] ?? "account.matchOther")}</small>
+                  </span>
                 </span>
+                <span className="match-result">{t(match.win ? "account.matchWin" : "account.matchLoss")}</span>
                 <span className="match-score">
                   <span>{match.kills} / {match.deaths} / {match.assists}</span>
                   <small>{t("account.kda")}</small>
@@ -110,7 +132,7 @@ export function RecentMatchHistory({
                     <span>{formatDuration(match.durationSeconds)}</span>
                   )}
                 </span>
-                <span className="match-open" aria-hidden="true"><ArrowIcon /></span>
+                <span className="match-open"><ChevronIcon /></span>
               </button>
             </li>
           ))}
@@ -122,11 +144,12 @@ export function RecentMatchHistory({
         <div className="match-pagination">
           <button
             type="button"
-            className="text-button"
+            className="match-more"
             disabled={moreMatches.isPending}
             onClick={() => moreMatches.mutate(nextPage)}
           >
             {t(moreMatches.isPending ? "account.loadingMatches" : "account.showMoreMatches")}
+            <ChevronIcon />
           </button>
           {moreMatches.isError && <p role="alert">{t("account.moreMatchesError")}</p>}
         </div>

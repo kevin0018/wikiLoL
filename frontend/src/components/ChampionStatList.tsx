@@ -12,26 +12,23 @@ export function ChampionStatList({
   label,
   champions,
   emptyMessage,
-  variant = "mastery",
 }: {
   title: string;
   label: string;
   champions: ChampionStat[];
   emptyMessage?: string;
-  variant?: "mastery" | "recent";
 }) {
   const { t } = useI18n();
   return (
-    <section className={`champion-stat-panel is-${variant}`}>
+    <section className="champion-stat-panel">
       <header>
         <span className="utility-label">{label}</span>
         <h2>{title}</h2>
       </header>
       {champions.length ? (
         <ol>
-          {champions.map((champion, index) => (
+          {champions.map((champion) => (
             <li key={champion.championId}>
-              <span className="champion-stat-position" aria-hidden="true">{index + 1}</span>
               <img src={champion.championImageUrl} alt="" loading="lazy" />
               <strong>{champion.championName}</strong>
               <small>{champion.value}</small>
