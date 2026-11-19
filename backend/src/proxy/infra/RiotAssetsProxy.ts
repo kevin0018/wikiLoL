@@ -22,11 +22,16 @@ assetsRouter.get(
   "/skin/:championName/:skinNum.jpg",
   async (request, response) => {
     const { championName, skinNum } = request.params;
-    const mode = isClassicChampion(championName) ? "/mode/classic" : "";
+    const classic = isClassicChampion(championName);
+    const mode = classic ? "/mode/classic" : "";
+    const fallback = !classic && /^[a-z0-9]+$/i.test(championName) && /^\d+$/.test(skinNum)
+      ? `https://cdn.communitydragon.org/latest/champion/${championName.toLowerCase()}/splash-art/skin/${skinNum}`
+      : undefined;
     await proxyAsset(
       `https://ddragon.leagueoflegends.com/cdn/img${mode}/champion/splash/${encodeURIComponent(championName)}_${encodeURIComponent(skinNum)}.jpg`,
       "image/jpeg",
       response,
+      fallback,
     );
   },
 );
@@ -69,10 +74,25 @@ async function proxyAsset(
   url: string,
   contentType: string,
   response: import("express").Response,
+  fallbackUrl?: string,
 ): Promise<void> {
-  const upstream = await fetch(url);
-  if (!upstream.ok || !upstream.body) {
-    response.status(404).json({ error: "Asset no encontrado." });
+  let upstream = await fetch(url).catch((error: unknown) => {
+    if (!fallbackUrl) throw error;
+    return null;
+  });
+
+  if (fallbackUrl && (!upstream?.ok || !upstream.body || !upstream.headers.get("content-type")?.startsWith("image/jpeg"))) {
+    await upstream?.body?.cancel();
+    upstream = await fetch(fallbackUrl).catch(() => null);
+    if (upstream?.ok && !upstream.headers.get("content-type")?.startsWith("image/jpeg")) {
+      await upstream.body?.cancel();
+      upstream = null;
+    }
+  }
+
+  if (!upstream?.ok || !upstream.body) {
+    await upstream?.body?.cancel();
+    response.set("Cache-Control", "no-store").status(404).json({ error: "Asset no encontrado." });
     return;
   }
 
