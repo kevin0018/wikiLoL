@@ -47,7 +47,7 @@ describe("RiotAccountRepository", () => {
           gameDuration: 1700, gameStartTimestamp: 1234, queueId: 420, gameVersion: "16.23.4.123",
           teams: [{ teamId: 100, win: true }, { teamId: 200, win: false }],
           participants: [
-            { puuid: "player", championId: 103, win: id !== "EUW1_2", kills: 7, deaths: 2, assists: 9, teamId: 100, item0: 3157, riotIdGameName: "Kaori" },
+            { puuid: "player", championId: 103, win: id !== "EUW1_2", kills: 7, deaths: 2, assists: 9, teamId: 100, item0: 3157, riotIdGameName: "Kaori", totalDamageDealtToChampions: 32050, goldEarned: 14500, totalMinionsKilled: 180, neutralMinionsKilled: 20 },
             { puuid: "opponent", championId: 103, kills: 2, teamId: 200 },
           ],
         },
@@ -71,10 +71,10 @@ describe("RiotAccountRepository", () => {
     await expect(repository.getMostPlayed("player", region, 20, 4, "en_US")).resolves.toEqual(result.mostPlayed);
     const detail = await repository.getMatchDetails("EUW1_1", region, "es_ES");
     expect(detail.teams).toMatchObject([
-      { teamId: 100, win: true, kills: 7, players: [{ playerName: "Kaori", items: [
+      { teamId: 100, win: true, kills: 7, players: [{ playerName: "Kaori", damage: 32050, gold: 14500, farm: 200, items: [
         { name: "Zhonya", imageUrl: "/api/assets/item/16.23.1/3157.png" }, null, null, null, null, null, null,
       ] }] },
-      { teamId: 200, win: false, kills: 2 },
+      { teamId: 200, win: false, kills: 2, players: [{ damage: null, gold: null, farm: null }] },
     ]);
     expect(fetchMock).toHaveBeenCalledTimes(7);
   });

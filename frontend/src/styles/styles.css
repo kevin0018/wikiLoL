@@ -2029,16 +2029,33 @@ main {
 .match-dialog {
   position: fixed;
   inset: 0;
-  width: min(54rem, calc(100% - 1rem));
+  width: min(67rem, calc(100% - 1.5rem));
   max-height: min(90dvh, 55rem);
   margin: auto;
   padding: 0;
   overflow: auto;
   border: 1px solid var(--color-rule);
-  border-top: 2px solid var(--gold);
+  border-radius: 1rem;
   background: var(--color-paper);
   color: var(--color-ink);
+  box-shadow: 0 1.5rem 5rem #000a;
   scrollbar-width: thin;
+}
+
+.match-dialog[open] {
+  animation: scoreboard-enter 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.match-dialog[open]::backdrop {
+  animation: scoreboard-backdrop 260ms ease-out;
+}
+
+@keyframes scoreboard-enter {
+  from { opacity: 0; transform: translateY(0.75rem) scale(0.98); }
+}
+
+@keyframes scoreboard-backdrop {
+  from { opacity: 0; }
 }
 
 .match-dialog::backdrop {
@@ -2065,7 +2082,8 @@ main {
 .match-dialog-header h2,
 .scoreboard-team h3 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-body);
+  font-weight: 650;
 }
 
 .match-dialog-header h2 {
@@ -2095,6 +2113,7 @@ main {
 .scoreboard-team {
   --team-accent: var(--color-error);
   border: 1px solid var(--color-rule);
+  border-radius: 0.7rem;
   background: var(--color-paper-2);
 }
 
@@ -2105,7 +2124,8 @@ main {
 .scoreboard-team > header {
   flex-wrap: wrap;
   padding: var(--space-xs) var(--space-sm);
-  border-inline-start: 2px solid var(--team-accent);
+  border-radius: 0.65rem 0.65rem 0 0;
+  background: linear-gradient(100deg, color-mix(in oklch, var(--team-accent) 16%, transparent), transparent 70%);
   color: var(--team-accent);
 }
 
@@ -2118,8 +2138,7 @@ main {
 }
 
 .scoreboard-team > header span,
-.scoreboard-team > header strong,
-.scoreboard-kda {
+.scoreboard-team > header strong {
   font: 500 var(--text-sm)/1.3 var(--font-utility);
 }
 
@@ -2129,13 +2148,96 @@ main {
   list-style: none;
 }
 
-.scoreboard-team li {
+.scoreboard-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(4.4rem, auto) minmax(0, 15.2rem);
+  grid-template-columns: minmax(0, 1.45fr) minmax(4.75rem, 0.75fr) minmax(4.2rem, 0.85fr) minmax(3.2rem, 0.62fr) minmax(2rem, 0.42fr) minmax(0, 15.2rem);
   align-items: center;
   gap: var(--space-xs) var(--space-sm);
   padding: var(--space-2xs) var(--space-sm);
   border-top: 1px solid var(--color-rule);
+}
+
+.scoreboard-columns {
+  color: var(--color-muted);
+  font: var(--text-xs)/1.4 var(--font-utility);
+}
+
+.scoreboard-stats,
+.scoreboard-stats > div {
+  display: contents;
+}
+
+.scoreboard-stats dt {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.scoreboard-stats dd {
+  margin: 0;
+  font: 500 var(--text-sm)/1.3 var(--font-utility);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.scoreboard-damage {
+  display: block;
+  height: 3px;
+  margin-top: 3px;
+  border-radius: 2px;
+  background: var(--color-rule);
+}
+
+.scoreboard-damage > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--team-accent);
+  transform-origin: left;
+  animation: scoreboard-damage 440ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes scoreboard-damage {
+  from { transform: scaleX(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .match-dialog[open],
+  .match-dialog[open]::backdrop,
+  .scoreboard-damage > span {
+    animation: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .scoreboard-columns { display: none; }
+
+  .scoreboard-grid {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: var(--space-2xs);
+  }
+
+  .scoreboard-stats {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: minmax(4rem, 1.25fr) minmax(3rem, 1fr) minmax(3rem, 1fr) minmax(2rem, 0.65fr);
+    gap: var(--space-2xs);
+    margin: 0;
+  }
+
+  .scoreboard-stats > div { display: block; }
+
+  .scoreboard-stats dt {
+    position: static;
+    width: auto;
+    height: auto;
+    clip-path: none;
+    color: var(--color-muted);
+    font-size: var(--text-xs);
+  }
 }
 
 .scoreboard-team li.is-profile-player {
@@ -2508,10 +2610,6 @@ main {
 
   .match-champion strong {
     font-size: var(--text-sm);
-  }
-
-  .scoreboard-team li {
-    grid-template-columns: minmax(0, 1fr) auto;
   }
 
   .scoreboard-items {

@@ -90,6 +90,10 @@ const matchSchema = z.object({
         riotIdGameName: z.string().default(""),
         riotIdTagline: z.string().default(""),
         summonerName: z.string().default(""),
+        totalDamageDealtToChampions: z.number().int().nonnegative().optional(),
+        goldEarned: z.number().int().nonnegative().optional(),
+        totalMinionsKilled: z.number().int().nonnegative().optional(),
+        neutralMinionsKilled: z.number().int().nonnegative().optional(),
         item0: itemSlot,
         item1: itemSlot,
         item2: itemSlot,
@@ -285,6 +289,11 @@ export class RiotAccountRepository implements AccountRepository {
           kills: player.kills,
           deaths: player.deaths,
           assists: player.assists,
+          damage: player.totalDamageDealtToChampions ?? null,
+          gold: player.goldEarned ?? null,
+          farm: player.totalMinionsKilled === undefined && player.neutralMinionsKilled === undefined
+            ? null
+            : (player.totalMinionsKilled ?? 0) + (player.neutralMinionsKilled ?? 0),
           items,
         },
       };

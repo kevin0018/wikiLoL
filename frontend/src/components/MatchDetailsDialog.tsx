@@ -22,7 +22,7 @@ export function MatchDetailsDialog({
   duration: string;
   onDismiss: () => void;
 }) {
-  const { dataDragonLocale, t } = useI18n();
+  const { dataDragonLocale, locale, t } = useI18n();
   const titleId = useId();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const details = useQuery({
@@ -37,6 +37,10 @@ export function MatchDetailsDialog({
     dialog.showModal();
     return () => dialog.close();
   }, []);
+
+  const formatNumber = new Intl.NumberFormat(locale);
+  const teams = details.data?.teams ?? [];
+  const maxDamage = Math.max(1, ...teams.flatMap((team) => team.players.map((player) => player.damage ?? 0)));
 
   function dismiss() {
     dialogRef.current?.close();
@@ -69,9 +73,9 @@ export function MatchDetailsDialog({
           <LoadingState label={t("account.loadingMatches")} />
         ) : details.isError ? (
           <ErrorState retry={() => void details.refetch()} />
-        ) : details.data.teams.length ? (
+        ) : teams.length ? (
           <div className="scoreboard-teams">
-            {details.data.teams.map((team) => (
+            {teams.map((team) => (
               <section className={`scoreboard-team ${team.win ? "is-win" : "is-loss"}`} key={team.teamId}>
                 <header>
                   <h3>
@@ -81,12 +85,20 @@ export function MatchDetailsDialog({
                   <span>{t(team.win ? "account.matchWin" : "account.matchLoss")}</span>
                   <strong>{t("account.teamKills", { count: team.kills })}</strong>
                 </header>
+                <div className="scoreboard-columns scoreboard-grid" aria-hidden="true">
+                  <span>{t("account.scoreboardPlayer")}</span>
+                  <span>{t("account.kda")}</span>
+                  <span>{t("account.damage")}</span>
+                  <span>{t("account.gold")}</span>
+                  <span>{t("account.farm")}</span>
+                  <span>{t("account.items")}</span>
+                </div>
                 <ul>
                   {team.players.map((player, index) => {
                     const isProfile = player.playerName.toLowerCase() === playerName.toLowerCase()
                       && player.tagLine.toLowerCase() === tagLine.toLowerCase();
                     return (
-                      <li className={isProfile ? "is-profile-player" : undefined} key={index}>
+                      <li className={`scoreboard-grid${isProfile ? " is-profile-player" : ""}`} key={index}>
                         <div className="scoreboard-player">
                           {player.championImageUrl && <img src={player.championImageUrl} alt="" />}
                           <span>
@@ -94,7 +106,31 @@ export function MatchDetailsDialog({
                             <small>{player.championName}</small>
                           </span>
                         </div>
-                        <span className="scoreboard-kda">{player.kills} / {player.deaths} / {player.assists}</span>
+                        <dl className="scoreboard-stats">
+                          <div>
+                            <dt>{t("account.kda")}</dt>
+                            <dd>{player.kills} / {player.deaths} / {player.assists}</dd>
+                          </div>
+                          <div>
+                            <dt>{t("account.damage")}</dt>
+                            <dd>
+                              {player.damage === null ? "—" : formatNumber.format(player.damage)}
+                              {player.damage !== null && (
+                                <span className="scoreboard-damage" aria-hidden="true">
+                                  <span style={{ width: `${(player.damage / maxDamage) * 100}%` }} />
+                                </span>
+                              )}
+                            </dd>
+                          </div>
+                          <div>
+                            <dt>{t("account.gold")}</dt>
+                            <dd>{player.gold === null ? "—" : formatNumber.format(player.gold)}</dd>
+                          </div>
+                          <div>
+                            <dt>{t("account.farm")}</dt>
+                            <dd>{player.farm === null ? "—" : formatNumber.format(player.farm)}</dd>
+                          </div>
+                        </dl>
                         <div className="scoreboard-items" role="group" aria-label={t("account.items")}>
                           {player.items.map((item, slot) => (
                             <span className="scoreboard-item" key={slot} tabIndex={item ? 0 : undefined}>
