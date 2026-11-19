@@ -1,4 +1,5 @@
 import {
+  accountActivitySchema,
   accountProfileSchema,
   accountRankSchema,
   challengerEntrySchema,
@@ -6,7 +7,6 @@ import {
   championDetailSchema,
   championMasterySchema,
   championsResponseSchema,
-  mostPlayedChampionSchema,
   type PlayerLookup,
 } from "@wikilol/contracts";
 import { z } from "zod";
@@ -71,10 +71,10 @@ export const api = {
       `/api/account/mastery?${params({ puuid, region, locale })}`,
       z.array(championMasterySchema),
     ),
-  mostPlayed: (puuid: string, region: string, locale: DataDragonLocale) =>
+  activity: (puuid: string, region: string, locale: DataDragonLocale) =>
     request(
-      `/api/account/most-played?${params({ puuid, region, locale })}`,
-      z.array(mostPlayedChampionSchema),
+      `/api/account/activity?${params({ puuid, region, locale })}`,
+      accountActivitySchema,
     ),
   challengerPicks: (puuids: string[], region: string, locale: DataDragonLocale) => {
     const search = new URLSearchParams({ region, locale });

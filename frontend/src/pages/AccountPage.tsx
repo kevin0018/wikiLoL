@@ -5,6 +5,7 @@ import { ChampionStatList } from "../components/ChampionStatList";
 import { PageTransition } from "../components/PageTransition";
 import { PlayerSearch } from "../components/PlayerSearch";
 import { RankCard } from "../components/RankCard";
+import { RecentMatchHistory } from "../components/RecentMatchHistory";
 import { ErrorState, LoadingState } from "../components/States";
 import { api, ApiError } from "../services/api";
 import { championSplashUrl } from "../lib/championAssets";
@@ -37,15 +38,15 @@ export function AccountPage() {
       api.mastery(profile.data!.puuid, lookup!.region, dataDragonLocale),
     enabled: Boolean(profile.data && lookup),
   });
-  const mostPlayed = useQuery({
+  const activity = useQuery({
     queryKey: [
-      "most-played",
+      "account-activity",
       profile.data?.puuid,
       lookup?.region,
       dataDragonLocale,
     ],
     queryFn: () =>
-      api.mostPlayed(profile.data!.puuid, lookup!.region, dataDragonLocale),
+      api.activity(profile.data!.puuid, lookup!.region, dataDragonLocale),
     enabled: Boolean(profile.data && lookup),
   });
 
@@ -104,7 +105,7 @@ export function AccountPage() {
   ].filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
 
   const splashUrl = championSplashUrl(mastery.data?.[0]?.championImageUrl);
-  const refreshing = profile.isFetching || ranks.isFetching || mastery.isFetching || mostPlayed.isFetching;
+  const refreshing = profile.isFetching || ranks.isFetching || mastery.isFetching || activity.isFetching;
 
   return (
     <PageTransition className="account-page">
@@ -130,23 +131,35 @@ export function AccountPage() {
             <p className="profile-tag">#{profile.data.tagLine}</p>
           </div>
         </div>
-        <button
-          className="text-button profile-refresh"
-          type="button"
-          disabled={refreshing}
-          aria-busy={refreshing}
-          onClick={() => {
-            void profile.refetch();
-            void ranks.refetch();
-            void mastery.refetch();
-            void mostPlayed.refetch();
-          }}
-        >
-          {t("account.refresh")}
-        </button>
+        <div className="profile-actions">
+          {(soloRank ?? flexRank) && (
+            <img className="profile-emblem" src={(soloRank ?? flexRank)?.rankIconUrl} alt="" />
+          )}
+          <button
+            className="text-button profile-refresh"
+            type="button"
+            disabled={refreshing}
+            aria-busy={refreshing}
+            onClick={() => {
+              void profile.refetch();
+              void ranks.refetch();
+              void mastery.refetch();
+              void activity.refetch();
+            }}
+          >
+            {t("account.refresh")}
+          </button>
+        </div>
       </header>
 
       <div className="account-layout">
+        <RecentMatchHistory
+          matches={activity.data?.matches ?? []}
+          loading={activity.isPending}
+          error={activity.isError}
+          retry={() => void activity.refetch()}
+        />
+
         <section className="rank-section">
           <header>
             <div>
@@ -205,17 +218,15 @@ export function AccountPage() {
               }))}
             />
           )}
-          {mostPlayed.isPending ? (
+          {activity.isPending ? (
             <LoadingState label={t("account.loadingMatches")} />
-          ) : mostPlayed.isError ? (
-            <ErrorState retry={() => void mostPlayed.refetch()} />
           ) : (
             <ChampionStatList
               variant="recent"
               label={t("account.matchesEyebrow")}
               title={t("account.mostPlayed")}
-              emptyMessage={t("account.matchesEmpty")}
-              champions={(mostPlayed.data ?? []).map((champion) => ({
+              emptyMessage={t(activity.isError ? "common.error.message" : "account.matchesEmpty")}
+              champions={(activity.data?.mostPlayed ?? []).map((champion) => ({
                 ...champion,
                 value: `${champion.gamesPlayed.toLocaleString(locale)} ${t("common.games")}`,
               }))}

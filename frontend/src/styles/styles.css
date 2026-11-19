@@ -1804,24 +1804,26 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
-  min-height: clamp(13rem, 23vw, 20rem);
+  min-height: clamp(14rem, 25vw, 21rem);
   gap: var(--space-md);
   overflow: hidden;
   padding: clamp(1rem, 4vw, 2.75rem);
   border: 1px solid var(--color-rule);
   border-bottom: 2px solid var(--gold);
-  background: linear-gradient(125deg, var(--color-paper-2), var(--color-paper));
+  background:
+    repeating-linear-gradient(125deg, transparent 0 1.3rem, var(--color-paper-3) 1.3rem 1.36rem),
+    var(--color-paper);
 }
 
 .profile-splash {
   position: absolute;
   z-index: -2;
   inset: 0 0 0 auto;
-  width: 76%;
+  width: 82%;
   height: 100%;
   object-fit: cover;
   object-position: 62% 22%;
-  mask-image: linear-gradient(90deg, transparent, black 46%);
+  mask-image: linear-gradient(105deg, transparent 4%, black 45%);
 }
 
 .profile-header::before {
@@ -1877,6 +1879,19 @@ main {
   white-space: nowrap;
 }
 
+.profile-actions {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-xs);
+}
+
+.profile-emblem {
+  width: clamp(4.5rem, 10vw, 8rem);
+  aspect-ratio: 1;
+  object-fit: contain;
+  filter: drop-shadow(0 0 1rem var(--color-paper));
+}
+
 .profile-refresh:disabled {
   opacity: 0.6;
   cursor: wait;
@@ -1884,6 +1899,105 @@ main {
 
 .account-layout {
   margin-top: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.profile-history {
+  margin-bottom: clamp(1.25rem, 3vw, 2.5rem);
+}
+
+.profile-history h2 {
+  margin: 0 0 var(--space-sm);
+  font: 400 clamp(1.6rem, 3vw, 2.4rem)/1.15 var(--font-display);
+}
+
+.match-strip {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-xs);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.match-card,
+.match-skeleton {
+  min-width: 0;
+  border: 1px solid var(--color-rule);
+  border-top: 2px solid var(--match-accent, var(--color-rule));
+  background: var(--color-paper-2);
+}
+
+.match-card {
+  --match-accent: var(--hextech);
+  display: grid;
+  gap: var(--space-sm);
+  padding: var(--space-sm);
+  background: linear-gradient(135deg, color-mix(in oklch, var(--match-accent) 13%, var(--color-paper-2)), var(--color-paper-2) 65%);
+}
+
+.match-card.is-loss {
+  --match-accent: var(--color-error);
+}
+
+.match-result,
+.match-details,
+.match-score {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3xs) var(--space-xs);
+  min-width: 0;
+}
+
+.match-result strong {
+  color: var(--match-accent);
+  font: 600 var(--text-sm)/1.25 var(--font-utility);
+}
+
+.match-result span,
+.match-details,
+.match-score span:last-child {
+  color: var(--color-muted);
+  font: var(--text-xs)/1.4 var(--font-utility);
+}
+
+.match-champion {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-xs);
+  overflow-wrap: anywhere;
+}
+
+.match-champion img {
+  width: 2.5rem;
+  aspect-ratio: 1;
+  flex: none;
+  border: 1px solid var(--color-rule);
+}
+
+.match-champion strong {
+  color: var(--color-ink);
+  font: 400 var(--text-md)/1.15 var(--font-display);
+}
+
+.match-score {
+  color: var(--color-ink);
+  font: 500 var(--text-base)/1.25 var(--font-utility);
+}
+
+.match-details {
+  margin: 0;
+  padding-top: var(--space-2xs);
+  border-top: 1px solid var(--color-rule);
+}
+
+.match-skeleton {
+  min-height: 9.5rem;
+  background: linear-gradient(105deg, var(--color-paper-2), var(--color-paper-3), var(--color-paper-2));
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
 }
 
 .rank-section > header {
@@ -2095,6 +2209,12 @@ main {
   padding: var(--space-md);
 }
 
+@media (max-width: 900px) {
+  .match-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 640px) {
   .profile-header {
     grid-template-columns: minmax(0, 1fr);
@@ -2110,6 +2230,18 @@ main {
 
   .profile-refresh {
     justify-self: start;
+  }
+
+  .profile-actions {
+    justify-items: start;
+  }
+
+  .profile-emblem {
+    display: none;
+  }
+
+  .match-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .rank-card {
