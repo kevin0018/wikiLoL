@@ -110,29 +110,29 @@ export function AccountPage() {
 
   return (
     <PageTransition className="account-page">
-      <header className="profile-header">
-        {splashUrl && (
-          <img
-            key={splashUrl}
-            className="profile-splash"
-            src={splashUrl}
-            alt=""
-            onError={(event) => {
-              event.currentTarget.hidden = true;
-            }}
-          />
-        )}
-        <div className="profile-identity">
-          <img className="profile-icon" src={profile.data.iconUrl} alt="" />
-          <div>
-            <p className="profile-meta">
-              {profile.data.region} · {t("common.level")} {profile.data.summonerLevel.toLocaleString(locale)}
-            </p>
-            <h1>{profile.data.gameName}</h1>
-            <p className="profile-tag">#{profile.data.tagLine}</p>
+      <div className="account-masthead">
+        <header className="profile-header">
+          {splashUrl && (
+            <img
+              key={splashUrl}
+              className="profile-splash"
+              src={splashUrl}
+              alt=""
+              onError={(event) => {
+                event.currentTarget.hidden = true;
+              }}
+            />
+          )}
+          <div className="profile-identity">
+            <img className="profile-icon" src={profile.data.iconUrl} alt="" />
+            <div>
+              <p className="profile-meta">
+                {profile.data.region} · {t("common.level")} {profile.data.summonerLevel.toLocaleString(locale)}
+              </p>
+              <h1>{profile.data.gameName}</h1>
+              <p className="profile-tag">#{profile.data.tagLine}</p>
+            </div>
           </div>
-        </div>
-        <div className="profile-actions">
           <button
             className="profile-refresh"
             type="button"
@@ -148,8 +148,37 @@ export function AccountPage() {
             <RefreshIcon />
             {t("account.refresh")}
           </button>
-        </div>
-      </header>
+        </header>
+        <section className="rank-section" aria-labelledby="account-rank-title">
+          <header>
+            <span className="utility-label">{t("account.season")}</span>
+            <h2 id="account-rank-title">{t("account.ranking")}</h2>
+          </header>
+          {ranks.isPending ? (
+            <LoadingState label={t("account.loadingRanks")} />
+          ) : ranks.isError ? (
+            <ErrorState retry={() => void ranks.refetch()} />
+          ) : visibleRanks.length === 0 ? (
+            <div className="rank-empty-state">
+              <span className="utility-label">
+                {t("account.unrankedEyebrow")}
+              </span>
+              <h3>{t("account.unranked")}</h3>
+              <p>{t("account.unrankedDescription")}</p>
+            </div>
+          ) : (
+            <div className="rank-grid">
+              {visibleRanks.map(({ rank, queueType }) => (
+                <RankCard
+                  key={queueType}
+                  rank={rank}
+                  queueType={queueType}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
 
       <div className="account-layout">
         <RecentMatchHistory
@@ -165,37 +194,6 @@ export function AccountPage() {
           retry={() => void activity.refetch()}
         />
         <aside className="account-side">
-          <section className="rank-section">
-            <header>
-              <div>
-                <span className="utility-label">{t("account.season")}</span>
-                <h2>{t("account.ranking")}</h2>
-              </div>
-            </header>
-            {ranks.isPending ? (
-              <LoadingState label={t("account.loadingRanks")} />
-            ) : ranks.isError ? (
-              <ErrorState retry={() => void ranks.refetch()} />
-            ) : visibleRanks.length === 0 ? (
-              <div className="rank-empty-state">
-                <span className="utility-label">
-                  {t("account.unrankedEyebrow")}
-                </span>
-                <h3>{t("account.unranked")}</h3>
-                <p>{t("account.unrankedDescription")}</p>
-              </div>
-            ) : (
-              <div className="rank-grid">
-                {visibleRanks.map(({ rank, queueType }) => (
-                  <RankCard
-                    key={queueType}
-                    rank={rank}
-                    queueType={queueType}
-                  />
-                ))}
-              </div>
-            )}
-          </section>
           <div className="account-activity-panel">
             {activity.isPending ? (
               <LoadingState label={t("account.loadingMatches")} />

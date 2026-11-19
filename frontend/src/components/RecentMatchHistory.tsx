@@ -57,7 +57,7 @@ export function RecentMatchHistory({
     onSuccess: (page) => {
       if (page.matches.length === 0 && page.nextStart === null) {
         setLastPageIndex(pageIndex);
-        titleRef.current?.focus();
+        titleRef.current?.focus({ preventScroll: true });
         return;
       }
       setOlderPages((previous) => [...previous, page]);
@@ -67,7 +67,7 @@ export function RecentMatchHistory({
 
   function showPage(index: number) {
     setPageIndex(index);
-    titleRef.current?.focus();
+    titleRef.current?.focus({ preventScroll: true });
   }
 
   function showNextPage() {

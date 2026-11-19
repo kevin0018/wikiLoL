@@ -1,5 +1,12 @@
 [
   {
+    "date": "2026-11-19",
+    "macrostructure": "Profile masthead with match history and champion sidebar",
+    "theme": "existing hextech",
+    "enrichment": "none",
+    "brief": "Bring player identity and rank together above paginated match history and a shared scoreboard table."
+  },
+  {
     "date": "2026-08-08",
     "macrostructure": "Split Studio",
     "theme": "existing hextech",

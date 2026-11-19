@@ -20,13 +20,15 @@ export function RankCard({
 
   return (
     <article className="rank-card">
-      <div className="rank-icon">
-        <img src={rank.rankIconUrl} alt="" />
-      </div>
-      <div className="rank-copy">
-        <span className="rank-queue-name">{queueName}</span>
-        <h3>{tier}</h3>
-        <p>{rank.leaguePoints.toLocaleString(locale)} LP</p>
+      <div className="rank-identity">
+        <div className="rank-icon">
+          <img src={rank.rankIconUrl} alt="" />
+        </div>
+        <div className="rank-copy">
+          <span className="rank-queue-name">{queueName}</span>
+          <h3>{tier}</h3>
+          <p>{rank.leaguePoints.toLocaleString(locale)} LP</p>
+        </div>
       </div>
       <dl>
         <div>

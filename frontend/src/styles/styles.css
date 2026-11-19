@@ -1799,19 +1799,25 @@ main {
   padding-block-start: clamp(1rem, 3vw, 2.25rem);
 }
 
+.account-masthead {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 0.45fr);
+  overflow: hidden;
+  border: 1px solid var(--color-rule);
+  border-radius: 0.85rem;
+  background: var(--color-paper);
+}
+
 .profile-header {
   position: relative;
   isolation: isolate;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  min-height: clamp(10rem, 19vw, 15rem);
+  align-content: end;
+  min-height: clamp(12rem, 18vw, 15rem);
   gap: var(--space-sm);
   overflow: hidden;
   padding: clamp(1rem, 3vw, 2.25rem);
-  border: 1px solid var(--color-rule);
-  border-radius: 0.9rem;
-  background: radial-gradient(ellipse at 82% 30%, #253743, var(--color-paper) 72%);
+  background: radial-gradient(ellipse at 82% 30%, var(--panel-high), var(--color-paper) 72%);
 }
 
 .profile-header::before {
@@ -1835,7 +1841,7 @@ main {
   position: absolute;
   z-index: -2;
   inset: 0 0 0 auto;
-  width: 76%;
+  width: 92%;
   height: 100%;
   object-fit: cover;
   object-position: 65% 12%;
@@ -1876,8 +1882,8 @@ main {
 .profile-header h1 {
   margin: 0.18rem 0;
   color: var(--color-ink);
-  font: 750 clamp(2rem, 5.35vw, 4.6rem)/0.98 var(--font-body);
-  letter-spacing: -0.06em;
+  font: 400 clamp(2.15rem, 5.4vw, 4.6rem)/1 var(--font-display);
+  letter-spacing: -0.04em;
   overflow-wrap: anywhere;
 }
 
@@ -1887,6 +1893,7 @@ main {
 
 .profile-refresh {
   display: inline-flex;
+  justify-self: start;
   align-items: center;
   gap: 0.45rem;
   min-height: 2.6rem;
@@ -1933,7 +1940,7 @@ main {
 
 .account-side {
   display: grid;
-  gap: var(--space-sm);
+  gap: var(--space-md);
   min-width: 0;
 }
 
@@ -1951,7 +1958,8 @@ main {
   border-radius: 0.85rem 0.85rem 0 0;
 }
 
-.account-layout h2 {
+.account-layout h2,
+.rank-section h2 {
   margin: 0;
   color: var(--color-ink);
   font: 750 clamp(1.25rem, 2.4vw, 1.85rem)/1.2 var(--font-body);
@@ -2557,17 +2565,28 @@ main {
   visibility: visible;
 }
 
-.rank-section,
-.champion-stat-panel {
+.rank-section {
   min-width: 0;
-  padding: clamp(0.8rem, 2vw, 1.25rem);
-  border: 1px solid var(--color-rule);
-  border-radius: 0.85rem;
-  background: var(--color-paper-2);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: clamp(0.85rem, 2.2vw, 1.5rem);
+  border-inline-start: 1px solid var(--color-rule);
+  background: radial-gradient(ellipse at 50% -25%, var(--panel-high), var(--color-paper) 85%);
 }
 
 .rank-section > header {
-  margin-bottom: var(--space-sm);
+  text-align: center;
+}
+
+.rank-section h2 {
+  font-size: var(--text-lg);
+}
+
+.champion-stat-panel {
+  min-width: 0;
+  padding: var(--space-xs) var(--space-sm) 0;
+  border-top: 1px solid var(--color-rule);
 }
 
 .rank-grid {
@@ -2594,14 +2613,30 @@ main {
 
 .rank-card {
   display: grid;
-  grid-template-columns: clamp(3rem, 6vw, 4.2rem) minmax(0, 1fr);
-  align-items: center;
-  gap: var(--space-md);
+  gap: var(--space-xs);
   min-width: 0;
-  padding: var(--space-sm) clamp(0.8rem, 2vw, 1.25rem);
-  border: 1px solid var(--color-rule);
-  border-radius: 0.6rem;
-  background: radial-gradient(ellipse at 8% 0%, #294341, var(--color-paper) 78%);
+  padding-top: var(--space-xs);
+}
+
+.rank-identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+}
+
+.rank-icon {
+  flex: none;
+  width: clamp(3.3rem, 6vw, 4.6rem);
+}
+
+.rank-copy {
+  min-width: 0;
+}
+
+.rank-card + .rank-card {
+  border-top: 1px solid var(--color-rule);
 }
 
 .rank-icon img {
@@ -2633,7 +2668,6 @@ main {
 .rank-card dl {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  grid-column: 1 / -1;
   margin: 0;
   padding-top: var(--space-xs);
   border-top: 1px solid var(--color-rule);
@@ -2641,19 +2675,25 @@ main {
 
 .rank-card dl div:first-child {
   border-inline-start: 0;
-  padding-inline-start: 0;
 }
 
 .rank-card dl div {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
+  align-items: center;
+  justify-items: center;
   min-width: 0;
-  padding-inline: clamp(0.45rem, 1.5vw, 0.9rem);
+  padding-inline: var(--space-2xs);
   border-inline-start: 1px solid var(--color-rule);
+  text-align: center;
 }
 
 .rank-card dt {
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--space-2xs);
   color: var(--color-muted);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
+  line-height: 1.2;
   overflow-wrap: anywhere;
 }
 
@@ -2664,10 +2704,10 @@ main {
 
 .rank-card meter {
   display: block;
-  width: 100%;
-  max-width: 8rem;
-  height: 0.35rem;
-  margin-top: 0.35rem;
+  width: 75%;
+  max-width: 5rem;
+  height: 0.3rem;
+  margin-top: var(--space-2xs);
   accent-color: var(--hextech);
 }
 
@@ -2729,14 +2769,27 @@ main {
   font-size: var(--text-sm);
 }
 
+.account-masthead .loading-state,
 .account-layout .loading-state {
   min-height: 8rem;
 }
 
+.account-masthead .error-state,
 .account-layout .error-state {
   width: 100%;
   margin: 0;
   padding: var(--space-md);
+}
+
+@media (min-width: 1140px) {
+  .match-feed-header {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .match-overview { margin-top: 0; }
 }
 
 @media (max-width: 900px) {
@@ -2748,11 +2801,19 @@ main {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .rank-section { grid-column: 1 / -1; }
-  .rank-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); }
+  .rank-section { padding-inline: var(--space-sm); }
 }
 
 @media (max-width: 600px) {
+  .account-masthead {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .rank-section {
+    border-top: 1px solid var(--color-rule);
+    border-inline-start: 0;
+  }
+
   .profile-header {
     grid-template-columns: minmax(0, 1fr);
     align-content: end;
