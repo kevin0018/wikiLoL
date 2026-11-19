@@ -1,35 +1,13 @@
 import type { AccountRank } from "@wikilol/contracts";
 import { useI18n } from "../i18n/I18nProvider";
 
-export function RankCard({
-  rank,
-  queueType,
-}: {
-  rank: AccountRank;
-  queueType: string;
-}) {
+export function RankCard({ rank }: { rank: AccountRank }) {
   const { locale, t } = useI18n();
-  const games = rank.wins + rank.losses;
-  const winRate = games ? Math.round((rank.wins / games) * 100) : 0;
-  const apexTier = ["MASTER", "GRANDMASTER", "CHALLENGER"].includes(rank.tier);
-  const tier = apexTier
-    ? titleCase(rank.tier, locale)
-    : `${titleCase(rank.tier, locale)} ${rank.rank}`;
-  const queueName =
-    queueType === "RANKED_SOLO_5x5" ? t("rank.solo") : t("rank.flex");
+  const winRate = getWinRate(rank);
 
   return (
     <article className="rank-card">
-      <div className="rank-identity">
-        <div className="rank-icon">
-          <img src={rank.rankIconUrl} alt="" />
-        </div>
-        <div className="rank-copy">
-          <span className="rank-queue-name">{queueName}</span>
-          <h3>{tier}</h3>
-          <p>{rank.leaguePoints.toLocaleString(locale)} LP</p>
-        </div>
-      </div>
+      <RankIdentity rank={rank} />
       <dl>
         <div>
           <dt>{t("rank.wins")}</dt>
@@ -41,14 +19,67 @@ export function RankCard({
         </div>
         <div>
           <dt>{t("rank.winRate")}</dt>
-          <dd>{games ? `${winRate}%` : "—"}</dd>
-          {games > 0 && <meter aria-hidden="true" min={0} max={100} value={winRate} />}
+          <dd>{formatWinRate(winRate)}</dd>
+          {winRate !== null && <meter aria-hidden="true" min={0} max={100} value={winRate} />}
         </div>
       </dl>
     </article>
   );
 }
 
-function titleCase(value: string, locale: string) {
-  return value.charAt(0) + value.slice(1).toLocaleLowerCase(locale);
+export function RankComparison({ ranks }: { ranks: AccountRank[] }) {
+  const { locale, t } = useI18n();
+
+  return (
+    <table className="rank-comparison" aria-labelledby="account-rank-title">
+      <thead>
+        <tr>
+          <th scope="col">{t("rank.queue")}</th>
+          <th scope="col">{t("rank.wins")}</th>
+          <th scope="col">{t("rank.losses")}</th>
+          <th scope="col">{t("rank.winRate")}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {ranks.map((rank) => (
+          <tr key={rank.queueType}>
+            <th scope="row"><RankIdentity rank={rank} compact /></th>
+            <td>{rank.wins.toLocaleString(locale)}</td>
+            <td>{rank.losses.toLocaleString(locale)}</td>
+            <td>{formatWinRate(getWinRate(rank))}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function RankIdentity({ rank, compact = false }: { rank: AccountRank; compact?: boolean }) {
+  const { locale, t } = useI18n();
+  const apexTier = ["MASTER", "GRANDMASTER", "CHALLENGER"].includes(rank.tier);
+  const tierName = rank.tier.charAt(0) + rank.tier.slice(1).toLocaleLowerCase(locale);
+  const tier = apexTier ? tierName : `${tierName} ${rank.rank}`;
+  const Title = compact ? "strong" : "h3";
+
+  return (
+    <div className="rank-identity">
+      <div className="rank-icon">
+        <img src={rank.rankIconUrl} alt="" />
+      </div>
+      <div className="rank-copy">
+        <span className="rank-queue-name">{t(rank.queueType === "RANKED_SOLO_5x5" ? "rank.solo" : "rank.flex")}</span>
+        <Title>{tier}</Title>
+        <p>{rank.leaguePoints.toLocaleString(locale)} LP</p>
+      </div>
+    </div>
+  );
+}
+
+function getWinRate(rank: AccountRank): number | null {
+  const games = rank.wins + rank.losses;
+  return games ? Math.round((rank.wins / games) * 100) : null;
+}
+
+function formatWinRate(winRate: number | null): string {
+  return winRate === null ? "—" : `${winRate}%`;
 }

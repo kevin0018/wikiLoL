@@ -5,7 +5,7 @@ import { ChampionStatList } from "../components/ChampionStatList";
 import { RefreshIcon } from "../components/Icons";
 import { PageTransition } from "../components/PageTransition";
 import { PlayerSearch } from "../components/PlayerSearch";
-import { RankCard } from "../components/RankCard";
+import { RankCard, RankComparison } from "../components/RankCard";
 import { RecentMatchHistory } from "../components/RecentMatchHistory";
 import { ErrorState, LoadingState } from "../components/States";
 import { api, ApiError } from "../services/api";
@@ -100,10 +100,8 @@ export function AccountPage() {
   const flexRank = ranks.data?.find(
     (rank) => rank.queueType === "RANKED_FLEX_SR",
   );
-  const visibleRanks = [
-    soloRank && { rank: soloRank, queueType: "RANKED_SOLO_5x5" },
-    flexRank && { rank: flexRank, queueType: "RANKED_FLEX_SR" },
-  ].filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+  const visibleRanks = [soloRank, flexRank].filter((rank) => rank !== undefined);
+  const [primaryRank] = visibleRanks;
 
   const splashUrl = championSplashUrl(mastery.data?.[0]?.championImageUrl);
   const refreshing = profile.isFetching || ranks.isFetching || mastery.isFetching || activity.isFetching;
@@ -158,7 +156,7 @@ export function AccountPage() {
             <LoadingState label={t("account.loadingRanks")} />
           ) : ranks.isError ? (
             <ErrorState retry={() => void ranks.refetch()} />
-          ) : visibleRanks.length === 0 ? (
+          ) : !primaryRank ? (
             <div className="rank-empty-state">
               <span className="utility-label">
                 {t("account.unrankedEyebrow")}
@@ -166,16 +164,10 @@ export function AccountPage() {
               <h3>{t("account.unranked")}</h3>
               <p>{t("account.unrankedDescription")}</p>
             </div>
+          ) : visibleRanks.length > 1 ? (
+            <RankComparison ranks={visibleRanks} />
           ) : (
-            <div className="rank-grid">
-              {visibleRanks.map(({ rank, queueType }) => (
-                <RankCard
-                  key={queueType}
-                  rank={rank}
-                  queueType={queueType}
-                />
-              ))}
-            </div>
+            <RankCard rank={primaryRank} />
           )}
         </section>
       </div>

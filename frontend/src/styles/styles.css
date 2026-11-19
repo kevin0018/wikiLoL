@@ -2589,11 +2589,6 @@ main {
   border-top: 1px solid var(--color-rule);
 }
 
-.rank-grid {
-  display: grid;
-  gap: var(--space-sm);
-}
-
 .rank-empty-state {
   padding: var(--space-lg);
   border: 1px solid var(--color-rule);
@@ -2633,10 +2628,6 @@ main {
 
 .rank-copy {
   min-width: 0;
-}
-
-.rank-card + .rank-card {
-  border-top: 1px solid var(--color-rule);
 }
 
 .rank-icon img {
@@ -2719,6 +2710,80 @@ main {
 
 .rank-card meter::-webkit-meter-optimum-value {
   background: var(--hextech);
+}
+
+.rank-comparison {
+  width: 100%;
+  margin-top: var(--space-sm);
+  border-collapse: collapse;
+  table-layout: fixed;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-comparison th,
+.rank-comparison td {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.rank-comparison thead th {
+  width: 17%;
+  padding: var(--space-2xs) 0;
+  color: var(--color-muted);
+  font: 600 0.625rem/1.15 var(--font-body);
+}
+
+.rank-comparison thead th:first-child {
+  width: 46%;
+  padding-inline-start: var(--space-2xs);
+  text-align: start;
+}
+
+.rank-comparison thead th:last-child {
+  width: 20%;
+}
+
+.rank-comparison tbody tr {
+  border-top: 1px solid var(--color-rule);
+}
+
+.rank-comparison tbody :is(th, td) {
+  padding: var(--space-xs) var(--space-2xs);
+}
+
+.rank-comparison .rank-identity {
+  justify-content: start;
+  gap: var(--space-2xs);
+  text-align: start;
+}
+
+.rank-comparison .rank-icon {
+  width: clamp(1.6rem, 2.4vw, 2.4rem);
+}
+
+.rank-comparison .rank-queue-name {
+  display: block;
+  font-size: 0.625rem;
+  letter-spacing: 0.025em;
+}
+
+.rank-comparison .rank-copy strong {
+  display: block;
+  color: var(--color-ink);
+  font: 700 var(--text-sm)/1.2 var(--font-body);
+  overflow-wrap: anywhere;
+}
+
+.rank-comparison .rank-copy p {
+  font-size: var(--text-xs);
+}
+
+.rank-comparison td {
+  font: 500 var(--text-sm)/1.25 var(--font-utility);
+}
+
+.rank-comparison td:last-child {
+  color: var(--hextech);
 }
 
 .champion-stat-panel header {
