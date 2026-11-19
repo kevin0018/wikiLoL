@@ -46,6 +46,8 @@ html {
   overflow-x: clip;
   background: var(--ink);
   scroll-behavior: smooth;
+  scrollbar-color: var(--gold) var(--deep-water);
+  scrollbar-width: thin;
 }
 
 body {

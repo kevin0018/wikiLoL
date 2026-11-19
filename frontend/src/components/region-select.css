@@ -48,6 +48,7 @@
   width: max(100%, 8rem);
   max-height: 13.5rem;
   overflow-y: auto;
+  scrollbar-width: thin;
   overscroll-behavior: contain;
   padding: 0.25rem;
   border: 1px solid var(--line);
