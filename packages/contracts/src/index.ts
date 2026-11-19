@@ -111,8 +111,13 @@ const recentMatchSchema = z.object({
   startedAt: z.number().int().nonnegative(),
 });
 
-export const accountActivitySchema = z.object({
+export const matchHistoryPageSchema = z.object({
   matches: z.array(recentMatchSchema),
+  nextStart: z.number().int().positive().nullable().default(null),
+});
+export type MatchHistoryPage = z.infer<typeof matchHistoryPageSchema>;
+
+export const accountActivitySchema = matchHistoryPageSchema.extend({
   mostPlayed: z.array(mostPlayedChampionSchema),
 });
 export type RecentMatch = z.infer<typeof recentMatchSchema>;

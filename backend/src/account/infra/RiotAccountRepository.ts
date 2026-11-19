@@ -1,4 +1,4 @@
-import type { MatchDetails } from "@wikilol/contracts";
+import type { MatchDetails, MatchHistoryPage, RecentMatch } from "@wikilol/contracts";
 import type {
   AccountActivity,
   AccountProfile,
@@ -133,6 +133,12 @@ interface PlayerMatch {
   player: MatchInfo["participants"][number];
 }
 
+interface PlayerMatchPage {
+  matches: PlayerMatch[];
+  count: number;
+}
+
+const ACTIVITY_PAGE_SIZE = 20;
 const MATCH_HISTORY_TTL_MS = 60_000;
 const MATCH_HISTORY_CACHE_LIMIT = 256;
 const MATCH_DETAILS_CACHE_LIMIT = 512;
@@ -157,9 +163,9 @@ export class RiotAccountRepository implements AccountRepository {
 
   private readonly matchHistoryCache = new Map<
     string,
-    { matches: PlayerMatch[]; expiresAt: number }
+    { page: PlayerMatchPage; expiresAt: number }
   >();
-  private readonly matchHistoryRequests = new Map<string, Promise<PlayerMatch[]>>();
+  private readonly matchHistoryRequests = new Map<string, Promise<PlayerMatchPage>>();
 
   private readonly matchDetailsCache = new Map<string, Promise<MatchInfo>>();
 
@@ -235,15 +241,35 @@ export class RiotAccountRepository implements AccountRepository {
     top: number,
     locale: string,
   ): Promise<MostPlayedChampion[]> {
-    const matches = await this.getPlayerMatches(puuid, region, matchCount);
+    const { matches } = await this.getPlayerMatches(puuid, region, matchCount);
     return this.summarizeMostPlayed(matches, top, locale);
   }
 
   async getActivity(puuid: string, region: Region, locale: string): Promise<AccountActivity> {
-    const history = await this.getPlayerMatches(puuid, region, 20);
-    const mostPlayed = await this.summarizeMostPlayed(history, 4, locale);
+    const { matches, count } = await this.getPlayerMatches(puuid, region, ACTIVITY_PAGE_SIZE);
+    const mostPlayed = await this.summarizeMostPlayed(matches, 4, locale);
+    return {
+      matches: await this.summarizeRecentMatches(matches, locale, mostPlayed),
+      nextStart: count === ACTIVITY_PAGE_SIZE ? count : null,
+      mostPlayed,
+    };
+  }
+
+  async getActivityPage(puuid: string, region: Region, locale: string, start: number): Promise<MatchHistoryPage> {
+    const { matches, count } = await this.getPlayerMatches(puuid, region, ACTIVITY_PAGE_SIZE, start);
+    return {
+      matches: await this.summarizeRecentMatches(matches, locale),
+      nextStart: count === ACTIVITY_PAGE_SIZE ? start + count : null,
+    };
+  }
+
+  private summarizeRecentMatches(
+    history: PlayerMatch[],
+    locale: string,
+    mostPlayed: MostPlayedChampion[] = [],
+  ): Promise<RecentMatch[]> {
     const knownChampions = new Map(mostPlayed.map((champion) => [champion.championId, champion]));
-    const matches = await Promise.all(history.slice(0, 5).map(async ({ matchId, info, player }) => {
+    return Promise.all(history.map(async ({ matchId, info, player }) => {
       const champion = knownChampions.get(player.championId)
         ?? await this.getChampionPortrait(player.championId, locale).catch(() => null);
       return {
@@ -259,7 +285,6 @@ export class RiotAccountRepository implements AccountRepository {
         startedAt: info.gameStartTimestamp,
       };
     }));
-    return { matches, mostPlayed };
   }
 
   async getMatchDetails(matchId: string, region: Region, locale: string): Promise<MatchDetails> {
@@ -333,34 +358,34 @@ export class RiotAccountRepository implements AccountRepository {
     return request;
   }
 
-  private getPlayerMatches(puuid: string, region: Region, matchCount: number): Promise<PlayerMatch[]> {
+  private getPlayerMatches(puuid: string, region: Region, matchCount: number, start = 0): Promise<PlayerMatchPage> {
     const host = regionalHosts[region.value];
-    const key = JSON.stringify([host, puuid, matchCount]);
+    const key = JSON.stringify([host, puuid, matchCount, start]);
     const cached = this.matchHistoryCache.get(key);
-    if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.matches);
+    if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.page);
 
     const pending = this.matchHistoryRequests.get(key);
     if (pending) return pending;
 
-    const request = this.fetchPlayerMatches(puuid, host, matchCount)
-      .then((matches) => {
+    const request = this.fetchPlayerMatches(puuid, host, matchCount, start)
+      .then((page) => {
         this.matchHistoryCache.delete(key);
         if (this.matchHistoryCache.size >= MATCH_HISTORY_CACHE_LIMIT) {
           const oldest = this.matchHistoryCache.keys().next();
           if (!oldest.done) this.matchHistoryCache.delete(oldest.value);
         }
-        this.matchHistoryCache.set(key, { matches, expiresAt: Date.now() + MATCH_HISTORY_TTL_MS });
-        return matches;
+        this.matchHistoryCache.set(key, { page, expiresAt: Date.now() + MATCH_HISTORY_TTL_MS });
+        return page;
       })
       .finally(() => this.matchHistoryRequests.delete(key));
     this.matchHistoryRequests.set(key, request);
     return request;
   }
 
-  private async fetchPlayerMatches(puuid: string, host: string, matchCount: number): Promise<PlayerMatch[]> {
+  private async fetchPlayerMatches(puuid: string, host: string, matchCount: number, start: number): Promise<PlayerMatchPage> {
     const matchIds = await this.riotFetch(
       host,
-      `/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids?start=0&count=${matchCount}`,
+      `/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids?start=${start}&count=${matchCount}`,
       z.array(z.string()),
     );
     const matches: PlayerMatch[] = [];
@@ -378,7 +403,7 @@ export class RiotAccountRepository implements AccountRepository {
         if (match) matches.push(match);
       }
     }
-    return matches;
+    return { matches, count: matchIds.length };
   }
 
   private summarizeMostPlayed(

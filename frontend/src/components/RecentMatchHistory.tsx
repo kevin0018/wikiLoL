@@ -1,6 +1,8 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
-import type { RecentMatch } from "@wikilol/contracts";
+import type { MatchHistoryPage, RecentMatch } from "@wikilol/contracts";
 import { useI18n, type TranslationKey } from "../i18n/I18nProvider";
+import { api } from "../services/api";
 import { ArrowIcon } from "./Icons";
 import { MatchDetailsDialog } from "./MatchDetailsDialog";
 import { ErrorState } from "./States";
@@ -16,6 +18,8 @@ const queueLabels: Partial<Record<number, TranslationKey>> = {
 
 export function RecentMatchHistory({
   matches,
+  nextStart,
+  puuid,
   region,
   playerName,
   tagLine,
@@ -24,6 +28,8 @@ export function RecentMatchHistory({
   retry,
 }: {
   matches: RecentMatch[];
+  nextStart: number | null;
+  puuid: string;
   region: string;
   playerName: string;
   tagLine: string;
@@ -31,7 +37,26 @@ export function RecentMatchHistory({
   error: boolean;
   retry: () => void;
 }) {
-  const { locale, t } = useI18n();
+  const { dataDragonLocale, locale, t } = useI18n();
+  const queryClient = useQueryClient();
+  const [olderPages, setOlderPages] = useState<MatchHistoryPage[]>([]);
+  const lastPage = olderPages.at(-1);
+  const nextPage = lastPage ? lastPage.nextStart : nextStart;
+  const moreMatches = useMutation({
+    mutationFn: (start: number) => queryClient.fetchQuery({
+      queryKey: ["activity-matches", puuid, region, dataDragonLocale, start],
+      queryFn: () => api.activityMatches(puuid, region, dataDragonLocale, start),
+      staleTime: 60_000,
+      retry: false,
+    }),
+    onSuccess: (page) => setOlderPages((previous) => [...previous, page]),
+  });
+  const seenMatches = new Set<string>();
+  const visibleMatches = [...matches, ...olderPages.flatMap((page) => page.matches)].filter(({ matchId }) => {
+    if (seenMatches.has(matchId)) return false;
+    seenMatches.add(matchId);
+    return true;
+  });
   const [selectedMatch, setSelectedMatch] = useState<RecentMatch | null>(null);
   const selectedTrigger = useRef<HTMLButtonElement>(null);
   const date = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" });
@@ -48,9 +73,9 @@ export function RecentMatchHistory({
             <span className="match-skeleton" key={index} aria-hidden="true" />
           ))}
         </div>
-      ) : matches.length ? (
+      ) : visibleMatches.length ? (
         <ol className="match-strip">
-          {matches.map((match) => (
+          {visibleMatches.map((match) => (
             <li className={`match-card ${match.win ? "is-win" : "is-loss"}`} key={match.matchId}>
               <button
                 className="match-row"
@@ -93,6 +118,22 @@ export function RecentMatchHistory({
       ) : (
         <p className="panel-empty">{t("account.matchesEmpty")}</p>
       )}
+      {!loading && !error && nextPage !== null && (
+        <div className="match-pagination">
+          <button
+            type="button"
+            className="text-button"
+            disabled={moreMatches.isPending}
+            onClick={() => moreMatches.mutate(nextPage)}
+          >
+            {t(moreMatches.isPending ? "account.loadingMatches" : "account.showMoreMatches")}
+          </button>
+          {moreMatches.isError && <p role="alert">{t("account.moreMatchesError")}</p>}
+        </div>
+      )}
+      <span className="sr-only" role="status">
+        {olderPages.length > 0 && t("account.matchesShown", { count: visibleMatches.length })}
+      </span>
       {selectedMatch && (
         <MatchDetailsDialog
           match={selectedMatch}

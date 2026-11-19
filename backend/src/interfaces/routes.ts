@@ -138,6 +138,16 @@ apiRouter.get("/account/activity", async (request, response) => {
   response.set("Vercel-CDN-Cache-Control", playerCacheControl).json(activity);
 });
 
+apiRouter.get("/account/activity/matches", async (request, response) => {
+  const query = playerResourceSchema.merge(localeQuerySchema)
+    .extend({ start: z.coerce.number().int().min(20) })
+    .parse(request.query);
+  const page = await getAccountActivity.executePage(
+    query.puuid, Region.from(query.region), query.locale, query.start,
+  );
+  response.set("Vercel-CDN-Cache-Control", playerCacheControl).json(page);
+});
+
 apiRouter.get("/account/matches/:matchId", async (request, response) => {
   const matchId = z.string().max(40).regex(/^[A-Z0-9]+_[0-9]+$/i).parse(request.params.matchId);
   const query = localeQuerySchema.extend({ region: regionSchema }).parse(request.query);

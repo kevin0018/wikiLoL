@@ -152,6 +152,9 @@ export function AccountPage() {
       <div className="account-layout">
         <div className="account-main">
           <RecentMatchHistory
+            key={JSON.stringify([profile.data.puuid, profile.data.region, dataDragonLocale])}
+            puuid={profile.data.puuid}
+            nextStart={activity.data?.nextStart ?? null}
             matches={activity.data?.matches ?? []}
             region={profile.data.region}
             playerName={profile.data.gameName}

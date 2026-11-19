@@ -37,7 +37,7 @@ describe("RiotAccountRepository", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("uses one set of matches for the latest five and the most played champions", async () => {
+  it("reuses the same match payloads for history, most played champions, and scoreboards", async () => {
     process.env.RIOT_API_KEY = "test-key";
     const matchIds = Array.from({ length: 6 }, (_, index) => `EUW1_${index + 1}`);
     const fetchMock = vi.fn<typeof fetch>().mockResolvedValueOnce(Response.json(matchIds));
@@ -63,7 +63,8 @@ describe("RiotAccountRepository", () => {
     const region = Region.from("EUW");
 
     const result = await repository.getActivity("player", region, "es_ES");
-    expect(result.matches.map(({ matchId }) => matchId)).toEqual(matchIds.slice(0, 5));
+    expect(result.matches.map(({ matchId }) => matchId)).toEqual(matchIds);
+    expect(result.nextStart).toBeNull();
     expect(result.matches[1]).toMatchObject({
       win: false, championName: "Ahri", kills: 7, deaths: 2, assists: 9, queueId: 420, durationSeconds: 1700,
     });
@@ -77,6 +78,34 @@ describe("RiotAccountRepository", () => {
       { teamId: 200, win: false, kills: 2, players: [{ damage: null, gold: null, farm: null }] },
     ]);
     expect(fetchMock).toHaveBeenCalledTimes(7);
+  });
+
+  it("requests older history by offset and reuses cached match payloads across pages", async () => {
+    process.env.RIOT_API_KEY = "test-key";
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json(["EUW1_1"]))
+      .mockResolvedValueOnce(Response.json({ info: { participants: [{ puuid: "player", championId: 103 }] } }))
+      .mockResolvedValueOnce(Response.json(["EUW1_1"]));
+    vi.stubGlobal("fetch", fetchMock);
+    const dataDragon = new DataDragonClient();
+    vi.spyOn(dataDragon, "getChampionByNumericId").mockResolvedValue({
+      id: "Ahri", key: "103", name: "Ahri", title: "", tags: [], blurb: "", image: { full: "Ahri.png" },
+    });
+    const repository = new RiotAccountRepository(dataDragon);
+    const region = Region.from("EUW");
+
+    const initial = await repository.getActivity("player", region, "es_ES");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const page = await repository.getActivityPage("player", region, "es_ES", 20);
+
+    expect(fetchMock.mock.calls.map(([url]) => String(url))).toEqual([
+      expect.stringContaining("/ids?start=0&count=20"),
+      expect.stringContaining("/matches/EUW1_1"),
+      expect.stringContaining("/ids?start=20&count=20"),
+    ]);
+    expect(page).toEqual({ matches: initial.matches, nextStart: null });
+    await expect(repository.getActivityPage("player", region, "es_ES", 20)).resolves.toEqual(page);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("retries missing identities and preserves standings when a profile icon fails", async () => {

@@ -1,3 +1,4 @@
+import type { MatchHistoryPage } from "@wikilol/contracts";
 import type { RegionCode } from "../value-object/Region.js";
 
 export interface AccountProfile {
@@ -33,21 +34,7 @@ export interface MostPlayedChampion {
   gamesPlayed: number;
 }
 
-export interface RecentMatch {
-  matchId: string;
-  championName: string;
-  championImageUrl: string | null;
-  win: boolean;
-  kills: number;
-  deaths: number;
-  assists: number;
-  queueId: number;
-  durationSeconds: number;
-  startedAt: number;
-}
-
-export interface AccountActivity {
-  matches: RecentMatch[];
+export interface AccountActivity extends MatchHistoryPage {
   mostPlayed: MostPlayedChampion[];
 }
 
