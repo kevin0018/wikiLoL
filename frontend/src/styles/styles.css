@@ -704,22 +704,49 @@ main {
   font-size: var(--text-sm);
 }
 
-.ladder-pick-icons {
+.ladder-pick-icons,
+.ladder-pick-portraits {
   display: flex;
-  min-height: 1.875rem;
   align-items: center;
   gap: 0.375rem;
 }
 
-.ladder-pick-icons img {
-  width: 1.875rem;
+.ladder-pick-icons {
+  --ladder-pick-size: 1.875rem;
+  min-height: var(--ladder-pick-size);
+}
+
+.ladder-leader .ladder-pick-icons {
+  --ladder-pick-size: 2.25rem;
+}
+
+.ladder-pick-portraits[aria-hidden="true"] {
+  position: absolute;
+  visibility: hidden;
+}
+
+.ladder-pick-icons img,
+.ladder-pick-skeleton,
+.ladder-pick-missing {
+  width: var(--ladder-pick-size);
   aspect-ratio: 1;
   border: 1px solid var(--color-rule);
+}
+
+.ladder-pick-icons img {
   object-fit: cover;
 }
 
-.ladder-leader .ladder-pick-icons img {
-  width: 2.25rem;
+.ladder-pick-skeleton {
+  background: linear-gradient(105deg, var(--color-paper) 25%, var(--color-paper-3) 50%, var(--color-paper) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+
+.ladder-pick-missing {
+  display: grid;
+  place-items: center;
+  color: var(--color-muted);
 }
 
 .ladder-picks-label,

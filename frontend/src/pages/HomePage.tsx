@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import heroImage from "../assets/images/hero.jpg";
 import { ArrowIcon } from "../components/Icons";
+import { LadderChampionPicks } from "../components/LadderChampionPicks";
 import { PageTransition } from "../components/PageTransition";
 import { PlayerSearch } from "../components/PlayerSearch";
 import { useI18n } from "../i18n/I18nProvider";
@@ -127,23 +128,11 @@ export function HomePage() {
                   <span className={index === 0 ? "ladder-picks-label" : "sr-only"}>
                     {t("home.ladder.recentPicks", { count: recentMatchCount })}
                   </span>
-                  <div className="ladder-pick-icons" aria-busy={recentPicks.isPending}>
-                    {picks?.length ? picks.map((champion) => (
-                      <img
-                        key={champion.championId}
-                        src={champion.championImageUrl}
-                        alt={champion.championName}
-                        title={champion.championName}
-                      />
-                    )) : (
-                      <span
-                        className="ladder-picks-status"
-                        aria-label={t(recentPicks.isPending ? "home.ladder.picksLoading" : "home.ladder.picksUnavailable")}
-                      >
-                        {recentPicks.isPending ? "…" : "—"}
-                      </span>
-                    )}
-                  </div>
+                  <LadderChampionPicks
+                    key={picks?.map(({ championImageUrl }) => championImageUrl).join("|")}
+                    champions={picks}
+                    loading={recentPicks.isPending}
+                  />
                 </div>
                 <span className="ladder-points">
                   {player.leaguePoints.toLocaleString(locale)} <small>LP</small>
