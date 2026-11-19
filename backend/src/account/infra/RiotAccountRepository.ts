@@ -1,4 +1,5 @@
 import type {
+  AccountActivity,
   AccountProfile,
   AccountRank,
   ChallengerEntry,
@@ -71,10 +72,18 @@ const masterySchema = z.object({
 
 const matchSchema = z.object({
   info: z.object({
+    queueId: z.number().int().nonnegative().default(0),
+    gameDuration: z.number().int().nonnegative().default(0),
+    gameStartTimestamp: z.number().int().nonnegative().default(0),
     participants: z.array(
       z.object({
         puuid: z.string(),
         championId: z.number(),
+        championName: z.string().optional(),
+        win: z.boolean().default(false),
+        kills: z.number().int().nonnegative().default(0),
+        deaths: z.number().int().nonnegative().default(0),
+        assists: z.number().int().nonnegative().default(0),
       }),
     ),
   }),
@@ -95,6 +104,16 @@ const challengerSchema = z.object({
 
 type RiotAccount = z.infer<typeof riotAccountSchema>;
 
+type MatchInfo = z.infer<typeof matchSchema>["info"];
+
+interface PlayerMatch {
+  matchId: string;
+  info: Omit<MatchInfo, "participants">;
+  player: MatchInfo["participants"][number];
+}
+
+const MATCH_HISTORY_TTL_MS = 60_000;
+const MATCH_HISTORY_CACHE_LIMIT = 256;
 const ACCOUNT_CACHE_TTL_MS = 15 * 60 * 1000;
 const MATCH_BATCH_SIZE = 8;
 const MATCH_BATCH_PAUSE_MS = 1000;
@@ -113,6 +132,12 @@ export class RiotAccountRepository implements AccountRepository {
     { value: RiotAccount; expiresAt: number }
   >();
   private readonly accountRequests = new Map<string, Promise<RiotAccount>>();
+
+  private readonly matchHistoryCache = new Map<
+    string,
+    { matches: PlayerMatch[]; expiresAt: number }
+  >();
+  private readonly matchHistoryRequests = new Map<string, Promise<PlayerMatch[]>>();
 
   constructor(private readonly dataDragon: DataDragonClient = dataDragonClient) {}
 
@@ -186,40 +211,94 @@ export class RiotAccountRepository implements AccountRepository {
     top: number,
     locale: string,
   ): Promise<MostPlayedChampion[]> {
+    const matches = await this.getPlayerMatches(puuid, region, matchCount);
+    return this.summarizeMostPlayed(matches, top, locale);
+  }
+
+  async getActivity(puuid: string, region: Region, locale: string): Promise<AccountActivity> {
+    const history = await this.getPlayerMatches(puuid, region, 20);
+    const mostPlayed = await this.summarizeMostPlayed(history, 4, locale);
+    const knownChampions = new Map(mostPlayed.map((champion) => [champion.championId, champion]));
+    const matches = await Promise.all(history.slice(0, 5).map(async ({ matchId, info, player }) => {
+      const champion = knownChampions.get(player.championId)
+        ?? await this.getChampionPortrait(player.championId, locale).catch(() => null);
+      return {
+        matchId,
+        championName: champion?.championName ?? player.championName ?? String(player.championId),
+        championImageUrl: champion?.championImageUrl ?? null,
+        win: player.win,
+        kills: player.kills,
+        deaths: player.deaths,
+        assists: player.assists,
+        queueId: info.queueId,
+        durationSeconds: info.gameDuration,
+        startedAt: info.gameStartTimestamp,
+      };
+    }));
+    return { matches, mostPlayed };
+  }
+
+  private getPlayerMatches(puuid: string, region: Region, matchCount: number): Promise<PlayerMatch[]> {
+    const host = regionalHosts[region.value];
+    const key = JSON.stringify([host, puuid, matchCount]);
+    const cached = this.matchHistoryCache.get(key);
+    if (cached && cached.expiresAt > Date.now()) return Promise.resolve(cached.matches);
+
+    const pending = this.matchHistoryRequests.get(key);
+    if (pending) return pending;
+
+    const request = this.fetchPlayerMatches(puuid, host, matchCount)
+      .then((matches) => {
+        this.matchHistoryCache.delete(key);
+        if (this.matchHistoryCache.size >= MATCH_HISTORY_CACHE_LIMIT) {
+          const oldest = this.matchHistoryCache.keys().next();
+          if (!oldest.done) this.matchHistoryCache.delete(oldest.value);
+        }
+        this.matchHistoryCache.set(key, { matches, expiresAt: Date.now() + MATCH_HISTORY_TTL_MS });
+        return matches;
+      })
+      .finally(() => this.matchHistoryRequests.delete(key));
+    this.matchHistoryRequests.set(key, request);
+    return request;
+  }
+
+  private async fetchPlayerMatches(puuid: string, host: string, matchCount: number): Promise<PlayerMatch[]> {
     const matchIds = await this.riotFetch(
-      regionalHosts[region.value],
+      host,
       `/lol/match/v5/matches/by-puuid/${encodeURIComponent(puuid)}/ids?start=0&count=${matchCount}`,
       z.array(z.string()),
     );
-    const matches: z.infer<typeof matchSchema>[] = [];
+    const matches: PlayerMatch[] = [];
     for (let index = 0; index < matchIds.length; index += MATCH_BATCH_SIZE) {
-      if (index > 0) {
-        await wait(MATCH_BATCH_PAUSE_MS);
-      }
+      if (index > 0) await wait(MATCH_BATCH_PAUSE_MS);
 
       const batch = await Promise.all(
-        matchIds.slice(index, index + MATCH_BATCH_SIZE).map((matchId) =>
-          this.riotFetch(
-            regionalHosts[region.value],
+        matchIds.slice(index, index + MATCH_BATCH_SIZE).map(async (matchId) => {
+          const { info: { participants, ...info } } = await this.riotFetch(
+            host,
             `/lol/match/v5/matches/${encodeURIComponent(matchId)}`,
             matchSchema,
-          ),
-        ),
+          );
+          const player = participants.find((candidate) => candidate.puuid === puuid);
+          return player && { matchId, info, player };
+        }),
       );
-      matches.push(...batch);
+      for (const match of batch) {
+        if (match) matches.push(match);
+      }
     }
+    return matches;
+  }
+
+  private summarizeMostPlayed(
+    matches: PlayerMatch[],
+    top: number,
+    locale: string,
+  ): Promise<MostPlayedChampion[]> {
     const championCounts = new Map<number, number>();
 
-    for (const match of matches) {
-      const participant = match.info.participants.find(
-        (candidate) => candidate.puuid === puuid,
-      );
-      if (participant) {
-        championCounts.set(
-          participant.championId,
-          (championCounts.get(participant.championId) ?? 0) + 1,
-        );
-      }
+    for (const { player } of matches) {
+      championCounts.set(player.championId, (championCounts.get(player.championId) ?? 0) + 1);
     }
 
     const topChampions = [...championCounts.entries()]
@@ -227,17 +306,16 @@ export class RiotAccountRepository implements AccountRepository {
       .slice(0, top);
 
     return Promise.all(
-      topChampions.map(async ([championId, gamesPlayed]) => {
-        const champion =
-          await this.dataDragon.getChampionByNumericId(championId, locale);
-        return {
-          championId,
-          championName: champion.name,
-          championImageUrl: `/api/assets/champion/${champion.image.full}`,
-          gamesPlayed,
-        };
-      }),
+      topChampions.map(async ([championId, gamesPlayed]) => ({
+        ...await this.getChampionPortrait(championId, locale),
+        gamesPlayed,
+      })),
     );
+  }
+
+  private async getChampionPortrait(championId: number, locale: string) {
+    const champion = await this.dataDragon.getChampionByNumericId(championId, locale);
+    return { championId, championName: champion.name, championImageUrl: `/api/assets/champion/${champion.image.full}` };
   }
 
   async getChallenger(

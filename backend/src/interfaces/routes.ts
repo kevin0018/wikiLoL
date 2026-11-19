@@ -5,6 +5,7 @@ import {
 } from "@wikilol/contracts";
 import { Router } from "express";
 import { z } from "zod";
+import { GetAccountActivityHandler } from "../account/app/query/GetAccountActivityHandler.js";
 import { GetAccountProfileHandler } from "../account/app/query/GetAccountProfileHandler.js";
 import { GetAccountProfileQuery } from "../account/app/query/GetAccountProfileQuery.js";
 import { GetAccountRankHandler } from "../account/app/query/GetAccountRankHandler.js";
@@ -31,6 +32,7 @@ import { dataDragonClient } from "../champion/infra/DataDragonClient.js";
 export const apiRouter = Router();
 
 // Composition root: infrastructure is wired to application handlers only here.
+const getAccountActivity = new GetAccountActivityHandler(riotAccountRepository);
 const getAccountProfile = new GetAccountProfileHandler(
   riotAccountRepository,
 );
@@ -124,6 +126,14 @@ apiRouter.get("/account/mastery", async (request, response) => {
     ),
   );
   response.set("Vercel-CDN-Cache-Control", playerCacheControl).json(mastery);
+});
+
+apiRouter.get("/account/activity", async (request, response) => {
+  const query = playerResourceSchema.merge(localeQuerySchema).parse(request.query);
+  const activity = await getAccountActivity.execute(
+    query.puuid, Region.from(query.region), query.locale,
+  );
+  response.set("Vercel-CDN-Cache-Control", playerCacheControl).json(activity);
 });
 
 apiRouter.get("/account/most-played", async (request, response) => {

@@ -1,4 +1,5 @@
 import type {
+  AccountActivity,
   AccountProfile,
   AccountRank,
   ChallengerEntry,
@@ -28,6 +29,7 @@ export interface AccountRepository {
     top: number,
     locale: string,
   ): Promise<MostPlayedChampion[]>;
+  getActivity(puuid: string, region: Region, locale: string): Promise<AccountActivity>;
   getChallenger(
     region: Region,
     queue: QueueType,

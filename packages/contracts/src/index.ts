@@ -98,6 +98,25 @@ export const mostPlayedChampionSchema = z.object({
   gamesPlayed: z.number().int().nonnegative(),
 });
 
+const recentMatchSchema = z.object({
+  matchId: z.string(),
+  championName: z.string(),
+  championImageUrl: z.string().nullable(),
+  win: z.boolean(),
+  kills: z.number().int().nonnegative(),
+  deaths: z.number().int().nonnegative(),
+  assists: z.number().int().nonnegative(),
+  queueId: z.number().int().nonnegative(),
+  durationSeconds: z.number().int().nonnegative(),
+  startedAt: z.number().int().nonnegative(),
+});
+
+export const accountActivitySchema = z.object({
+  matches: z.array(recentMatchSchema),
+  mostPlayed: z.array(mostPlayedChampionSchema),
+});
+export type RecentMatch = z.infer<typeof recentMatchSchema>;
+
 export const challengerPicksSchema = z.record(
   z.string(),
   z.array(mostPlayedChampionSchema).nullable(),

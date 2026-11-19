@@ -33,6 +33,24 @@ export interface MostPlayedChampion {
   gamesPlayed: number;
 }
 
+export interface RecentMatch {
+  matchId: string;
+  championName: string;
+  championImageUrl: string | null;
+  win: boolean;
+  kills: number;
+  deaths: number;
+  assists: number;
+  queueId: number;
+  durationSeconds: number;
+  startedAt: number;
+}
+
+export interface AccountActivity {
+  matches: RecentMatch[];
+  mostPlayed: MostPlayedChampion[];
+}
+
 export interface ChallengerEntry {
   puuid: string;
   leaguePoints: number;
