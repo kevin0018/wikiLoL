@@ -62,8 +62,14 @@ export function ComparePage() {
   return (
     <PageTransition className="compare-page">
       <header className="compare-heading">
-        <h1>{t("compare.title")}</h1>
-        <p>{t("compare.intro")}</p>
+        <div className="compare-rivals">
+          <img src="/api/assets/skin/Garen/13.jpg" alt="Garen" />
+          <img className="compare-rival-darius" src="/api/assets/skin/Darius/15.jpg" alt="Darius" />
+        </div>
+        <div className="compare-heading-copy">
+          <h1>{t("compare.title")}</h1>
+          <p>{t("compare.intro")}</p>
+        </div>
       </header>
 
       <form className="compare-form" onSubmit={submit} noValidate>
