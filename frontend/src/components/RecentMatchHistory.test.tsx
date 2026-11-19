@@ -68,7 +68,7 @@ it("loads only the selected scoreboard and reuses it when reopened", async () =>
   expect(fetchMock).toHaveBeenCalledTimes(1);
 });
 
-it("renders all twenty matches and appends an older page only when requested", async () => {
+it("replaces the visible page and reuses it on back-and-forward navigation", async () => {
   const matches = Array.from({ length: 20 }, (_, index) => ({
     matchId: `EUW1_${index + 1}`,
     championName: "Ahri",
@@ -81,8 +81,12 @@ it("renders all twenty matches and appends an older page only when requested", a
     durationSeconds: 1500,
     startedAt: 0,
   }));
-  const olderMatch = { ...matches[0], matchId: "EUW1_21", championName: "Garen" };
-  const fetchMock = vi.fn(async () => Response.json({ matches: [matches[19], olderMatch], nextStart: null }));
+  const olderMatches = matches.map((match, index) => ({
+    ...match,
+    matchId: `EUW1_${index + 21}`,
+    championName: "Garen",
+  }));
+  const fetchMock = vi.fn(async () => Response.json({ matches: olderMatches, nextStart: null }));
   vi.stubGlobal("fetch", fetchMock);
   render(
     <QueryClientProvider client={new QueryClient()}>
@@ -104,9 +108,19 @@ it("renders all twenty matches and appends an older page only when requested", a
 
   expect(screen.getAllByRole("button", { name: /Open scoreboard: Ahri/ })).toHaveLength(20);
   expect(fetchMock).not.toHaveBeenCalled();
-  fireEvent.click(screen.getByRole("button", { name: "Show more" }));
-  await screen.findByRole("button", { name: /Open scoreboard: Garen/ });
-  expect(screen.getAllByRole("button", { name: /Open scoreboard:/ })).toHaveLength(21);
-  expect(screen.queryByRole("button", { name: "Show more" })).toBeNull();
+  const previous = screen.getByRole<HTMLButtonElement>("button", { name: "Previous" });
+  const next = screen.getByRole<HTMLButtonElement>("button", { name: "Next" });
+  expect(previous.disabled).toBe(true);
+  fireEvent.click(next);
+  await screen.findByText("Page 2");
+  expect(screen.getAllByRole("button", { name: /Open scoreboard: Garen/ })).toHaveLength(20);
+  expect(screen.queryByRole("button", { name: /Open scoreboard: Ahri/ })).toBeNull();
+  expect(next.disabled).toBe(true);
+  expect(document.activeElement).toBe(screen.getByRole("heading", { name: "Match history" }));
+
+  fireEvent.click(previous);
+  expect(screen.getAllByRole("button", { name: /Open scoreboard: Ahri/ })).toHaveLength(20);
+  fireEvent.click(next);
+  expect(screen.getAllByRole("button", { name: /Open scoreboard: Garen/ })).toHaveLength(20);
   expect(fetchMock).toHaveBeenCalledExactlyOnceWith("/api/account/activity/matches?puuid=player&region=EUW&locale=en_US&start=20");
 });

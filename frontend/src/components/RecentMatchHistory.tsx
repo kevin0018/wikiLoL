@@ -40,8 +40,13 @@ export function RecentMatchHistory({
   const { dataDragonLocale, locale, t } = useI18n();
   const queryClient = useQueryClient();
   const [olderPages, setOlderPages] = useState<MatchHistoryPage[]>([]);
-  const lastPage = olderPages.at(-1);
-  const nextPage = lastPage ? lastPage.nextStart : nextStart;
+  const [pageIndex, setPageIndex] = useState(0);
+  const [lastPageIndex, setLastPageIndex] = useState<number | null>(null);
+  const titleRef = useRef<HTMLHeadingElement>(null);
+  const currentPage = olderPages[pageIndex - 1];
+  const nextPage = currentPage ? currentPage.nextStart : nextStart;
+  const canGoNext = nextPage !== null && lastPageIndex !== pageIndex;
+  const visibleMatches = currentPage?.matches ?? matches;
   const moreMatches = useMutation({
     mutationFn: (start: number) => queryClient.fetchQuery({
       queryKey: ["activity-matches", puuid, region, dataDragonLocale, start],
@@ -49,14 +54,31 @@ export function RecentMatchHistory({
       staleTime: 60_000,
       retry: false,
     }),
-    onSuccess: (page) => setOlderPages((previous) => [...previous, page]),
+    onSuccess: (page) => {
+      if (page.matches.length === 0 && page.nextStart === null) {
+        setLastPageIndex(pageIndex);
+        titleRef.current?.focus();
+        return;
+      }
+      setOlderPages((previous) => [...previous, page]);
+      showPage(pageIndex + 1);
+    },
   });
-  const seenMatches = new Set<string>();
-  const visibleMatches = [...matches, ...olderPages.flatMap((page) => page.matches)].filter(({ matchId }) => {
-    if (seenMatches.has(matchId)) return false;
-    seenMatches.add(matchId);
-    return true;
-  });
+
+  function showPage(index: number) {
+    setPageIndex(index);
+    titleRef.current?.focus();
+  }
+
+  function showNextPage() {
+    if (olderPages[pageIndex]) {
+      moreMatches.reset();
+      showPage(pageIndex + 1);
+    } else if (canGoNext) {
+      moreMatches.mutate(nextPage);
+    }
+  }
+
   const [selectedMatch, setSelectedMatch] = useState<RecentMatch | null>(null);
   const selectedTrigger = useRef<HTMLButtonElement>(null);
   const wins = matches.filter((match) => match.win).length;
@@ -66,7 +88,7 @@ export function RecentMatchHistory({
   return (
     <section className="profile-history" aria-labelledby="recent-match-title">
       <header className="match-feed-header">
-        <h2 id="recent-match-title">{t("account.recentMatches")}</h2>
+        <h2 id="recent-match-title" ref={titleRef} tabIndex={-1}>{t("account.recentMatches")}</h2>
         {!loading && !error && matches.length > 0 && (
           <div className="match-overview">
             <div className="match-overview-rate">
@@ -84,6 +106,33 @@ export function RecentMatchHistory({
           </div>
         )}
       </header>
+      {!loading && !error && (pageIndex > 0 || nextPage !== null) && (
+        <nav className="match-pagination" aria-label={t("account.matchPagination")} aria-busy={moreMatches.isPending}>
+          <span className="match-page-number" role="status">{t("account.matchPage", { page: pageIndex + 1 })}</span>
+          <div className="match-page-actions">
+            <button
+              type="button"
+              disabled={pageIndex === 0 || moreMatches.isPending}
+              onClick={() => {
+                moreMatches.reset();
+                showPage(pageIndex - 1);
+              }}
+            >
+              <ChevronIcon />
+              {t("account.previousMatchPage")}
+            </button>
+            <button
+              type="button"
+              disabled={!canGoNext || moreMatches.isPending}
+              onClick={showNextPage}
+            >
+              {t(moreMatches.isPending ? "account.loadingMatchPage" : "account.nextMatchPage")}
+              <ChevronIcon />
+            </button>
+          </div>
+          {moreMatches.isError && <p role="alert">{t("account.moreMatchesError")}</p>}
+        </nav>
+      )}
       {error ? (
         <ErrorState retry={retry} />
       ) : loading ? (
@@ -94,7 +143,7 @@ export function RecentMatchHistory({
           ))}
         </div>
       ) : visibleMatches.length ? (
-        <ol className="match-strip">
+        <ol className="match-strip" key={pageIndex}>
           {visibleMatches.map((match) => (
             <li className={`match-card ${match.win ? "is-win" : "is-loss"}`} key={match.matchId}>
               <button
@@ -140,23 +189,6 @@ export function RecentMatchHistory({
       ) : (
         <p className="panel-empty">{t("account.matchesEmpty")}</p>
       )}
-      {!loading && !error && nextPage !== null && (
-        <div className="match-pagination">
-          <button
-            type="button"
-            className="match-more"
-            disabled={moreMatches.isPending}
-            onClick={() => moreMatches.mutate(nextPage)}
-          >
-            {t(moreMatches.isPending ? "account.loadingMatches" : "account.showMoreMatches")}
-            <ChevronIcon />
-          </button>
-          {moreMatches.isError && <p role="alert">{t("account.moreMatchesError")}</p>}
-        </div>
-      )}
-      <span className="sr-only" role="status">
-        {olderPages.length > 0 && t("account.matchesShown", { count: visibleMatches.length })}
-      </span>
       {selectedMatch && (
         <MatchDetailsDialog
           match={selectedMatch}
