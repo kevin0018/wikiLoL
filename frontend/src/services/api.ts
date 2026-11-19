@@ -7,6 +7,7 @@ import {
   championDetailSchema,
   championMasterySchema,
   championsResponseSchema,
+  matchDetailsSchema,
   type PlayerLookup,
 } from "@wikilol/contracts";
 import { z } from "zod";
@@ -75,6 +76,11 @@ export const api = {
     request(
       `/api/account/activity?${params({ puuid, region, locale })}`,
       accountActivitySchema,
+    ),
+  matchDetails: (matchId: string, region: string, locale: DataDragonLocale) =>
+    request(
+      `/api/account/matches/${encodeURIComponent(matchId)}?${params({ region, locale })}`,
+      matchDetailsSchema,
     ),
   challengerPicks: (puuids: string[], region: string, locale: DataDragonLocale) => {
     const search = new URLSearchParams({ region, locale });

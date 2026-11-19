@@ -132,9 +132,6 @@ export function AccountPage() {
           </div>
         </div>
         <div className="profile-actions">
-          {(soloRank ?? flexRank) && (
-            <img className="profile-emblem" src={(soloRank ?? flexRank)?.rankIconUrl} alt="" />
-          )}
           <button
             className="text-button profile-refresh"
             type="button"
@@ -153,85 +150,92 @@ export function AccountPage() {
       </header>
 
       <div className="account-layout">
-        <RecentMatchHistory
-          matches={activity.data?.matches ?? []}
-          loading={activity.isPending}
-          error={activity.isError}
-          retry={() => void activity.refetch()}
-        />
-
-        <section className="rank-section">
-          <header>
-            <div>
-              <span className="utility-label">{t("account.season")}</span>
-              <h2>{t("account.ranking")}</h2>
-            </div>
-            {!ranks.isPending && !ranks.isError && visibleRanks.length > 0 && (
-              <span className="rank-queue-count">
-                {t(
-                  visibleRanks.length === 1
-                    ? "account.activeQueue"
-                    : "account.activeQueues",
-                  { count: visibleRanks.length },
-                )}
-              </span>
+        <div className="account-main">
+          <RecentMatchHistory
+            matches={activity.data?.matches ?? []}
+            region={profile.data.region}
+            playerName={profile.data.gameName}
+            tagLine={profile.data.tagLine}
+            loading={activity.isPending}
+            error={activity.isError}
+            retry={() => void activity.refetch()}
+          />
+          <div className="account-activity-panel">
+            {activity.isPending ? (
+              <LoadingState label={t("account.loadingMatches")} />
+            ) : (
+              <ChampionStatList
+                variant="recent"
+                label={t("account.matchesEyebrow")}
+                title={t("account.mostPlayed")}
+                emptyMessage={t(activity.isError ? "common.error.message" : "account.matchesEmpty")}
+                champions={(activity.data?.mostPlayed ?? []).map((champion) => ({
+                  ...champion,
+                  value: `${champion.gamesPlayed.toLocaleString(locale)} ${t("common.games")}`,
+                }))}
+              />
             )}
-          </header>
-          {ranks.isPending ? (
-            <LoadingState label={t("account.loadingRanks")} />
-          ) : ranks.isError ? (
-            <ErrorState retry={() => void ranks.refetch()} />
-          ) : visibleRanks.length === 0 ? (
-            <div className="rank-empty-state">
-              <span className="utility-label">
-                {t("account.unrankedEyebrow")}
-              </span>
-              <h3>{t("account.unranked")}</h3>
-              <p>{t("account.unrankedDescription")}</p>
-            </div>
-          ) : (
-            <div className="rank-grid">
-              {visibleRanks.map(({ rank, queueType }) => (
-                <RankCard
-                  key={queueType}
-                  rank={rank}
-                  queueType={queueType}
-                />
-              ))}
-            </div>
-          )}
-        </section>
-
-        <div className="account-champions">
-          {mastery.isPending ? (
-            <LoadingState label={t("account.loadingMastery")} />
-          ) : mastery.isError ? (
-            <ErrorState retry={() => void mastery.refetch()} />
-          ) : (
-            <ChampionStatList
-              label={t("account.masteryEyebrow")}
-              title={t("account.masteries")}
-              emptyMessage={t("account.masteriesEmpty")}
-              champions={(mastery.data ?? []).map((champion) => ({
-                ...champion,
-                value: `${champion.masteryPoints.toLocaleString(locale)} ${t("common.points")}`,
-              }))}
-            />
-          )}
-          {activity.isPending ? (
-            <LoadingState label={t("account.loadingMatches")} />
-          ) : (
-            <ChampionStatList
-              variant="recent"
-              label={t("account.matchesEyebrow")}
-              title={t("account.mostPlayed")}
-              emptyMessage={t(activity.isError ? "common.error.message" : "account.matchesEmpty")}
-              champions={(activity.data?.mostPlayed ?? []).map((champion) => ({
-                ...champion,
-                value: `${champion.gamesPlayed.toLocaleString(locale)} ${t("common.games")}`,
-              }))}
-            />
-          )}
+          </div>
+        </div>
+        <div className="account-side">
+          <section className="rank-section">
+            <header>
+              <div>
+                <span className="utility-label">{t("account.season")}</span>
+                <h2>{t("account.ranking")}</h2>
+              </div>
+              {!ranks.isPending && !ranks.isError && visibleRanks.length > 0 && (
+                <span className="rank-queue-count">
+                  {t(
+                    visibleRanks.length === 1
+                      ? "account.activeQueue"
+                      : "account.activeQueues",
+                    { count: visibleRanks.length },
+                  )}
+                </span>
+              )}
+            </header>
+            {ranks.isPending ? (
+              <LoadingState label={t("account.loadingRanks")} />
+            ) : ranks.isError ? (
+              <ErrorState retry={() => void ranks.refetch()} />
+            ) : visibleRanks.length === 0 ? (
+              <div className="rank-empty-state">
+                <span className="utility-label">
+                  {t("account.unrankedEyebrow")}
+                </span>
+                <h3>{t("account.unranked")}</h3>
+                <p>{t("account.unrankedDescription")}</p>
+              </div>
+            ) : (
+              <div className="rank-grid">
+                {visibleRanks.map(({ rank, queueType }) => (
+                  <RankCard
+                    key={queueType}
+                    rank={rank}
+                    queueType={queueType}
+                  />
+                ))}
+              </div>
+            )}
+          </section>
+          <div className="account-mastery-panel">
+            {mastery.isPending ? (
+              <LoadingState label={t("account.loadingMastery")} />
+            ) : mastery.isError ? (
+              <ErrorState retry={() => void mastery.refetch()} />
+            ) : (
+              <ChampionStatList
+                label={t("account.masteryEyebrow")}
+                title={t("account.masteries")}
+                emptyMessage={t("account.masteriesEmpty")}
+                champions={(mastery.data ?? []).map((champion) => ({
+                  ...champion,
+                  value: `${champion.masteryPoints.toLocaleString(locale)} ${t("common.points")}`,
+                }))}
+              />
+            )}
+          </div>
         </div>
       </div>
     </PageTransition>
