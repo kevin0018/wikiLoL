@@ -5,7 +5,7 @@ import type {
   ChampionsResult,
 } from "../domain/model/Champion.js";
 import type { ChampionRepository } from "../domain/repository/ChampionRepository.js";
-import { fetchJson } from "../../shared/http.js";
+import { fetchJson, UpstreamError } from "../../shared/http.js";
 
 interface DataDragonImage {
   full: string;
@@ -43,8 +43,12 @@ function isChroma(skin: DataDragonSkin): boolean {
   return skin.parentSkin !== undefined;
 }
 
+export function isClassicChampion(id: string): boolean {
+  return id.startsWith(CLASSIC_CHAMPION_PREFIX);
+}
+
 function isStandardChampion(champion: DataDragonChampion): boolean {
-  return !champion.id.startsWith(CLASSIC_CHAMPION_PREFIX);
+  return !isClassicChampion(champion.id);
 }
 
 function sortChampions(
@@ -57,6 +61,7 @@ function sortChampions(
 }
 
 export class DataDragonClient implements ChampionRepository {
+  private readonly itemNameCache = new Map<string, Promise<ReadonlyMap<string, string>>>();
   private versionCache?: { value: string; expiresAt: number };
   private championMapCache = new Map<string, {
     value: Map<number, DataDragonChampion>;
@@ -81,23 +86,44 @@ export class DataDragonClient implements ChampionRepository {
     return version;
   }
 
+  getItemNames(locale: string, patch: string): Promise<ReadonlyMap<string, string>> {
+    const key = `${patch}:${locale}`;
+    const cached = this.itemNameCache.get(key);
+    if (cached) return cached;
+
+    if (this.itemNameCache.size >= 16) {
+      const oldest = this.itemNameCache.keys().next();
+      if (!oldest.done) this.itemNameCache.delete(oldest.value);
+    }
+
+    const request = fetchJson<{ data: Record<string, { name: string }> }>(
+      `${DATA_DRAGON_URL}/${patch}/data/${locale}/item.json`,
+    ).then(({ data }) => new Map(Object.entries(data).map(([id, item]) => [id, item.name])))
+      .catch((error: unknown) => {
+        if (this.itemNameCache.get(key) === request) this.itemNameCache.delete(key);
+        throw error;
+      });
+    this.itemNameCache.set(key, request);
+    return request;
+  }
+
   async getChampions(locale = "es_ES"): Promise<ChampionsResult> {
     const patch = await this.getCurrentPatch();
-    const payload = await this.getChampionList(locale, patch);
-    const champions = Object.values(payload.data);
+    const [current, classic] = await Promise.all([
+      this.getChampionList(locale, patch),
+      this.getClassicChampionList(locale, patch),
+    ]);
 
     return {
       patch,
       data: sortChampions(
-        champions
+        Object.values(current.data)
           .filter(isStandardChampion)
           .map((champion) => this.toSummary(champion)),
         locale,
       ),
       classic: sortChampions(
-        champions
-          .filter((champion) => !isStandardChampion(champion))
-          .map((champion) => this.toSummary(champion)),
+        classic.map((champion) => this.toSummary(champion)),
         locale,
       ),
     };
@@ -105,8 +131,9 @@ export class DataDragonClient implements ChampionRepository {
 
   async getChampion(id: string, locale = "es_ES"): Promise<ChampionDetail> {
     const patch = await this.getCurrentPatch();
+    const mode = isClassicChampion(id) ? "/mode/classic" : "";
     const payload = await fetchJson<DataDragonListResponse>(
-      `${DATA_DRAGON_URL}/${patch}/data/${locale}/champion/${encodeURIComponent(id)}.json`,
+      `${DATA_DRAGON_URL}/${patch}/data/${locale}${mode}/champion/${encodeURIComponent(id)}.json`,
     );
     const champion = payload.data[id];
     if (!champion) {
@@ -177,6 +204,24 @@ export class DataDragonClient implements ChampionRepository {
     return fetchJson(
       `${DATA_DRAGON_URL}/${patch}/data/${locale}/champion.json`,
     );
+  }
+
+  private async getClassicChampionList(
+    locale: string,
+    patch: string,
+  ): Promise<DataDragonChampion[]> {
+    try {
+      const payload = await fetchJson<DataDragonListResponse>(
+        `${DATA_DRAGON_URL}/${patch}/data/${locale}/mode/classic/champion.json`,
+      );
+      return Object.values(payload.data);
+    } catch (error) {
+      // Data Dragon can return 403 for files absent from a patch.
+      if (error instanceof UpstreamError && [403, 404].includes(error.status)) {
+        return [];
+      }
+      throw error;
+    }
   }
 
   private toSummary(champion: DataDragonChampion): ChampionSummary {

@@ -1,13 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { playerLookupSchema } from "@wikilol/contracts";
-import { motion } from "motion/react";
 import { useSearchParams } from "react-router-dom";
 import { ChampionStatList } from "../components/ChampionStatList";
+import { RefreshIcon } from "../components/Icons";
 import { PageTransition } from "../components/PageTransition";
 import { PlayerSearch } from "../components/PlayerSearch";
-import { RankCard } from "../components/RankCard";
+import { RankCard, RankQueueSwitcher } from "../components/RankCard";
+import { RecentMatchHistory } from "../components/RecentMatchHistory";
 import { ErrorState, LoadingState } from "../components/States";
-import { api } from "../services/api";
+import { api, ApiError } from "../services/api";
+import { championSplashUrl } from "../lib/championAssets";
+import { playerQueryKeys } from "../lib/playerQueryKeys";
 import { useI18n } from "../i18n/I18nProvider";
 
 export function AccountPage() {
@@ -21,30 +24,30 @@ export function AccountPage() {
   const lookup = lookupResult.success ? lookupResult.data : null;
 
   const profile = useQuery({
-    queryKey: ["profile", lookup],
+    queryKey: playerQueryKeys.profile(lookup),
     queryFn: () => api.profile(lookup!),
     enabled: Boolean(lookup),
   });
   const ranks = useQuery({
-    queryKey: ["ranks", profile.data?.puuid, lookup?.region],
+    queryKey: playerQueryKeys.ranks(profile.data?.puuid, lookup?.region),
     queryFn: () => api.ranks(profile.data!.puuid, lookup!.region),
     enabled: Boolean(profile.data && lookup),
   });
   const mastery = useQuery({
-    queryKey: ["mastery", profile.data?.puuid, lookup?.region, dataDragonLocale],
+    queryKey: playerQueryKeys.mastery(profile.data?.puuid, lookup?.region, dataDragonLocale),
     queryFn: () =>
       api.mastery(profile.data!.puuid, lookup!.region, dataDragonLocale),
     enabled: Boolean(profile.data && lookup),
   });
-  const mostPlayed = useQuery({
+  const activity = useQuery({
     queryKey: [
-      "most-played",
+      "account-activity",
       profile.data?.puuid,
       lookup?.region,
       dataDragonLocale,
     ],
     queryFn: () =>
-      api.mostPlayed(profile.data!.puuid, lookup!.region, dataDragonLocale),
+      api.activity(profile.data!.puuid, lookup!.region, dataDragonLocale),
     enabled: Boolean(profile.data && lookup),
   });
 
@@ -73,10 +76,12 @@ export function AccountPage() {
   }
 
   if (profile.isError) {
+    const notFound =
+      profile.error instanceof ApiError && profile.error.status === 404;
     return (
       <PageTransition className="account-page">
         <ErrorState
-          title={t("account.notFound")}
+          title={t(notFound ? "account.notFound" : "account.lookupUnavailable")}
           retry={() => void profile.refetch()}
         />
         <div className="retry-search">
@@ -95,72 +100,62 @@ export function AccountPage() {
   const flexRank = ranks.data?.find(
     (rank) => rank.queueType === "RANKED_FLEX_SR",
   );
-  const visibleRanks = [
-    soloRank && { rank: soloRank, queueType: "RANKED_SOLO_5x5" },
-    flexRank && { rank: flexRank, queueType: "RANKED_FLEX_SR" },
-  ].filter((entry): entry is NonNullable<typeof entry> => Boolean(entry));
+  const primaryRank = soloRank ?? flexRank;
+
+  const splashUrl = championSplashUrl(mastery.data?.[0]?.championImageUrl);
+  const refreshing = profile.isFetching || ranks.isFetching || mastery.isFetching || activity.isFetching;
 
   return (
     <PageTransition className="account-page">
-      <section className="profile-header">
-        <motion.div
-          className="profile-icon"
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: "spring", stiffness: 160, damping: 20 }}
-        >
-          <img src={profile.data.iconUrl} alt="" />
-          <span>{profile.data.summonerLevel}</span>
-        </motion.div>
-        <div>
-          <p className="eyebrow">
-            {t("account.profileEyebrow", {
-              region: profile.data.region,
-              level: profile.data.summonerLevel,
-            })}
-          </p>
-          <h1>
-            {profile.data.gameName}
-            <small>#{profile.data.tagLine}</small>
-          </h1>
-        </div>
-        <button
-          className="text-button profile-refresh"
-          type="button"
-          onClick={() => {
-            void profile.refetch();
-            void ranks.refetch();
-            void mastery.refetch();
-            void mostPlayed.refetch();
-          }}
-        >
-          {t("account.refresh")}
-        </button>
-      </section>
-
-      <div className="account-layout">
-        <section className="rank-section">
-          <header>
+      <div className="account-masthead">
+        <header className="profile-header">
+          {splashUrl && (
+            <img
+              key={splashUrl}
+              className="profile-splash"
+              src={splashUrl}
+              alt=""
+              onError={(event) => {
+                event.currentTarget.hidden = true;
+              }}
+            />
+          )}
+          <div className="profile-identity">
+            <img className="profile-icon" src={profile.data.iconUrl} alt="" />
             <div>
-              <span className="utility-label">{t("account.season")}</span>
-              <h2>{t("account.ranking")}</h2>
+              <p className="profile-meta">
+                {profile.data.region} · {t("common.level")} {profile.data.summonerLevel.toLocaleString(locale)}
+              </p>
+              <h1>{profile.data.gameName}</h1>
+              <p className="profile-tag">#{profile.data.tagLine}</p>
             </div>
-            {!ranks.isPending && !ranks.isError && visibleRanks.length > 0 && (
-              <span className="rank-queue-count">
-                {t(
-                  visibleRanks.length === 1
-                    ? "account.activeQueue"
-                    : "account.activeQueues",
-                  { count: visibleRanks.length },
-                )}
-              </span>
-            )}
+          </div>
+          <button
+            className="profile-refresh"
+            type="button"
+            disabled={refreshing}
+            aria-busy={refreshing}
+            onClick={() => {
+              void profile.refetch();
+              void ranks.refetch();
+              void mastery.refetch();
+              void activity.refetch();
+            }}
+          >
+            <RefreshIcon />
+            {t("account.refresh")}
+          </button>
+        </header>
+        <section className="rank-section" aria-labelledby="account-rank-title">
+          <header>
+            <span className="utility-label">{t("account.season")}</span>
+            <h2 id="account-rank-title">{t("account.ranking")}</h2>
           </header>
           {ranks.isPending ? (
             <LoadingState label={t("account.loadingRanks")} />
           ) : ranks.isError ? (
-            <ErrorState />
-          ) : visibleRanks.length === 0 ? (
+            <ErrorState retry={() => void ranks.refetch()} />
+          ) : !primaryRank ? (
             <div className="rank-empty-state">
               <span className="utility-label">
                 {t("account.unrankedEyebrow")}
@@ -168,50 +163,60 @@ export function AccountPage() {
               <h3>{t("account.unranked")}</h3>
               <p>{t("account.unrankedDescription")}</p>
             </div>
+          ) : soloRank && flexRank ? (
+            <RankQueueSwitcher key={JSON.stringify([profile.data.puuid, profile.data.region])} solo={soloRank} flex={flexRank} />
           ) : (
-            <div className="rank-grid">
-              {visibleRanks.map(({ rank, queueType }) => (
-                <RankCard
-                  key={queueType}
-                  rank={rank}
-                  queueType={queueType}
-                />
-              ))}
-            </div>
+            <RankCard rank={primaryRank} />
           )}
         </section>
+      </div>
 
+      <div className="account-layout">
+        <RecentMatchHistory
+          key={JSON.stringify([profile.data.puuid, profile.data.region, dataDragonLocale])}
+          puuid={profile.data.puuid}
+          nextStart={activity.data?.nextStart ?? null}
+          matches={activity.data?.matches ?? []}
+          region={profile.data.region}
+          playerName={profile.data.gameName}
+          tagLine={profile.data.tagLine}
+          loading={activity.isPending}
+          error={activity.isError}
+          retry={() => void activity.refetch()}
+        />
         <aside className="account-side">
-          {mastery.isPending ? (
-            <LoadingState label={t("account.loadingMastery")} />
-          ) : mastery.isError ? (
-            <ErrorState />
-          ) : (
-            <ChampionStatList
-              label={t("account.masteryEyebrow")}
-              title={t("account.masteries")}
-              emptyMessage={t("account.masteriesEmpty")}
-              champions={(mastery.data ?? []).map((champion) => ({
-                ...champion,
-                value: `${champion.masteryPoints.toLocaleString(locale)} ${t("common.points")}`,
-              }))}
-            />
-          )}
-          {mostPlayed.isPending ? (
-            <LoadingState label={t("account.loadingMatches")} />
-          ) : mostPlayed.isError ? (
-            <ErrorState />
-          ) : (
-            <ChampionStatList
-              label={t("account.matchesEyebrow")}
-              title={t("account.mostPlayed")}
-              emptyMessage={t("account.matchesEmpty")}
-              champions={(mostPlayed.data ?? []).map((champion) => ({
-                ...champion,
-                value: `${champion.gamesPlayed} ${t("common.games")}`,
-              }))}
-            />
-          )}
+          <div className="account-activity-panel">
+            {activity.isPending ? (
+              <LoadingState label={t("account.loadingMatches")} />
+            ) : (
+              <ChampionStatList
+                label={t("account.matchesEyebrow")}
+                title={t("account.mostPlayed")}
+                emptyMessage={t(activity.isError ? "common.error.message" : "account.matchesEmpty")}
+                champions={(activity.data?.mostPlayed ?? []).map((champion) => ({
+                  ...champion,
+                  value: `${champion.gamesPlayed.toLocaleString(locale)} ${t("common.games")}`,
+                }))}
+              />
+            )}
+          </div>
+          <div className="account-mastery-panel">
+            {mastery.isPending ? (
+              <LoadingState label={t("account.loadingMastery")} />
+            ) : mastery.isError ? (
+              <ErrorState retry={() => void mastery.refetch()} />
+            ) : (
+              <ChampionStatList
+                label={t("account.masteryEyebrow")}
+                title={t("account.masteries")}
+                emptyMessage={t("account.masteriesEmpty")}
+                champions={(mastery.data ?? []).map((champion) => ({
+                  ...champion,
+                  value: `${champion.masteryPoints.toLocaleString(locale)} ${t("common.points")}`,
+                }))}
+              />
+            )}
+          </div>
         </aside>
       </div>
     </PageTransition>

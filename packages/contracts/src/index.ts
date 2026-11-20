@@ -98,6 +98,57 @@ export const mostPlayedChampionSchema = z.object({
   gamesPlayed: z.number().int().nonnegative(),
 });
 
+const recentMatchSchema = z.object({
+  matchId: z.string(),
+  championName: z.string(),
+  championImageUrl: z.string().nullable(),
+  win: z.boolean(),
+  kills: z.number().int().nonnegative(),
+  deaths: z.number().int().nonnegative(),
+  assists: z.number().int().nonnegative(),
+  queueId: z.number().int().nonnegative(),
+  durationSeconds: z.number().int().nonnegative(),
+  startedAt: z.number().int().nonnegative(),
+});
+
+export const matchHistoryPageSchema = z.object({
+  matches: z.array(recentMatchSchema),
+  nextStart: z.number().int().positive().nullable().default(null),
+});
+export type MatchHistoryPage = z.infer<typeof matchHistoryPageSchema>;
+
+export const accountActivitySchema = matchHistoryPageSchema.extend({
+  mostPlayed: z.array(mostPlayedChampionSchema),
+});
+export type RecentMatch = z.infer<typeof recentMatchSchema>;
+
+export const matchDetailsSchema = z.object({
+  teams: z.array(z.object({
+    teamId: z.number(),
+    win: z.boolean(),
+    kills: z.number(),
+    players: z.array(z.object({
+      championName: z.string(),
+      championImageUrl: z.string().nullable(),
+      playerName: z.string(),
+      tagLine: z.string(),
+      kills: z.number(),
+      deaths: z.number(),
+      assists: z.number(),
+      damage: z.number().int().nonnegative().nullable().default(null),
+      gold: z.number().int().nonnegative().nullable().default(null),
+      farm: z.number().int().nonnegative().nullable().default(null),
+      items: z.array(z.object({ name: z.string(), imageUrl: z.string() }).nullable()),
+    })),
+  })),
+});
+export type MatchDetails = z.infer<typeof matchDetailsSchema>;
+
+export const challengerPicksSchema = z.record(
+  z.string(),
+  z.array(mostPlayedChampionSchema).nullable(),
+);
+
 export const challengerEntrySchema = z.object({
   puuid: z.string(),
   leaguePoints: z.number().default(0),
@@ -106,6 +157,7 @@ export const challengerEntrySchema = z.object({
   gameName: z.string().nullable(),
   tagLine: z.string().nullable(),
   riotIdForDisplay: z.string(),
+  iconUrl: z.string().optional(),
 });
 
 export type AccountProfile = z.infer<typeof accountProfileSchema>;

@@ -1,17 +1,27 @@
 import {
+  accountActivitySchema,
   accountProfileSchema,
   accountRankSchema,
   challengerEntrySchema,
+  challengerPicksSchema,
   championDetailSchema,
   championMasterySchema,
   championsResponseSchema,
-  mostPlayedChampionSchema,
+  matchDetailsSchema,
+  matchHistoryPageSchema,
   type PlayerLookup,
 } from "@wikilol/contracts";
 import { z } from "zod";
 import type { DataDragonLocale } from "../i18n/I18nProvider";
 
 const apiBaseUrl = (import.meta.env.VITE_BACKEND_URL ?? "").replace(/\/$/, "");
+
+export class ApiError extends Error {
+  constructor(public readonly status: number, message: string) {
+    super(message);
+    this.name = "ApiError";
+  }
+}
 
 async function request<T>(path: string, schema: z.ZodType<T>): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`);
@@ -25,7 +35,7 @@ async function request<T>(path: string, schema: z.ZodType<T>): Promise<T> {
       typeof body.error === "string"
         ? body.error
         : "The request could not be completed.";
-    throw new Error(message);
+    throw new ApiError(response.status, message);
   }
 
   return schema.parse(await response.json());
@@ -63,11 +73,26 @@ export const api = {
       `/api/account/mastery?${params({ puuid, region, locale })}`,
       z.array(championMasterySchema),
     ),
-  mostPlayed: (puuid: string, region: string, locale: DataDragonLocale) =>
+  activity: (puuid: string, region: string, locale: DataDragonLocale) =>
     request(
-      `/api/account/most-played?${params({ puuid, region, locale })}`,
-      z.array(mostPlayedChampionSchema),
+      `/api/account/activity?${params({ puuid, region, locale })}`,
+      accountActivitySchema,
     ),
+  activityMatches: (puuid: string, region: string, locale: DataDragonLocale, start: number) =>
+    request(
+      `/api/account/activity/matches?${params({ puuid, region, locale, start })}`,
+      matchHistoryPageSchema,
+    ),
+  matchDetails: (matchId: string, region: string, locale: DataDragonLocale) =>
+    request(
+      `/api/account/matches/${encodeURIComponent(matchId)}?${params({ region, locale })}`,
+      matchDetailsSchema,
+    ),
+  challengerPicks: (puuids: string[], region: string, locale: DataDragonLocale) => {
+    const search = new URLSearchParams({ region, locale });
+    for (const puuid of puuids) search.append("puuid", puuid);
+    return request(`/api/league/challenger/picks?${search}`, challengerPicksSchema);
+  },
   challenger: (region = "EUW") =>
     request(
       `/api/league/challenger?${params({ region, count: 5 })}`,

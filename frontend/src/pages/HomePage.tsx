@@ -3,13 +3,16 @@ import { motion } from "motion/react";
 import { Link } from "react-router-dom";
 import heroImage from "../assets/images/hero.jpg";
 import { ArrowIcon } from "../components/Icons";
+import { LadderChampionPicks } from "../components/LadderChampionPicks";
 import { PageTransition } from "../components/PageTransition";
 import { PlayerSearch } from "../components/PlayerSearch";
 import { useI18n } from "../i18n/I18nProvider";
 import { api } from "../services/api";
 
+const recentMatchCount = 5;
+
 export function HomePage() {
-  const { locale, t } = useI18n();
+  const { dataDragonLocale, locale, t } = useI18n();
   const ladder = useQuery({
     queryKey: ["challenger", "EUW"],
     queryFn: () => api.challenger("EUW"),
@@ -19,6 +22,14 @@ export function HomePage() {
       )
         ? 30_000
         : false,
+  });
+
+  const rankedPlayers = ladder.data?.map((player) => player.puuid).sort() ?? [];
+  const recentPicks = useQuery({
+    queryKey: ["ladder-recent-picks", "EUW", dataDragonLocale, rankedPlayers],
+    queryFn: () => api.challengerPicks(rankedPlayers, "EUW", dataDragonLocale),
+    enabled: rankedPlayers.length > 0,
+    retry: false,
   });
 
   return (
@@ -67,32 +78,31 @@ export function HomePage() {
         </motion.figure>
       </section>
 
-      <section className="ladder-section">
+      <section className="ladder-section" aria-labelledby="ladder-title">
         <header>
           <div>
             <span className="utility-label">{t("home.ladder.eyebrow")}</span>
-            <h2>{t("home.ladder.title")}</h2>
+            <h2 id="ladder-title">{t("home.ladder.title")}</h2>
           </div>
           <span className="live-marker">Riot API</span>
         </header>
 
-        <ol className="ladder-list">
+        <ol className="ladder-list" aria-busy={ladder.isPending}>
           {ladder.isPending &&
             Array.from({ length: 5 }, (_, index) => (
-              <li className="ladder-skeleton" key={index} />
+              <li className={index === 0 ? "ladder-skeleton ladder-leader" : "ladder-skeleton"} key={index} />
             ))}
           {ladder.isError && (
-            <li className="ladder-message">
-              {t("home.ladder.error")}
-            </li>
+            <li className="ladder-message">{t("home.ladder.error")}</li>
+          )}
+          {ladder.isSuccess && !ladder.data.length && (
+            <li className="ladder-message">{t("home.ladder.empty")}</li>
           )}
           {ladder.data?.map((player, index) => {
-            const winRate =
-              player.wins + player.losses > 0
-                ? Math.round(
-                    (player.wins / (player.wins + player.losses)) * 100,
-                  )
-                : 0;
+            const picks = recentPicks.data?.[player.puuid];
+            const games = player.wins + player.losses;
+            const winRate = games ? Math.round((player.wins / games) * 100) : null;
+            const hasRiotId = Boolean(player.gameName && player.tagLine);
             const search = new URLSearchParams({
               gameName: player.gameName ?? "",
               tagLine: player.tagLine ?? "",
@@ -100,28 +110,47 @@ export function HomePage() {
             });
 
             return (
-              <motion.li
-                key={player.puuid}
-                initial={{ opacity: 0, x: -12 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.04 }}
-              >
-                <span className="ladder-position">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-                <div>
-                  <strong>{player.riotIdForDisplay}</strong>
-                  <small>{player.leaguePoints.toLocaleString(locale)} LP</small>
-                </div>
-                <span className="ladder-winrate">{winRate}% WR</span>
-                {player.gameName && player.tagLine ? (
-                  <Link to={`/account?${search.toString()}`}>
-                    {t("home.ladder.profile")} <ArrowIcon />
-                  </Link>
-                ) : (
-                  <span />
+              <li className={index === 0 ? "ladder-entry ladder-leader" : "ladder-entry"} key={player.puuid}>
+                {index === 0 && (
+                  <img className="ladder-crest" src="/api/assets/ranked/challenger.png" alt="" loading="lazy" />
                 )}
-              </motion.li>
+                <span className="ladder-position">#{index + 1}</span>
+                <div className="ladder-player">
+                  {player.iconUrl && (
+                    <img className="ladder-avatar" src={player.iconUrl} alt="" loading="lazy" />
+                  )}
+                  <div className="ladder-identity">
+                    <strong>{hasRiotId ? player.gameName : t("home.ladder.unknownPlayer")}</strong>
+                    {hasRiotId && <small>#{player.tagLine}</small>}
+                  </div>
+                </div>
+                <div className="ladder-picks">
+                  <span className={index === 0 ? "ladder-picks-label" : "sr-only"}>
+                    {t("home.ladder.recentPicks", { count: recentMatchCount })}
+                  </span>
+                  <LadderChampionPicks
+                    key={picks?.map(({ championImageUrl }) => championImageUrl).join("|")}
+                    champions={picks}
+                    loading={recentPicks.isPending}
+                  />
+                </div>
+                <span className="ladder-points">
+                  {player.leaguePoints.toLocaleString(locale)} <small>LP</small>
+                </span>
+                <span className="ladder-winrate">
+                  {winRate === null ? "—" : `${winRate}%`}{" "}
+                  <small className="ladder-winrate-label">{t("rank.winRate")}</small>
+                </span>
+                {hasRiotId && (
+                  <Link
+                    className="ladder-profile"
+                    to={`/account?${search.toString()}`}
+                    aria-label={t("home.ladder.profileForPlayer", { player: player.riotIdForDisplay })}
+                  >
+                    <span>{t("home.ladder.profile")}</span> <ArrowIcon />
+                  </Link>
+                )}
+              </li>
             );
           })}
         </ol>

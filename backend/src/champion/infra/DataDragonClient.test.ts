@@ -25,6 +25,15 @@ describe("DataDragonClient", () => {
                 blurb: "Una leyenda caída.",
                 image: { full: "Aatrox.png" },
               },
+            },
+          }),
+          { status: 200 },
+        ),
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            data: {
               Jade_Aatrox: {
                 id: "Jade_Aatrox",
                 key: "60266",
@@ -43,6 +52,10 @@ describe("DataDragonClient", () => {
 
     const result = await new DataDragonClient().getChampions("es_ES");
 
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://ddragon.leagueoflegends.com/cdn/26.14.1/data/es_ES/mode/classic/champion.json",
+      undefined,
+    );
     expect(result.patch).toBe("26.14.1");
     expect(result.data[0]).toMatchObject({
       id: "Aatrox",
@@ -59,6 +72,28 @@ describe("DataDragonClient", () => {
         imageUrl: "/api/assets/champion/Jade_Aatrox.png",
       }),
     ]);
+  });
+
+  it.each([403, 404])("mantiene el catálogo actual si Classic devuelve %s", async (status) => {
+    const fetchMock = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json(["16.23.1"]))
+      .mockResolvedValueOnce(Response.json({
+        data: {
+          Ahri: {
+            id: "Ahri",
+            name: "Ahri",
+            image: { full: "Ahri.png" },
+          },
+        },
+      }))
+      .mockResolvedValueOnce(new Response(null, { status }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(new DataDragonClient().getChampions()).resolves.toMatchObject({
+      data: [{ id: "Ahri" }],
+      classic: [],
+    });
   });
 
   it("excluye LoL Classic del mapa de campeones usado por perfiles", async () => {

@@ -1,48 +1,87 @@
+import { useState } from "react";
 import type { AccountRank } from "@wikilol/contracts";
 import { useI18n } from "../i18n/I18nProvider";
+import { ChevronIcon } from "./Icons";
 
-export function RankCard({
-  rank,
-  queueType,
-}: {
-  rank: AccountRank;
-  queueType: string;
-}) {
+export function RankCard({ rank }: { rank: AccountRank }) {
   const { locale, t } = useI18n();
-  const games = rank.wins + rank.losses;
-  const winRate = games ? Math.round((rank.wins / games) * 100) : 0;
-  const tier = `${titleCase(rank.tier, locale)} ${rank.rank}`;
-  const queueName =
-    queueType === "RANKED_SOLO_5x5" ? t("rank.solo") : t("rank.flex");
+  const winRate = getWinRate(rank);
 
   return (
     <article className="rank-card">
-      <div className="rank-icon">
-        <img src={rank.rankIconUrl} alt="" />
-      </div>
-      <div className="rank-copy">
-        <span className="rank-queue-name">{queueName}</span>
-        <h3>{tier}</h3>
-        <p>{rank.leaguePoints} LP</p>
-      </div>
+      <RankIdentity rank={rank} />
       <dl>
         <div>
           <dt>{t("rank.wins")}</dt>
-          <dd>{rank.wins}</dd>
+          <dd>{rank.wins.toLocaleString(locale)}</dd>
         </div>
         <div>
           <dt>{t("rank.losses")}</dt>
-          <dd>{rank.losses}</dd>
+          <dd>{rank.losses.toLocaleString(locale)}</dd>
         </div>
         <div>
           <dt>{t("rank.winRate")}</dt>
-          <dd>{winRate}%</dd>
+          <dd>{formatWinRate(winRate)}</dd>
+          {winRate !== null && <meter aria-hidden="true" min={0} max={100} value={winRate} />}
         </div>
       </dl>
     </article>
   );
 }
 
-function titleCase(value: string, locale: string) {
-  return value.charAt(0) + value.slice(1).toLocaleLowerCase(locale);
+export function RankQueueSwitcher({ solo, flex }: { solo: AccountRank; flex: AccountRank }) {
+  const { t } = useI18n();
+  const [showFlex, setShowFlex] = useState(false);
+  const activeQueue = t(showFlex ? "rank.flex" : "rank.solo");
+  const target = t(showFlex ? "rank.solo" : "rank.flex");
+
+  return (
+    <>
+      <button
+        type="button"
+        className={`rank-switch${showFlex ? " is-previous" : ""}`}
+        aria-label={t("rank.showQueue", { queue: target })}
+        onClick={() => setShowFlex((previous) => !previous)}
+      >
+        {target}
+        <ChevronIcon />
+      </button>
+      <span className="sr-only" role="status">{activeQueue}</span>
+      <div className="rank-switcher">
+        <div className={`rank-track${showFlex ? " is-flex" : ""}`}>
+          <div inert={showFlex} aria-hidden={showFlex}><RankCard rank={solo} /></div>
+          <div inert={!showFlex} aria-hidden={!showFlex}><RankCard rank={flex} /></div>
+        </div>
+      </div>
+    </>
+  );
+}
+
+function RankIdentity({ rank }: { rank: AccountRank }) {
+  const { locale, t } = useI18n();
+  const apexTier = ["MASTER", "GRANDMASTER", "CHALLENGER"].includes(rank.tier);
+  const tierName = rank.tier.charAt(0) + rank.tier.slice(1).toLocaleLowerCase(locale);
+  const tier = apexTier ? tierName : `${tierName} ${rank.rank}`;
+
+  return (
+    <div className="rank-identity">
+      <div className="rank-icon">
+        <img src={rank.rankIconUrl} alt="" />
+      </div>
+      <div className="rank-copy">
+        <span className="rank-queue-name">{t(rank.queueType === "RANKED_SOLO_5x5" ? "rank.solo" : "rank.flex")}</span>
+        <h3>{tier}</h3>
+        <p>{rank.leaguePoints.toLocaleString(locale)} LP</p>
+      </div>
+    </div>
+  );
+}
+
+function getWinRate(rank: AccountRank): number | null {
+  const games = rank.wins + rank.losses;
+  return games ? Math.round((rank.wins / games) * 100) : null;
+}
+
+function formatWinRate(winRate: number | null): string {
+  return winRate === null ? "—" : `${winRate}%`;
 }

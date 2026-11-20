@@ -1,4 +1,6 @@
+import type { MatchDetails, MatchHistoryPage } from "@wikilol/contracts";
 import type {
+  AccountActivity,
   AccountProfile,
   AccountRank,
   ChallengerEntry,
@@ -28,6 +30,9 @@ export interface AccountRepository {
     top: number,
     locale: string,
   ): Promise<MostPlayedChampion[]>;
+  getActivity(puuid: string, region: Region, locale: string): Promise<AccountActivity>;
+  getActivityPage(puuid: string, region: Region, locale: string, start: number): Promise<MatchHistoryPage>;
+  getMatchDetails(matchId: string, region: Region, locale: string): Promise<MatchDetails>;
   getChallenger(
     region: Region,
     queue: QueueType,

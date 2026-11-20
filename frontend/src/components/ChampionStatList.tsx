@@ -27,9 +27,8 @@ export function ChampionStatList({
       </header>
       {champions.length ? (
         <ol>
-          {champions.map((champion, index) => (
+          {champions.map((champion) => (
             <li key={champion.championId}>
-              <span>{String(index + 1).padStart(2, "0")}</span>
               <img src={champion.championImageUrl} alt="" loading="lazy" />
               <strong>{champion.championName}</strong>
               <small>{champion.value}</small>

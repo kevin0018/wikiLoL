@@ -1,0 +1,81 @@
+.region-select {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.region-select-label {
+  color: var(--color-muted);
+  font: 500 var(--text-xs)/1.4 var(--font-utility);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.region-select-anchor {
+  position: relative;
+}
+
+.region-select-trigger {
+  display: flex;
+  width: 100%;
+  min-height: 2.875rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--line);
+  background: var(--color-paper-2);
+  text-align: left;
+  cursor: pointer;
+}
+
+.region-select-chevron {
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: translateY(-0.12rem) rotate(45deg);
+}
+
+.region-select-trigger[aria-expanded="true"] .region-select-chevron {
+  transform: translateY(0.12rem) rotate(225deg);
+}
+
+.region-select-menu {
+  position: absolute;
+  z-index: var(--z-raised);
+  inset: calc(100% + 0.35rem) 0 auto auto;
+  width: max(100%, 8rem);
+  max-height: 13.5rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+  padding: 0.25rem;
+  border: 1px solid var(--line);
+  background: var(--color-paper-2);
+  box-shadow: 0 0.75rem 1.5rem var(--ink);
+}
+
+.region-select-menu button {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.35rem 0.65rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.region-select-menu button[aria-selected="true"] {
+  color: var(--color-accent-soft);
+}
+
+.region-select-trigger:hover,
+.region-select-menu button:hover {
+  background: var(--color-paper-3);
+}
+
+.region-select-trigger:focus-visible,
+.region-select-menu button:focus-visible {
+  outline: 1px solid var(--hextech);
+  outline-offset: -2px;
+}

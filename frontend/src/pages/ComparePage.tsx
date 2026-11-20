@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import {
-  regionSchema,
   type AccountRank,
   type PlayerLookup,
   type Region,
@@ -9,6 +8,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowIcon } from "../components/Icons";
 import { PageTransition } from "../components/PageTransition";
+import { RegionSelect } from "../components/RegionSelect";
 import { ErrorState, LoadingState } from "../components/States";
 import {
   comparisonFromSearchParams,
@@ -16,7 +16,9 @@ import {
   lookupFromComparisonSide,
   type ComparisonDraft,
 } from "../lib/compare";
-import { api } from "../services/api";
+import { api, ApiError } from "../services/api";
+import { championSplashUrl } from "../lib/championAssets";
+import { playerQueryKeys } from "../lib/playerQueryKeys";
 import { useI18n } from "../i18n/I18nProvider";
 
 type ComparisonErrors = Record<"left" | "right", boolean>;
@@ -35,10 +37,10 @@ export function ComparePage() {
   });
   const leftLookup = lookupFromComparisonSide(initialDraft.left);
   const rightLookup = lookupFromComparisonSide(initialDraft.right);
-  const hasComparison = Boolean(leftLookup && rightLookup);
 
   useEffect(() => {
     setDraft(initialDraft);
+    setErrors({ left: false, right: false });
   }, [initialDraft]);
 
   function submit(event: React.FormEvent<HTMLFormElement>) {
@@ -59,76 +61,78 @@ export function ComparePage() {
   }
 
   return (
-    <PageTransition className="compare-page">
-      <header className="compare-heading">
-        <h1>{t("compare.title")}</h1>
-        <p>{t("compare.intro")}</p>
-      </header>
+    <div className="compare-route">
+      <div className="compare-rivals">
+        <img src="/api/assets/skin/Garen/13.jpg" alt="Garen" />
+        <img className="compare-rival-darius" src="/api/assets/skin/Darius/15.jpg" alt="Darius" />
+      </div>
+      <PageTransition className="compare-page">
+        <header className="compare-heading">
+          <h1>{t("compare.title")}</h1>
+          <p>{t("compare.intro")}</p>
+        </header>
 
-      <form className="compare-form" onSubmit={submit} noValidate>
-        <ComparisonField
-          side="left"
-          legend={t("compare.first")}
-          value={draft.left.riotId}
-          region={draft.left.region}
-          error={errors.left}
-          onValueChange={(riotId) => {
-            setDraft((current) => ({
-              ...current,
-              left: { ...current.left, riotId },
-            }));
-            setErrors((current) => ({ ...current, left: false }));
-          }}
-          onRegionChange={(region) =>
-            setDraft((current) => ({
-              ...current,
-              left: { ...current.left, region },
-            }))
-          }
-        />
+        <form className="compare-form" onSubmit={submit} noValidate>
+          <ComparisonField
+            side="left"
+            legend={t("compare.first")}
+            value={draft.left.riotId}
+            region={draft.left.region}
+            error={errors.left}
+            onValueChange={(riotId) => {
+              setDraft((current) => ({
+                ...current,
+                left: { ...current.left, riotId },
+              }));
+              setErrors((current) => ({ ...current, left: false }));
+            }}
+            onRegionChange={(region) =>
+              setDraft((current) => ({
+                ...current,
+                left: { ...current.left, region },
+              }))
+            }
+          />
 
-        <span className="compare-versus" aria-hidden="true">
-          VS
-        </span>
+          <ComparisonField
+            side="right"
+            legend={t("compare.second")}
+            value={draft.right.riotId}
+            region={draft.right.region}
+            error={errors.right}
+            onValueChange={(riotId) => {
+              setDraft((current) => ({
+                ...current,
+                right: { ...current.right, riotId },
+              }));
+              setErrors((current) => ({ ...current, right: false }));
+            }}
+            onRegionChange={(region) =>
+              setDraft((current) => ({
+                ...current,
+                right: { ...current.right, region },
+              }))
+            }
+          />
 
-        <ComparisonField
-          side="right"
-          legend={t("compare.second")}
-          value={draft.right.riotId}
-          region={draft.right.region}
-          error={errors.right}
-          onValueChange={(riotId) => {
-            setDraft((current) => ({
-              ...current,
-              right: { ...current.right, riotId },
-            }));
-            setErrors((current) => ({ ...current, right: false }));
-          }}
-          onRegionChange={(region) =>
-            setDraft((current) => ({
-              ...current,
-              right: { ...current.right, region },
-            }))
-          }
-        />
+          <button className="compare-submit" type="submit">
+            {t("compare.submit")} <ArrowIcon />
+          </button>
+        </form>
 
-        <button className="compare-submit" type="submit">
-          {t("compare.submit")} <ArrowIcon />
-        </button>
-      </form>
-
-      {hasComparison ? (
-        <section className="comparison-stage" aria-live="polite">
-          <PlayerDossier side="left" lookup={leftLookup!} />
-          <PlayerDossier side="right" lookup={rightLookup!} />
-        </section>
-      ) : (
-        <section className="comparison-empty">
-          <strong>{t("compare.emptyTitle")}</strong>
-          <p>{t("compare.emptyDescription")}</p>
-        </section>
-      )}
-    </PageTransition>
+        {leftLookup && rightLookup ? (
+          <section className="comparison-stage" aria-live="polite">
+            <span className="comparison-versus" aria-hidden="true">VS</span>
+            <PlayerDossier side="left" lookup={leftLookup} />
+            <PlayerDossier side="right" lookup={rightLookup} />
+          </section>
+        ) : (
+          <section className="comparison-empty">
+            <strong>{t("compare.emptyTitle")}</strong>
+          </section>
+        )}
+      </PageTransition>
+    </div>
   );
 }
 
@@ -162,27 +166,17 @@ function ComparisonField({
             value={value}
             placeholder={t("search.placeholder")}
             aria-invalid={error}
-            aria-describedby={errorId}
+            aria-describedby={error ? errorId : undefined}
             onChange={(event) => onValueChange(event.target.value)}
           />
         </label>
-        <label>
-          <span>{t("common.region")}</span>
-          <select
-            value={region}
-            onChange={(event) => onRegionChange(event.target.value as Region)}
-          >
-            {regionSchema.options.map((option) => (
-              <option key={option}>{option}</option>
-            ))}
-          </select>
-        </label>
+        <RegionSelect label={t("common.region")} value={region} onChange={onRegionChange} />
       </div>
-      <span className="comparison-helper" id={errorId}>
-        {error
-          ? t(side === "left" ? "compare.firstError" : "compare.secondError")
-          : t("compare.helper")}
-      </span>
+      {error && (
+        <p className="comparison-helper" id={errorId}>
+          {t(side === "left" ? "compare.firstError" : "compare.secondError")}
+        </p>
+      )}
     </fieldset>
   );
 }
@@ -196,21 +190,16 @@ function PlayerDossier({
 }) {
   const { dataDragonLocale, locale, t } = useI18n();
   const profile = useQuery({
-    queryKey: ["compare-profile", lookup],
+    queryKey: playerQueryKeys.profile(lookup),
     queryFn: () => api.profile(lookup),
   });
   const ranks = useQuery({
-    queryKey: ["compare-ranks", profile.data?.puuid, lookup.region],
+    queryKey: playerQueryKeys.ranks(profile.data?.puuid, lookup.region),
     queryFn: () => api.ranks(profile.data!.puuid, lookup.region),
     enabled: Boolean(profile.data),
   });
   const mastery = useQuery({
-    queryKey: [
-      "compare-mastery",
-      profile.data?.puuid,
-      lookup.region,
-      dataDragonLocale,
-    ],
+    queryKey: playerQueryKeys.mastery(profile.data?.puuid, lookup.region, dataDragonLocale),
     queryFn: () =>
       api.mastery(profile.data!.puuid, lookup.region, dataDragonLocale),
     enabled: Boolean(profile.data),
@@ -227,10 +216,16 @@ function PlayerDossier({
   }
 
   if (profile.isError) {
+    const notFound =
+      profile.error instanceof ApiError && profile.error.status === 404;
     return (
       <div className={`comparison-dossier is-${side}`}>
         <ErrorState
-          title={t("compare.notFound", { name: lookup.gameName })}
+          title={
+            notFound
+              ? t("compare.notFound", { name: lookup.gameName })
+              : t("account.lookupUnavailable")
+          }
           retry={() => void profile.refetch()}
         />
       </div>
@@ -241,6 +236,7 @@ function PlayerDossier({
   const games = primaryRank ? primaryRank.wins + primaryRank.losses : 0;
   const winRate =
     primaryRank && games > 0 ? Math.round((primaryRank.wins / games) * 100) : 0;
+  const splashUrl = championSplashUrl(mastery.data?.[0]?.championImageUrl);
   const profileSearch = new URLSearchParams({
     gameName: profile.data.gameName,
     tagLine: profile.data.tagLine,
@@ -250,7 +246,18 @@ function PlayerDossier({
   return (
     <article className={`comparison-dossier is-${side}`}>
       <header className="dossier-identity">
-        <img src={profile.data.iconUrl} alt="" />
+        {splashUrl && (
+          <img
+            key={splashUrl}
+            className="dossier-splash"
+            src={splashUrl}
+            alt=""
+            onError={(event) => {
+              event.currentTarget.hidden = true;
+            }}
+          />
+        )}
+        <img className="dossier-avatar" src={profile.data.iconUrl} alt="" />
         <div>
           <h2>{profile.data.gameName}</h2>
           <p>
@@ -261,9 +268,10 @@ function PlayerDossier({
       </header>
 
       <dl className="dossier-rank">
-        <div>
+        <div className="dossier-tier">
           <dt>{t("compare.ranking")}</dt>
           <dd>
+            {primaryRank && <img src={primaryRank.rankIconUrl} alt="" />}
             {ranks.isPending
               ? t("compare.checking")
               : ranks.isError
@@ -275,15 +283,17 @@ function PlayerDossier({
         </div>
         <div>
           <dt>{t("compare.leaguePoints")}</dt>
-          <dd>{primaryRank ? `${primaryRank.leaguePoints} LP` : "—"}</dd>
+          <dd>{primaryRank ? `${primaryRank.leaguePoints.toLocaleString(locale)} LP` : "—"}</dd>
         </div>
         <div>
-          <dt>{t("compare.performance")}</dt>
-          <dd>
-            {primaryRank
-              ? `${winRate}% · ${games} ${t("common.games")}`
-              : "—"}
-          </dd>
+          <dt>{t("rank.winRate")}</dt>
+          <dd>{primaryRank && games > 0 ? `${winRate}%` : "—"}</dd>
+          {primaryRank && games > 0 && (
+            <dd className="dossier-games">
+              <meter aria-hidden="true" min={0} max={100} value={winRate} />
+              {games.toLocaleString(locale)} {t("common.games")}
+            </dd>
+          )}
         </div>
       </dl>
 
@@ -297,9 +307,8 @@ function PlayerDossier({
           </p>
         ) : mastery.data?.length ? (
           <ol>
-            {mastery.data.slice(0, 3).map((champion, index) => (
+            {mastery.data.slice(0, 3).map((champion) => (
               <li key={champion.championId}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
                 <img src={champion.championImageUrl} alt="" loading="lazy" />
                 <strong>{champion.championName}</strong>
                 <small>

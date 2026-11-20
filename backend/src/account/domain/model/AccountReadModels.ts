@@ -1,3 +1,4 @@
+import type { MatchHistoryPage } from "@wikilol/contracts";
 import type { RegionCode } from "../value-object/Region.js";
 
 export interface AccountProfile {
@@ -33,6 +34,10 @@ export interface MostPlayedChampion {
   gamesPlayed: number;
 }
 
+export interface AccountActivity extends MatchHistoryPage {
+  mostPlayed: MostPlayedChampion[];
+}
+
 export interface ChallengerEntry {
   puuid: string;
   leaguePoints: number;
@@ -41,4 +46,5 @@ export interface ChallengerEntry {
   gameName: string | null;
   tagLine: string | null;
   riotIdForDisplay: string;
+  iconUrl?: string;
 }
