@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { ChampionRole } from "@wikilol/contracts";
 import { AnimatePresence } from "motion/react";
 import { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ChampionCard } from "../components/ChampionCard";
 import { FilterIcon, SearchIcon } from "../components/Icons";
 import { PageTransition } from "../components/PageTransition";
@@ -29,7 +30,18 @@ export function ChampionsPage() {
   });
   const [search, setSearch] = useState("");
   const [role, setRole] = useState<ChampionRole | "All">("All");
-  const [era, setEra] = useState<ChampionEra>("current");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const era: ChampionEra = searchParams.get("era") === "classic" ? "classic" : "current";
+
+  function setEra(next: ChampionEra) {
+    setSearchParams((current) => {
+      const params = new URLSearchParams(current);
+      if (next === "classic") params.set("era", next);
+      else params.delete("era");
+      return params;
+    }, { replace: true, preventScrollReset: true });
+  }
+
   const classicUnavailable =
     era === "classic" && champions.data?.classic.length === 0;
 

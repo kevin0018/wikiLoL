@@ -54,9 +54,9 @@ export function ChampionPage() {
     <PageTransition className="champion-page">
       <Link
         className="back-link"
-        to="/champions"
+        to={data.classicNotes ? "/champions?era=classic" : "/champions"}
         onClick={(event) => {
-          if (cameFromChampionArchive) {
+          if (cameFromChampionArchive && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) {
             event.preventDefault();
             navigate(-1);
           }
