@@ -1,12 +1,13 @@
 import { useReducedMotion } from "motion/react";
 import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
+import archiveCover from "../assets/images/classic-book-cover.webp";
 import { useI18n } from "../i18n/I18nProvider";
 import { ChevronIcon } from "./Icons";
 
-export function ChampionLoreBook({ name, lore, coverUrl }: {
+export function ChampionLoreBook({ name, lore, illustrationUrl }: {
   name: string;
   lore: string;
-  coverUrl: string;
+  illustrationUrl: string;
 }) {
   const { t } = useI18n();
   const reduceMotion = useReducedMotion();
@@ -23,9 +24,10 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
   const [turn, setTurn] = useState<{ previous: number; direction: number; closing?: boolean } | null>(null);
   const spread = layout?.spread ?? 1;
   const pages = layout?.pages ?? [];
+  const total = pages.length + 1;
   const first = page < 0 ? -1 : Math.min(
     Math.floor(page / spread) * spread,
-    Math.max(0, Math.floor((pages.length - 1) / spread) * spread),
+    Math.floor((total - 1) / spread) * spread,
   );
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
   }, [first, layout, open]);
 
   function goTo(next: number) {
-    if (!layout || turn || next >= pages.length || next === first) return;
+    if (!layout || turn || next >= total || next === first) return;
     const target = next < 0 ? -1 : next;
     if (!reduceMotion && target < 0) {
       setTurn({ previous: first, direction: -1, closing: true });
@@ -65,11 +67,16 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
     setTurn(null);
   }
 
-  const last = Math.min(first + spread, pages.length);
+  function getPage(index: number): PageContent {
+    const content = { text: pages[index], number: index + 1 };
+    return index === pages.length ? { ...content, illustration: { url: illustrationUrl, name } } : content;
+  }
+
+  const last = Math.min(first + spread, total);
   const range = first < 0 ? "" : t(first + 1 === last ? "champion.bookSinglePage" : "champion.bookPageRange", {
     first: first + 1,
     last,
-    total: pages.length,
+    total,
   });
   const board = turn && (turn.previous < 0 || turn.closing);
   const turningPage = turn && !board
@@ -127,17 +134,17 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
               <button className="lore-book-cover" type="button" ref={coverRef} disabled={!layout} onClick={() => {
                 goTo(0);
                 requestAnimationFrame(() => {
-                  const navigation = pages.length > spread ? nextRef : previousRef;
+                  const navigation = total > spread ? nextRef : previousRef;
                   navigation.current?.focus({ preventScroll: true });
                 });
               }}>
-                <BookCover name={name} url={coverUrl} openLabel={t("champion.openBook")} />
+                <BookCover name={name} openLabel={t("champion.openBook")} />
               </button>
             ) : (
               <div className="lore-book-spread" role="region" aria-label={range}>
                 {Array.from({ length: spread }, (_, index) => (
                   <div className="lore-book-stack" key={index}>
-                    <BookPage text={pages[first + index]} number={first + index + 1} />
+                    <BookPage {...getPage(first + index)} />
                     {index === spread - 1 && first === 0 && (!turn || board) && (
                       <span className="lore-book-ribbon" aria-hidden="true" />
                     )}
@@ -148,7 +155,7 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
 
             {restingPage >= 0 && (
               <div aria-hidden="true" className={`lore-book-resting ${turn?.direction === -1 ? "is-right" : ""}`}>
-                <BookPage text={pages[restingPage]} number={restingPage + 1} />
+                <BookPage {...getPage(restingPage)} />
               </div>
             )}
 
@@ -160,16 +167,16 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
                   if (event.target === event.currentTarget) finishTurn();
                 }}
               >
-                <BookCover name={name} url={coverUrl} openLabel={t("champion.openBook")} />
+                <BookCover name={name} openLabel={t("champion.openBook")} />
                 <div className="lore-book-board-lining">
-                  {spread > 1 && <BookPage text={pages[0]} number={1} />}
+                  {spread > 1 && <BookPage {...getPage(0)} />}
                 </div>
               </div>
             ) : turn ? (
               <TurningLeaf
                 key={`${turn.previous}:${first}:${spread}`}
-                front={{ text: pages[turningPage], number: turningPage + 1 }}
-                back={{ text: pages[reversePage], number: reversePage + 1 }}
+                front={getPage(turningPage)}
+                back={getPage(reversePage)}
                 reverse={turn.direction < 0}
                 onFinish={finishTurn}
               />
@@ -182,7 +189,7 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
                 <ChevronIcon /> {t(first === 0 ? "champion.bookCover" : "champion.bookPrevious")}
               </button>
               <span role="status">{range}</span>
-              <button type="button" ref={nextRef} aria-disabled={!!turn || first + spread >= pages.length} onClick={() => goTo(first + spread)}>
+              <button type="button" ref={nextRef} aria-disabled={!!turn || first + spread >= total} onClick={() => goTo(first + spread)}>
                 {t("champion.bookNext")} <ChevronIcon />
               </button>
             </nav>
@@ -196,7 +203,7 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
   );
 }
 
-function BookCover({ name, url, openLabel }: { name: string; url: string; openLabel: string }) {
+function BookCover({ name, openLabel }: { name: string; openLabel: string }) {
   return (
     <>
       <span className="lore-book-binding" aria-hidden="true">
@@ -206,7 +213,7 @@ function BookCover({ name, url, openLabel }: { name: string; url: string; openLa
       </span>
       <span className="lore-book-board-face">
         <span className="lore-book-cover-art" aria-hidden="true">
-          <img src={url} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
+          <img src={archiveCover} alt="" />
         </span>
         <span className="lore-book-cover-name">{name}</span>
         <span className="lore-book-open-label">{openLabel} <ChevronIcon /></span>
@@ -215,13 +222,23 @@ function BookCover({ name, url, openLabel }: { name: string; url: string; openLa
   );
 }
 
-type PageContent = { text: string | undefined; number: number };
+type PageContent = {
+  text: string | undefined;
+  number: number;
+  illustration?: { url: string; name: string };
+};
 
-function BookPage({ text, number }: PageContent) {
+function BookPage({ text, number, illustration }: PageContent) {
   return (
     <div className="lore-book-page">
-      <div className="lore-book-print">{text}</div>
-      {text && <span className="lore-book-folio" aria-hidden="true">{number}</span>}
+      {illustration ? (
+        <figure className="lore-book-plate">
+          <img src={illustration.url} alt={illustration.name} decoding="async" />
+        </figure>
+      ) : (
+        <div className="lore-book-print">{text}</div>
+      )}
+      {(text || illustration) && <span className="lore-book-folio" aria-hidden="true">{number}</span>}
     </div>
   );
 }
