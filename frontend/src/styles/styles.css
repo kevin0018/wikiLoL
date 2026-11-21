@@ -1452,19 +1452,20 @@ body:has(.lore-book[open]) {
 }
 
 .lore-book {
-  --book-paper: #efe3cd;
+  --book-paper: #ede0c4;
   --book-ink: #332519;
   --book-rule: #b49a77;
+  --book-spread-size: 2;
   position: fixed;
   inset: 0;
-  width: min(68rem, calc(100% - 2rem));
+  width: min(68rem, calc(100% - 1.5rem));
   max-width: none;
-  max-height: none;
+  max-height: calc(100dvh - 1rem);
   margin: auto;
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--book-rule);
-  border-radius: 0.85rem 1.05rem 1.05rem 0.85rem;
+  border-radius: 0.7rem 0.9rem 0.9rem 0.7rem;
   background: var(--book-paper);
   color: var(--book-ink);
   box-shadow: 0 1.25rem 5rem #000b;
@@ -1475,32 +1476,18 @@ body:has(.lore-book[open]) {
   backdrop-filter: blur(6px);
 }
 
-.lore-book-frame {
-  display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
-  max-height: min(45rem, calc(100dvh - 2rem));
+.lore-book-header,
+.lore-book-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xs);
+  padding: var(--space-xs) clamp(0.7rem, 2vw, 1.65rem);
+  background: #ded0b2;
 }
 
 .lore-book-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  padding: var(--space-sm) clamp(1rem, 4vw, 2.5rem);
   border-bottom: 1px solid var(--book-rule);
-  background: #e4d3b5;
-}
-
-.lore-book-header > img {
-  width: clamp(2.5rem, 6vw, 3.5rem);
-  aspect-ratio: 1;
-  border: 1px solid var(--book-rule);
-  border-radius: 50%;
-  object-fit: cover;
-}
-
-.lore-book-header > div {
-  flex: 1;
-  min-width: 0;
 }
 
 .lore-book-header span {
@@ -1512,84 +1499,173 @@ body:has(.lore-book[open]) {
 
 .lore-book-header h2 {
   margin: 0.12rem 0 0;
-  font: 400 clamp(1.85rem, 4vw, 3rem)/1 var(--font-display);
+  font: 400 clamp(1.7rem, 4.5vh, 2.7rem)/1 var(--font-display);
   overflow-wrap: anywhere;
 }
 
-.lore-book-close {
-  display: grid;
-  width: 2.75rem;
-  height: 2.75rem;
-  flex: none;
-  place-items: center;
+.lore-book-close,
+.lore-book-nav button {
+  display: inline-flex;
+  min-height: 2.5rem;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2xs);
+  padding-inline: var(--space-xs);
   border: 1px solid var(--book-rule);
-  border-radius: 50%;
+  border-radius: 0.35rem;
   color: var(--book-ink);
+  font: 700 var(--text-xs)/1.2 var(--font-body);
   cursor: pointer;
 }
 
-.lore-book-close:hover {
-  background: #d9c7a7;
+.lore-book-close {
+  width: 2.5rem;
+  flex: none;
+  border-radius: 50%;
+}
+
+.lore-book-close:hover,
+.lore-book-nav button:hover:not([aria-disabled="true"]) {
+  background: #d1ba92;
 }
 
 .lore-book :focus-visible {
   outline-color: #765037;
 }
 
-.lore-book-close svg {
+.lore-book-close svg,
+.lore-book-nav svg {
+  width: 0.95rem;
+  flex: none;
+}
+
+.lore-book-nav button:first-child svg {
+  transform: rotate(180deg);
+}
+
+.lore-book-nav {
+  border-top: 1px solid var(--book-rule);
+}
+
+.lore-book-nav span {
+  color: #674b32;
+  font: 600 var(--text-xs)/1.2 var(--font-utility);
+  white-space: nowrap;
+}
+
+.lore-book-nav button[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.lore-book-stage {
+  position: relative;
+  height: min(39rem, calc(100dvh - 9.5rem));
+  overflow: hidden;
+  background: var(--book-paper);
+  perspective: 1250px;
+  isolation: isolate;
+}
+
+.lore-book-cover {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  background: linear-gradient(135deg, var(--panel-high), var(--ink));
+  cursor: pointer;
+}
+
+.lore-book-cover > img,
+.lore-book-turn.is-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 38%;
+}
+
+.lore-book-cover::after {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #e1c4836b;
+  background: linear-gradient(90deg, #19100bc7, transparent 1.3rem), linear-gradient(0deg, #130e0ca6, transparent 35%);
+  box-shadow: inset 0 0 2rem #07090c6b;
+  content: "";
+  pointer-events: none;
+}
+
+.lore-book-open-label {
+  position: absolute;
+  z-index: 1;
+  inset-block-end: clamp(0.7rem, 3vw, 1.65rem);
+  inset-inline-start: clamp(0.7rem, 3vw, 1.65rem);
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  gap: var(--space-xs);
+  padding-inline: var(--space-sm);
+  border: 1px solid var(--book-rule);
+  border-radius: 0.35rem;
+  color: var(--book-ink);
+  background: var(--book-paper);
+  font: 700 var(--text-sm)/1.2 var(--font-body);
+}
+
+.lore-book-open-label svg {
   width: 1rem;
 }
 
-.lore-book-reading-area {
-  position: relative;
-  min-height: 0;
-}
-
-.lore-book-text {
-  height: 100%;
-  overflow: auto;
-  scrollbar-color: #9a7b57 transparent;
-  scrollbar-width: thin;
-  scrollbar-gutter: stable both-edges;
-  overscroll-behavior: contain;
+.lore-book-cover:focus-visible {
+  outline-offset: -4px;
 }
 
 .lore-book-spread {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  min-height: 100%;
+  height: 100%;
+  grid-template-columns: repeat(var(--book-spread-size), minmax(0, 1fr));
 }
 
 .lore-book-page {
-  display: flex;
+  --paper-texture:
+    radial-gradient(ellipse at 12% 24%, #fffbeb8a, transparent 42%),
+    radial-gradient(ellipse at 91% 89%, #a7774630, transparent 57%),
+    repeating-linear-gradient(158deg, transparent 0 3.5rem, #9c74400e 3.6rem, #fff7e02e 3.85rem, transparent 4.05rem 7rem),
+    repeating-linear-gradient(28deg, transparent 0 4.5rem, #fff7e02e 4.75rem, #9c74400c 5rem, transparent 5.15rem 9rem);
+  display: grid;
+  height: 100%;
   min-width: 0;
-  flex-direction: column;
-  padding: var(--space-md) clamp(1.1rem, 4vw, 3.25rem) var(--space-sm);
-  background: linear-gradient(270deg, #ae8d6060, transparent 1.3rem), var(--book-paper);
+  grid-template-rows: minmax(0, 1fr) 1.3rem;
+  padding: clamp(0.66rem, 2.6vh, 1.6rem) clamp(0.95rem, 4vw, 3.35rem) 0.35rem;
+  background: linear-gradient(270deg, #ae8d6060, transparent 1.3rem), var(--paper-texture), var(--book-paper);
 }
 
 .lore-book-page + .lore-book-page {
-  border-inline-start: 1px solid #9475548c;
-  background: linear-gradient(90deg, #ae8d6070, transparent 1.55rem), var(--book-paper);
+  box-shadow: inset 1px 0 #9475548c;
+  background: linear-gradient(90deg, #ae8d6070, transparent 1.55rem), var(--paper-texture), var(--book-paper);
 }
 
-.lore-book-text p {
-  margin: 0 0 1em;
+.lore-book-probe {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: calc(100% / var(--book-spread-size));
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.lore-book-print {
+  min-height: 0;
+  overflow: hidden;
   color: var(--book-ink);
-  font: 400 clamp(1rem, 1.65vw, 1.125rem)/1.63 Georgia, serif;
-}
-
-.lore-book-page:first-child > p:first-child::first-letter {
-  float: left;
-  margin: 0.08em 0.12em 0 0;
-  color: #805030;
-  font: 400 3.2em/0.83 var(--font-display);
+  font: 400 clamp(0.99rem, 1.65vw, 1.125rem)/1.58 Georgia, serif;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .lore-book-folio {
   align-self: center;
-  margin-top: auto;
-  padding-top: var(--space-xs);
+  justify-self: center;
   color: #745235;
   font: 500 var(--text-xs)/1.2 var(--font-utility);
 }
@@ -1606,23 +1682,55 @@ body:has(.lore-book[open]) {
   pointer-events: none;
 }
 
-@media (max-width: 700px) {
-  .lore-book-spread {
-    grid-template-columns: minmax(0, 1fr);
-  }
+.lore-book-turn {
+  position: absolute;
+  z-index: 2;
+  inset: 0 0 0 auto;
+  width: calc(100% / var(--book-spread-size));
+  background: #d4bb93;
+  box-shadow: 0 0 1.75rem #412e2166;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  animation: lore-turn-forward 460ms cubic-bezier(0.35, 0.05, 0.3, 1) both;
+}
 
-  .lore-book-page {
-    background: var(--book-paper);
-  }
+.lore-book-turn-front,
+.lore-book-turn-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
 
-  .lore-book-page + .lore-book-page {
-    border-block-start: 1px solid var(--book-rule);
-    border-inline-start: 0;
-    background: var(--book-paper);
+.lore-book-turn-back {
+  transform: rotateY(180deg);
+}
+
+.lore-book-turn.is-back {
+  inset-inline: 0 auto;
+  transform-origin: right center;
+  animation-name: lore-turn-back;
+}
+
+.lore-book-turn.is-cover {
+  width: 100%;
+}
+
+@keyframes lore-turn-forward {
+  to { transform: rotateY(-178deg); }
+}
+
+@keyframes lore-turn-back {
+  to { transform: rotateY(178deg); }
+}
+
+@media (max-width: 760px) {
+  .lore-book {
+    --book-spread-size: 1;
   }
 
   .lore-book-ribbon {
-    inset-inline: auto 0.6rem;
+    inset-inline: auto 0.28rem;
     width: 0.55rem;
     height: 2.3rem;
     transform: none;

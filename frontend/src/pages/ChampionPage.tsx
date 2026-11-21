@@ -96,7 +96,7 @@ export function ChampionPage() {
                   key={data.id}
                   name={data.name}
                   lore={data.lore}
-                  portraitUrl={data.imageUrl}
+                  coverUrl={data.skins[0]?.imageUrl ?? data.imageUrl}
                 />
               ) : (
                 <div>
