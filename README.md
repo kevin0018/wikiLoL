@@ -92,6 +92,7 @@ Requirements:
 
 - Node.js 22 or newer
 - pnpm 10
+- `tar` to unpack the Classic artwork
 - A Riot API key for player and leaderboard routes
 
 Install all dependencies from the repository root:
@@ -119,6 +120,10 @@ Start the frontend and backend:
 ```bash
 pnpm dev
 ```
+
+The first frontend startup or build downloads the pinned Data Dragon archive
+(376 MB) and extracts the Classic splash images. The archive is cached under
+`node_modules/.cache/wikilol`, and the generated images are ignored by Git.
 
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:3000`

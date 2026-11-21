@@ -210,7 +210,7 @@ describe("DataDragonClient", () => {
     expect(result.lore).toBe("Corki joined the Screaming Yipsnakes.\n\nHe took to the skies.");
     expect(result.classicNotes).toEqual(["Phosphorus Bomb is instant.", "Missile Barrage is different."]);
     expect(result.skins.map(({ num }) => num)).toEqual([0, 1, 5, 6]);
-    expect(result.skins[2]?.imageUrl).toBe("/api/assets/skin/Jade_Corki/5.jpg");
+    expect(result.skins[2]?.imageUrl).toBe("/images/classic/5.24.1/Corki_5.jpg");
     await expect(client.getChampion("Jade_Corki", "en_US")).resolves.toEqual(result);
     expect(fetchMock.mock.calls.map(([url]) => url).filter((url) => String(url).includes("/5.24.1/"))).toEqual([
       "https://ddragon.leagueoflegends.com/cdn/5.24.1/data/en_US/champion/Corki.json",

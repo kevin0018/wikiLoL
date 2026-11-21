@@ -6,6 +6,7 @@ import type {
 } from "../domain/model/Champion.js";
 import type { ChampionRepository } from "../domain/repository/ChampionRepository.js";
 import { fetchJson, UpstreamError } from "../../shared/http.js";
+import classicSplashArchive from "./classicSplashArchive.json" with { type: "json" };
 
 interface DataDragonImage {
   full: string;
@@ -39,10 +40,8 @@ const DATA_DRAGON_URL = "https://ddragon.leagueoflegends.com/cdn";
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const CLASSIC_CHAMPION_PREFIX = "Jade_";
 // The last 2015 patch provides the historical catalog before modern skins.
-const CLASSIC_ARCHIVE_PATCH = "5.24.1";
 const CLASSIC_BASE_SKIN_NUMBERS = new Set([301, 302]);
-// These splash files come from Riot's archived 5.24.1 Data Dragon package.
-const ARCHIVED_CLASSIC_SPLASHES = new Map([["Jade_Akali", new Set([1, 2, 5])]]);
+const ARCHIVED_CLASSIC_SPLASHES = new Map(Object.entries(classicSplashArchive.skins));
 const ARCHIVED_CHAMPION_IDS: Record<string, string> = {
   Fiddlesticks: "FiddleSticks",
   Wukong: "MonkeyKing",
@@ -156,8 +155,10 @@ export class DataDragonClient implements ChampionRepository {
         locale.startsWith("es") ? "Campeón no encontrado." : "Champion not found.",
       );
     }
-    const archive = classic ? await this.getClassicArchive(id, locale) : undefined;
-    const archivedSplashes = ARCHIVED_CLASSIC_SPLASHES.get(champion.id);
+    const currentId = id.slice(CLASSIC_CHAMPION_PREFIX.length);
+    const archivedId = classic ? (ARCHIVED_CHAMPION_IDS[currentId] ?? currentId) : undefined;
+    const archive = archivedId ? await this.getClassicArchive(archivedId, locale) : undefined;
+    const archivedSplashes = archivedId ? ARCHIVED_CLASSIC_SPLASHES.get(archivedId) : undefined;
     let skins = (champion.skins ?? []).filter((skin) => !isChroma(skin));
     if (classic) {
       const historicalNumbers = new Set(archive?.skins?.map((skin) => skin.num));
@@ -194,22 +195,20 @@ export class DataDragonClient implements ChampionRepository {
                 ? "Aspecto original"
                 : "Original skin"
               : skin.name,
-          imageUrl: archivedSplashes?.has(skin.num)
-            ? `/images/classic/5.24.1/${champion.id.slice(CLASSIC_CHAMPION_PREFIX.length)}_${skin.num}.jpg`
+          imageUrl: archivedSplashes?.includes(skin.num)
+            ? `/images/classic/${classicSplashArchive.patch}/${archivedId}_${skin.num}.jpg`
             : `/api/assets/skin/${champion.id}/${skin.num}.jpg`,
         })),
     };
   }
 
-  private getClassicArchive(id: string, locale: string): Promise<DataDragonChampion | undefined> {
-    const currentId = id.slice(CLASSIC_CHAMPION_PREFIX.length);
-    const archivedId = ARCHIVED_CHAMPION_IDS[currentId] ?? currentId;
+  private getClassicArchive(archivedId: string, locale: string): Promise<DataDragonChampion | undefined> {
     const key = `${locale}:${archivedId}`;
     const cached = this.classicArchiveCache.get(key);
     if (cached) return cached;
 
     const request = fetchJson<DataDragonListResponse>(
-      `${DATA_DRAGON_URL}/${CLASSIC_ARCHIVE_PATCH}/data/${locale}/champion/${encodeURIComponent(archivedId)}.json`,
+      `${DATA_DRAGON_URL}/${classicSplashArchive.patch}/data/${locale}/champion/${encodeURIComponent(archivedId)}.json`,
     ).then(({ data }) => data[archivedId]).catch(() => {
       this.classicArchiveCache.delete(key);
       return undefined;

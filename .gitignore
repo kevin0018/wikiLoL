@@ -6,6 +6,7 @@ dist/
 build/
 out/
 *.tsbuildinfo
+/frontend/public/images/classic/
 
 # logs
 npm-debug.log*
