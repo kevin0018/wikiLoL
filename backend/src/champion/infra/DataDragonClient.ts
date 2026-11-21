@@ -38,6 +38,17 @@ const VERSIONS_URL =
 const DATA_DRAGON_URL = "https://ddragon.leagueoflegends.com/cdn";
 const CACHE_TTL_MS = 60 * 60 * 1000;
 const CLASSIC_CHAMPION_PREFIX = "Jade_";
+// The last 2015 patch provides the historical catalog before modern skins.
+const CLASSIC_ARCHIVE_PATCH = "5.24.1";
+const CLASSIC_BASE_SKIN_NUMBERS = new Set([301, 302]);
+const ARCHIVED_CHAMPION_IDS: Record<string, string> = {
+  Fiddlesticks: "FiddleSticks",
+  Wukong: "MonkeyKing",
+};
+
+function dataDragonText(text: string): string {
+  return text.replace(/<br\s*\/?\s*>/gi, "\n").replace(/<[^>]*>/g, "").trim();
+}
 
 function isChroma(skin: DataDragonSkin): boolean {
   return skin.parentSkin !== undefined;
@@ -62,6 +73,7 @@ function sortChampions(
 
 export class DataDragonClient implements ChampionRepository {
   private readonly itemNameCache = new Map<string, Promise<ReadonlyMap<string, string>>>();
+  private readonly classicArchiveCache = new Map<string, Promise<DataDragonChampion | undefined>>();
   private versionCache?: { value: string; expiresAt: number };
   private championMapCache = new Map<string, {
     value: Map<number, DataDragonChampion>;
@@ -131,7 +143,8 @@ export class DataDragonClient implements ChampionRepository {
 
   async getChampion(id: string, locale = "es_ES"): Promise<ChampionDetail> {
     const patch = await this.getCurrentPatch();
-    const mode = isClassicChampion(id) ? "/mode/classic" : "";
+    const classic = isClassicChampion(id);
+    const mode = classic ? "/mode/classic" : "";
     const payload = await fetchJson<DataDragonListResponse>(
       `${DATA_DRAGON_URL}/${patch}/data/${locale}${mode}/champion/${encodeURIComponent(id)}.json`,
     );
@@ -141,14 +154,35 @@ export class DataDragonClient implements ChampionRepository {
         locale.startsWith("es") ? "Campeón no encontrado." : "Champion not found.",
       );
     }
-    const skins = champion.skins ?? [];
+    const archive = classic ? await this.getClassicArchive(id, locale) : undefined;
+    let skins = (champion.skins ?? []).filter((skin) => !isChroma(skin));
+    if (classic) {
+      const historicalNumbers = new Set(archive?.skins?.map((skin) => skin.num));
+      const hasClassicBase = skins.some((skin) => CLASSIC_BASE_SKIN_NUMBERS.has(skin.num));
+      skins = skins.filter(({ num }) => {
+        if (num === 0) return !hasClassicBase;
+        return CLASSIC_BASE_SKIN_NUMBERS.has(num) || historicalNumbers.has(num);
+      });
+    }
 
     return {
       ...this.toSummary(champion),
-      lore: champion.lore ?? champion.blurb,
+      lore: classic ? dataDragonText(archive?.lore ?? archive?.blurb ?? "") : champion.lore ?? champion.blurb,
+      ...(classic && {
+        classicNotes: dataDragonText(champion.lore || champion.blurb)
+          .split(/\n+/)
+          .map((line) => line.replace(/^\s*-\s*/, "").trim())
+          .filter(Boolean),
+      }),
       skins: skins
-        .filter((skin) => !isChroma(skin))
-        .sort((left, right) => left.num - right.num)
+        .sort((left, right) => {
+          if (classic) {
+            const leftBase = CLASSIC_BASE_SKIN_NUMBERS.has(left.num);
+            const rightBase = CLASSIC_BASE_SKIN_NUMBERS.has(right.num);
+            if (leftBase !== rightBase) return leftBase ? -1 : 1;
+          }
+          return left.num - right.num;
+        })
         .map((skin) => ({
           num: skin.num,
           name:
@@ -160,6 +194,23 @@ export class DataDragonClient implements ChampionRepository {
           imageUrl: `/api/assets/skin/${champion.id}/${skin.num}.jpg`,
         })),
     };
+  }
+
+  private getClassicArchive(id: string, locale: string): Promise<DataDragonChampion | undefined> {
+    const currentId = id.slice(CLASSIC_CHAMPION_PREFIX.length);
+    const archivedId = ARCHIVED_CHAMPION_IDS[currentId] ?? currentId;
+    const key = `${locale}:${archivedId}`;
+    const cached = this.classicArchiveCache.get(key);
+    if (cached) return cached;
+
+    const request = fetchJson<DataDragonListResponse>(
+      `${DATA_DRAGON_URL}/${CLASSIC_ARCHIVE_PATCH}/data/${locale}/champion/${encodeURIComponent(archivedId)}.json`,
+    ).then(({ data }) => data[archivedId]).catch(() => {
+      this.classicArchiveCache.delete(key);
+      return undefined;
+    });
+    this.classicArchiveCache.set(key, request);
+    return request;
   }
 
   async getChampionByNumericId(
@@ -230,7 +281,7 @@ export class DataDragonClient implements ChampionRepository {
       name: champion.name,
       title: champion.title,
       roles: champion.tags,
-      lore: champion.blurb,
+      lore: isClassicChampion(champion.id) ? "" : champion.blurb,
       imageUrl: `/api/assets/champion/${champion.image.full}`,
     };
   }

@@ -50,6 +50,7 @@ export const championSummarySchema = z.object({
 });
 
 export const championDetailSchema = championSummarySchema.extend({
+  classicNotes: z.array(z.string()).optional(),
   skins: z.array(championSkinSchema),
 });
 

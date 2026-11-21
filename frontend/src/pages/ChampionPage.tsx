@@ -6,7 +6,7 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { ArrowIcon } from "../components/Icons";
+import { ArrowIcon, ChevronIcon } from "../components/Icons";
 import { SkinGallery } from "../components/SkinGallery";
 import { PageTransition } from "../components/PageTransition";
 import { ErrorState, LoadingState } from "../components/States";
@@ -88,10 +88,29 @@ export function ChampionPage() {
             <h1>{data.name}</h1>
             <h2>{data.title}</h2>
           </div>
-          <div className="champion-lore">
-            <span className="utility-label">{t("champion.lore")}</span>
-            <p>{data.lore}</p>
-          </div>
+          {(data.lore || Boolean(data.classicNotes?.length)) && (
+            <div className="champion-lore">
+              {data.lore && (data.classicNotes ? (
+                <details className="champion-archive-lore">
+                  <summary className="utility-label">
+                    {t("champion.archiveLore")} <ChevronIcon />
+                  </summary>
+                  <p>{data.lore}</p>
+                </details>
+              ) : (
+                <div>
+                  <span className="utility-label">{t("champion.lore")}</span>
+                  <p>{data.lore}</p>
+                </div>
+              ))}
+              {Boolean(data.classicNotes?.length) && (
+                <div>
+                  <span className="utility-label">{t("champion.classicNotes")}</span>
+                  <ul>{data.classicNotes?.map((note, index) => <li key={index}>{note}</li>)}</ul>
+                </div>
+              )}
+            </div>
+          )}
         </section>
 
         <SkinGallery key={data.id} championId={data.id} championName={data.name} skins={data.skins} />

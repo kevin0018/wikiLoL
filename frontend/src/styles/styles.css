@@ -1346,11 +1346,51 @@ main {
   border-left: 1px solid var(--line);
 }
 
-.champion-lore p {
-  margin: 1rem 0 0;
+.champion-lore p,
+.champion-lore ul {
+  margin: var(--space-xs) 0 0;
   color: #b6c0c6;
   font-size: 0.88rem;
   line-height: 1.85;
+}
+
+.champion-lore p {
+  white-space: pre-line;
+}
+
+.champion-lore ul {
+  padding-inline-start: 1.25rem;
+  list-style: disc;
+}
+
+.champion-archive-lore + div {
+  margin-top: var(--space-sm);
+}
+
+.champion-archive-lore summary {
+  display: flex;
+  width: fit-content;
+  min-height: 2rem;
+  align-items: center;
+  gap: var(--space-xs);
+  list-style: none;
+  cursor: pointer;
+}
+
+.champion-archive-lore summary::-webkit-details-marker {
+  display: none;
+}
+
+.champion-archive-lore summary svg {
+  width: 0.9rem;
+}
+
+.champion-archive-lore[open] summary svg {
+  transform: rotate(90deg);
+}
+
+.champion-profile:has(.champion-archive-lore[open]) {
+  align-items: start;
 }
 
 /* Champion skin gallery */

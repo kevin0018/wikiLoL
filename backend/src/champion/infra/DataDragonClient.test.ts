@@ -178,6 +178,71 @@ describe("DataDragonClient", () => {
     ).resolves.toMatchObject({ name: "Ahri ES" });
   });
 
+  it("separates Classic ability notes from archived lore and filters the historical skin gallery", async () => {
+    const classic = {
+      id: "Jade_Corki", key: "60042", name: "Corki", title: "The Daring Bombardier",
+      image: { full: "Jade_Corki.png" }, tags: ["Marksman"],
+      lore: "- Phosphorus Bomb is instant.<br/>- Missile Barrage is different.",
+      skins: [
+        { num: 0, name: "default" },
+        { num: 1, name: "UFO Corki" },
+        { num: 5, name: "Urfrider Corki" },
+        { num: 6, name: "Dragonwing Corki" },
+        { num: 8, name: "Arcade Corki" },
+        { num: 18, name: "Corgi Corki" },
+        { num: 26, name: "Astronaut Corki" },
+      ],
+    };
+    const archive = {
+      lore: "Corki joined the Screaming Yipsnakes.<br><br>He took to the skies.",
+      skins: [0, 1, 2, 5, 6].map((num) => ({ num })),
+    };
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json(["16.23.1"]))
+      .mockResolvedValueOnce(Response.json({ data: { Jade_Corki: classic } }))
+      .mockResolvedValueOnce(Response.json({ data: { Corki: archive } }))
+      .mockResolvedValueOnce(Response.json({ data: { Jade_Corki: classic } }));
+    vi.stubGlobal("fetch", fetchMock);
+    const client = new DataDragonClient();
+
+    const result = await client.getChampion("Jade_Corki", "en_US");
+
+    expect(result.lore).toBe("Corki joined the Screaming Yipsnakes.\n\nHe took to the skies.");
+    expect(result.classicNotes).toEqual(["Phosphorus Bomb is instant.", "Missile Barrage is different."]);
+    expect(result.skins.map(({ num }) => num)).toEqual([0, 1, 5, 6]);
+    expect(result.skins[2]?.imageUrl).toBe("/api/assets/skin/Jade_Corki/5.jpg");
+    await expect(client.getChampion("Jade_Corki", "en_US")).resolves.toEqual(result);
+    expect(fetchMock.mock.calls.map(([url]) => url).filter((url) => String(url).includes("/5.24.1/"))).toEqual([
+      "https://ddragon.leagueoflegends.com/cdn/5.24.1/data/en_US/champion/Corki.json",
+    ]);
+  });
+
+  it.each([true, false])("prefers the official Classic base with archive available = %s", async (available) => {
+    const classic = {
+      id: "Jade_Lux", key: "60099", name: "Lux", title: "the Lady of Luminosity",
+      image: { full: "Jade_Lux.png" }, tags: ["Mage"], blurb: "- Different ability.",
+      skins: [
+        { num: 0, name: "default" },
+        { num: 1, name: "Historical Lux" },
+        { num: 15, name: "Modern Lux" },
+        { num: 302, name: "Classic Lux" },
+        { num: 303, name: "Classic Lux chroma", parentSkin: 302 },
+      ],
+    };
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json(["16.23.1"]))
+      .mockResolvedValueOnce(Response.json({ data: { Jade_Lux: classic } }))
+      .mockResolvedValueOnce(available
+        ? Response.json({ data: { Lux: { lore: "Archived history.", skins: [{ num: 1 }] } } })
+        : new Response(null, { status: 403 })));
+
+    const result = await new DataDragonClient().getChampion("Jade_Lux", "en_US");
+
+    expect(result.lore).toBe(available ? "Archived history." : "");
+    expect(result.classicNotes).toEqual(["Different ability."]);
+    expect(result.skins.map(({ num }) => num)).toEqual(available ? [302, 1] : [302]);
+  });
+
   it("excluye los chromas que Data Dragon mezcla con las skins", async () => {
     const fetchMock = vi
       .fn<typeof fetch>()
