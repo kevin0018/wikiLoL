@@ -108,8 +108,10 @@ RIOT_API_KEY=RGAPI-...
 PORT=3000
 ```
 
-Optionally create `frontend/.env` when the backend is hosted on a different
-origin:
+For a frontend on a different origin, set `CORS_ALLOWED_ORIGINS` in the
+backend to a comma-separated list of allowed frontend origins. Local Vite
+origins on port 5173 are allowed during development. Set the backend URL in
+`frontend/.env`:
 
 ```dotenv
 VITE_BACKEND_URL=http://localhost:3000

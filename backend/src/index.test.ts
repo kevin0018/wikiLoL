@@ -45,6 +45,26 @@ describe("API", () => {
     expect(response.body).toHaveProperty("error");
   });
 
+  it.each([
+    `/api/account/profile?gameName=${"a".repeat(33)}&tagLine=EUW&region=EUW`,
+    `/api/account/rank?puuid=${"a".repeat(129)}&region=EUW`,
+    "/api/account/activity/matches?puuid=player-id&region=EUW&start=1001",
+  ])("rejects oversized input before calling Riot for %s", async (path) => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect((await request(app).get(path)).status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("only grants cross-origin access to allowed origins", async () => {
+    const allowed = await request(app).get("/api/unknown").set("Origin", "http://localhost:5173");
+    const other = await request(app).get("/api/unknown").set("Origin", "https://other.example");
+
+    expect(allowed.headers["access-control-allow-origin"]).toBe("http://localhost:5173");
+    expect(other.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
   it("devuelve un error JSON para rutas desconocidas", async () => {
     const response = await request(app).get("/api/unknown");
 

@@ -41,7 +41,3 @@ export class UpstreamPayloadError extends Error {
     super("Upstream response did not match the expected schema");
   }
 }
-
-export function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Error desconocido";
-}

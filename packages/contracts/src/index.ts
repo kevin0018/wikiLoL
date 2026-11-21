@@ -172,8 +172,8 @@ export type MostPlayedChampion = z.infer<typeof mostPlayedChampionSchema>;
 export type ChallengerEntry = z.infer<typeof challengerEntrySchema>;
 
 export const playerLookupSchema = z.object({
-  gameName: z.string().trim().min(1),
-  tagLine: z.string().trim().min(1),
+  gameName: z.string().trim().min(1).max(32),
+  tagLine: z.string().trim().min(1).max(16),
   region: regionSchema,
 });
 
