@@ -1476,7 +1476,8 @@ body:has(.lore-book[open]) {
 }
 
 .lore-book-stage {
-  --cover-width: min(100% - 1rem, 23rem, calc((100dvh - 6.75rem) * 0.68));
+  --cover-max-width: min(23rem, calc((100dvh - 6.75rem) * 0.68));
+  --cover-width: min(100% - 1rem, var(--cover-max-width));
   --cover-depth: clamp(2rem, 6vh, 3.15rem);
   --cover-radius: 0.2rem 0.9rem 0.85rem 0.25rem;
   --cover-pose: rotateX(17deg) rotateY(-23deg);
@@ -1662,28 +1663,33 @@ body:has(.lore-book[open]) {
   grid-template-columns: repeat(var(--book-spread-size), minmax(0, 1fr));
 }
 
-.lore-book-spread::before,
-.lore-book-spread::after {
+.lore-book-stack {
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  height: 100%;
+  transform-origin: left center;
+}
+
+.lore-book-stack::before {
   position: absolute;
   z-index: -1;
   bottom: -0.7rem;
-  width: calc(50% - 0.18rem);
+  left: 0;
+  right: 0.18rem;
   height: 1rem;
   border-bottom: 3px solid #3f281c;
   background:
     linear-gradient(90deg, transparent 76%, #3e281bbf),
     repeating-linear-gradient(0deg, #8d704f 0 1px, #ba9c75 1px 2px, #cfb48b 2px 3px);
   box-shadow: 0 2px 0 2px #322017, 0 0.75rem 1.4rem #000a;
+  border-radius: 0 0 7% 0.5rem / 0 0 71% 0.4rem;
   content: "";
   pointer-events: none;
 }
 
-.lore-book-spread::before {
-  left: 0;
-  border-radius: 0 0 7% 0.5rem / 0 0 71% 0.4rem;
-}
-
-.lore-book-spread::after {
+.lore-book-stack + .lore-book-stack::before {
+  left: 0.18rem;
   right: 0;
   border-radius: 0 0 0.5rem 7% / 0 0 0.4rem 71%;
   background:
@@ -1691,13 +1697,13 @@ body:has(.lore-book[open]) {
     repeating-linear-gradient(0deg, #8d704f 0 1px, #ba9c75 1px 2px, #cfb48b 2px 3px);
 }
 
-.lore-book-spread > .lore-book-page,
+.lore-book-stack > .lore-book-page,
 .lore-book-board-lining > .lore-book-page {
   overflow: hidden;
   border-radius: 0.5rem 0 0.18rem 0.45rem / 0.35rem;
 }
 
-.lore-book-spread > .lore-book-page + .lore-book-page {
+.lore-book-stack + .lore-book-stack > .lore-book-page {
   border-radius: 0 0.65rem 0.6rem 0.18rem / 0.35rem;
 }
 
@@ -1733,7 +1739,7 @@ body:has(.lore-book[open]) {
   box-shadow: inset 0 0 1.2rem #4f251a55, inset 0 0 0 1px #63301540;
 }
 
-.lore-book-page + .lore-book-page,
+.lore-book-stack + .lore-book-stack > .lore-book-page,
 :where(.lore-book-leaf:not(.is-back) .lore-book-leaf-face:not(.is-back)) .lore-book-page,
 :where(.lore-book-leaf.is-back .lore-book-leaf-face.is-back) .lore-book-page,
 .lore-book-resting.is-right .lore-book-page {
@@ -1768,13 +1774,13 @@ body:has(.lore-book[open]) {
 .lore-book-ribbon {
   position: absolute;
   z-index: 1;
-  inset-block-start: -2px;
-  inset-inline-start: 50%;
+  inset-block-start: 0;
+  inset-inline-start: 0.2rem;
   width: clamp(0.62rem, 1.4vw, 1rem);
   height: clamp(2.25rem, 8vh, 4.75rem);
   background: linear-gradient(90deg, #472326, #a14c46 27%, #733138 82%, #451e22);
   clip-path: polygon(0 0, 100% 0, 96% 100%, 52% 88%, 2% 100%);
-  transform: translateX(-50%) rotate(-4deg);
+  transform: rotate(-4deg);
   transform-origin: top;
   pointer-events: none;
 }
@@ -1882,17 +1888,16 @@ body:has(.lore-book[open]) {
   box-shadow: inset 0 0 0 1px #4624198c, inset 0 0 2rem #2c150d7a;
 }
 
-.lore-book-frame.is-moving-board .lore-book-spread > .lore-book-page:first-child {
+.lore-book-frame.is-moving-board .lore-book-stack:first-child > .lore-book-page {
   visibility: hidden;
 }
 
-.lore-book-frame.is-moving-board .lore-book-spread::before {
+.lore-book-frame.is-moving-board .lore-book-stack:first-child::before {
   animation: lore-left-stack var(--book-open-time) linear both;
 }
 
-.lore-book-frame.is-moving-board .lore-book-spread::after,
-.lore-book-frame.is-moving-board .lore-book-spread > .lore-book-page + .lore-book-page {
-  animation: lore-reveal-right-page var(--book-open-time) linear both;
+.lore-book-frame.is-moving-board .lore-book-stack + .lore-book-stack {
+  animation: lore-open-stack var(--book-open-time) linear both;
 }
 
 .lore-book-frame.is-moving-board .lore-book-nav {
@@ -1900,9 +1905,8 @@ body:has(.lore-book[open]) {
 }
 
 .lore-book-frame.is-closing :is(.lore-book-board, .lore-book-binding > span, .lore-book-spread, .lore-book-nav),
-.lore-book-frame.is-closing .lore-book-spread::before,
-.lore-book-frame.is-closing .lore-book-spread::after,
-.lore-book-frame.is-closing .lore-book-spread > .lore-book-page + .lore-book-page {
+.lore-book-frame.is-closing .lore-book-stack:first-child::before,
+.lore-book-frame.is-closing .lore-book-stack + .lore-book-stack {
   animation-direction: reverse;
 }
 
@@ -1912,7 +1916,11 @@ body:has(.lore-book[open]) {
     transform: translateX(-50%) var(--cover-pose);
     animation-timing-function: ease-in;
   }
-  28% {
+  16% {
+    width: 50%;
+    transform: translateX(-32%) var(--cover-pose);
+  }
+  34% {
     width: 50%;
     transform: translateX(0) rotateX(0deg) rotateY(-62deg);
     animation-timing-function: cubic-bezier(0.26, 0.52, 0.32, 1);
@@ -1925,9 +1933,20 @@ body:has(.lore-book[open]) {
   20%, 100% { opacity: 0; }
 }
 
-@keyframes lore-reveal-right-page {
-  0%, 12% { opacity: 0; }
-  36%, 100% { opacity: 1; }
+@keyframes lore-open-stack {
+  0% {
+    width: var(--cover-max-width);
+    transform: translateX(-50%) var(--cover-pose) translateZ(-4px);
+    animation-timing-function: ease-in;
+  }
+  16% {
+    width: 100%;
+    transform: translateX(-32%) var(--cover-pose) translateZ(-4px);
+  }
+  34%, 100% {
+    width: 100%;
+    transform: translateX(0) rotateX(0deg) rotateY(0deg) translateZ(0);
+  }
 }
 
 @keyframes lore-left-stack {
@@ -2020,17 +2039,13 @@ body:has(.lore-book[open]) {
     transform: none;
   }
 
-  .lore-book-spread::before {
-    width: 100%;
+  .lore-book-stack::before {
+    right: 0;
     border-radius: 0 0 0.5rem 0.5rem / 0.4rem;
     background: repeating-linear-gradient(0deg, #8d704f 0 1px, #ba9c75 1px 2px, #cfb48b 2px 3px);
   }
 
-  .lore-book-spread::after {
-    content: none;
-  }
-
-  .lore-book-spread > .lore-book-page {
+  .lore-book-stack > .lore-book-page {
     border-radius: 0.5rem;
   }
 
@@ -2047,11 +2062,11 @@ body:has(.lore-book[open]) {
     animation: lore-reveal-single var(--book-open-time) linear both;
   }
 
-  .lore-book-frame.is-moving-board .lore-book-spread::before {
+  .lore-book-frame.is-moving-board .lore-book-stack:first-child::before {
     animation: none;
   }
 
-  .lore-book-frame.is-moving-board .lore-book-spread > .lore-book-page:first-child {
+  .lore-book-frame.is-moving-board .lore-book-stack:first-child > .lore-book-page {
     visibility: visible;
   }
 

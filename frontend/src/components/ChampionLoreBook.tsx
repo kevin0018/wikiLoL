@@ -134,14 +134,16 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
                 <BookCover name={name} url={coverUrl} openLabel={t("champion.openBook")} />
               </button>
             ) : (
-              <>
-                <div className="lore-book-spread" role="region" aria-label={range}>
-                  {Array.from({ length: spread }, (_, index) => (
-                    <BookPage text={pages[first + index]} number={first + index + 1} key={index} />
-                  ))}
-                </div>
-                {first === 0 && !turn && <span className="lore-book-ribbon" aria-hidden="true" />}
-              </>
+              <div className="lore-book-spread" role="region" aria-label={range}>
+                {Array.from({ length: spread }, (_, index) => (
+                  <div className="lore-book-stack" key={index}>
+                    <BookPage text={pages[first + index]} number={first + index + 1} />
+                    {index === spread - 1 && first === 0 && (!turn || board) && (
+                      <span className="lore-book-ribbon" aria-hidden="true" />
+                    )}
+                  </div>
+                ))}
+              </div>
             )}
 
             {restingPage >= 0 && (
