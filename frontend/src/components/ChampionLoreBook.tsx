@@ -22,6 +22,11 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
   const [page, setPage] = useState(-1);
   const [layout, setLayout] = useState<{ pages: string[]; spread: number }>();
   const [turn, setTurn] = useState<{ previous: number; direction: number; closing?: boolean } | null>(null);
+  const [introLeaves, setIntroLeaves] = useState(0);
+  const searching = introLeaves > 0;
+  const opening = turn?.previous === -1;
+  const busy = Boolean(turn) || searching;
+  const showChapter = !opening && introLeaves < 2;
   const spread = layout?.spread ?? 1;
   const pages = layout?.pages ?? [];
   const total = pages.length + 1;
@@ -40,6 +45,7 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
         spread: Number(getComputedStyle(probe).getPropertyValue("--book-spread-size")) || 1,
       });
       setTurn(null);
+      setIntroLeaves(0);
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -52,7 +58,7 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
   }, [first, layout, open]);
 
   function goTo(next: number) {
-    if (!layout || turn || next >= total || next === first) return;
+    if (!layout || busy || next >= total || next === first) return;
     const target = next < 0 ? -1 : next;
     if (!reduceMotion && target < 0) {
       setTurn({ previous: first, direction: -1, closing: true });
@@ -63,7 +69,12 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
   }
 
   function finishTurn() {
+    if (searching) {
+      setIntroLeaves((remaining) => remaining - 1);
+      return;
+    }
     if (turn?.closing) setPage(-1);
+    if (turn?.previous === -1 && !reduceMotion) setIntroLeaves(2);
     setTurn(null);
   }
 
@@ -110,6 +121,8 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
         aria-labelledby={titleId}
         onClose={() => {
           setOpen(false);
+          setTurn(null);
+          setIntroLeaves(0);
           triggerRef.current?.focus({ preventScroll: true });
         }}
         onClick={(event) => {
@@ -141,11 +154,11 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
                 <BookCover name={name} openLabel={t("champion.openBook")} />
               </button>
             ) : (
-              <div className="lore-book-spread" role="region" aria-label={range}>
+              <div className="lore-book-spread" role="region" aria-label={range} aria-busy={busy || undefined}>
                 {Array.from({ length: spread }, (_, index) => (
                   <BookStack
                     key={index}
-                    page={getPage(first + index)}
+                    page={showChapter ? getPage(first + index) : blankPage}
                     right={index === 1}
                     bookmark={index === spread - 1 && first === 0 && (!turn || Boolean(board))}
                   />
@@ -153,11 +166,11 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
               </div>
             )}
 
-            {board && spread > 1 && <BookStack page={getPage(1)} right bookmark moving />}
+            {board && spread > 1 && <BookStack page={showChapter ? getPage(1) : blankPage} right bookmark moving />}
 
-            {restingPage >= 0 && (
+            {(restingPage >= 0 || (introLeaves === 1 && spread > 1)) && (
               <div aria-hidden="true" className={`lore-book-resting ${turn?.direction === -1 ? "is-right" : ""}`}>
-                <BookPage {...getPage(restingPage)} />
+                <BookPage {...(searching ? blankPage : getPage(restingPage))} />
               </div>
             )}
 
@@ -171,15 +184,16 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
               >
                 <BookCover name={name} openLabel={t("champion.openBook")} />
                 <div className="lore-book-board-lining">
-                  {spread > 1 && <BookPage {...getPage(0)} />}
+                  {spread > 1 && <BookPage {...(showChapter ? getPage(0) : blankPage)} />}
                 </div>
               </div>
-            ) : turn ? (
+            ) : busy ? (
               <TurningLeaf
-                key={`${turn.previous}:${first}:${spread}`}
-                front={getPage(turningPage)}
-                back={getPage(reversePage)}
-                reverse={turn.direction < 0}
+                key={searching ? `intro:${introLeaves}` : `${turn?.previous}:${first}:${spread}`}
+                front={searching ? blankPage : getPage(turningPage)}
+                back={searching && (!showChapter || spread === 1) ? blankPage : getPage(reversePage)}
+                reverse={turn?.direction === -1}
+                speed={searching ? 3 : 1}
                 onFinish={finishTurn}
               />
             ) : null}
@@ -187,11 +201,11 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
 
           {first >= 0 && (
             <nav className="lore-book-nav" aria-label={t("champion.archiveLore")}>
-              <button type="button" ref={previousRef} aria-disabled={!!turn} onClick={() => goTo(first - spread)}>
+              <button type="button" ref={previousRef} aria-disabled={busy} onClick={() => goTo(first - spread)}>
                 <ChevronIcon /> {t(first === 0 ? "champion.bookCover" : "champion.bookPrevious")}
               </button>
-              <span role="status">{range}</span>
-              <button type="button" ref={nextRef} aria-disabled={!!turn || first + spread >= total} onClick={() => goTo(first + spread)}>
+              <span role="status">{opening || searching ? "" : range}</span>
+              <button type="button" ref={nextRef} aria-disabled={busy || first + spread >= total} onClick={() => goTo(first + spread)}>
                 {t("champion.bookNext")} <ChevronIcon />
               </button>
             </nav>
@@ -230,6 +244,8 @@ type PageContent = {
   illustration?: { url: string; name: string };
 };
 
+const blankPage: PageContent = { text: undefined, number: 0 };
+
 function BookStack({ page, right, bookmark, moving = false }: {
   page: PageContent;
   right: boolean;
@@ -262,10 +278,11 @@ function BookPage({ text, number, illustration }: PageContent) {
 const leafSections = 16;
 const leafDuration = 820;
 
-function TurningLeaf({ front, back, reverse, onFinish }: {
+function TurningLeaf({ front, back, reverse, speed, onFinish }: {
   front: PageContent;
   back: PageContent;
   reverse: boolean;
+  speed: number;
   onFinish: () => void;
 }) {
   const leafRef = useRef<HTMLDivElement>(null);
@@ -302,7 +319,7 @@ function TurningLeaf({ front, back, reverse, onFinish }: {
 
     function tick(now: number) {
       start ??= now;
-      const progress = Math.min((now - start) / leafDuration, 1);
+      const progress = Math.min(((now - start) * speed) / leafDuration, 1);
       render(progress);
       if (progress < 1) frame = requestAnimationFrame(tick);
       else onFinish();
@@ -311,7 +328,7 @@ function TurningLeaf({ front, back, reverse, onFinish }: {
     render(0);
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
-  }, [onFinish, reverse]);
+  }, [onFinish, reverse, speed]);
 
   return (
     <div className={`lore-book-leaf ${reverse ? "is-back" : ""}`} ref={leafRef} aria-hidden="true">
