@@ -1788,7 +1788,7 @@ body:has(.lore-book[open]) {
   isolation: isolate;
   overflow: hidden;
   mix-blend-mode: multiply;
-  filter: brightness(0.71) contrast(2.4);
+  filter: brightness(0.67) contrast(3);
   mask-image:
     linear-gradient(90deg, transparent, #000 7% 93%, transparent),
     linear-gradient(transparent, #000 8% 92%, transparent);
