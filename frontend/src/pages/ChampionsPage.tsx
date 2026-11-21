@@ -146,6 +146,7 @@ export function ChampionsPage() {
                 <ChampionCard
                   champion={champion}
                   index={index}
+                  classic={era === "classic"}
                   key={champion.id}
                 />
               ))}

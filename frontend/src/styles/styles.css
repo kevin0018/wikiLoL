@@ -1115,8 +1115,67 @@ main {
   width: 100%;
 }
 
-.champion-grid.is-classic .champion-card::before {
-  background: var(--hextech);
+.champion-grid.is-classic {
+  gap: var(--space-xs);
+  border: 0;
+}
+
+.classic-champion-card {
+  min-width: 0;
+}
+
+.classic-champion-card > a {
+  display: grid;
+  height: 100%;
+  min-height: 6.55rem;
+  grid-template-columns: clamp(2.65rem, 5vw, 3.85rem) minmax(0, 1fr) 0.9rem;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs);
+  border: 1px solid var(--color-rule);
+  border-radius: 0.55rem;
+  background: linear-gradient(105deg, color-mix(in oklch, var(--gold) 7%, var(--color-paper-2)), var(--color-paper-2) 70%);
+}
+
+.classic-champion-card > a:is(:hover, :focus-visible) {
+  border-color: var(--gold);
+}
+
+.classic-champion-card .champion-portrait {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 0.32rem;
+}
+
+.classic-champion-copy {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3xs);
+}
+
+.classic-champion-copy h2 {
+  margin: 0;
+  color: var(--color-ink);
+  font: 400 clamp(1.15rem, 2vw, 1.55rem)/1.08 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
+.classic-champion-copy > span {
+  color: var(--color-muted);
+  font: 600 var(--text-xs)/1.25 var(--font-body);
+  overflow-wrap: anywhere;
+}
+
+.classic-champion-copy > .champion-role {
+  color: var(--gold-pale);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+
+.classic-champion-arrow {
+  width: 0.9rem;
+  color: var(--gold);
 }
 
 .champion-card > a {
