@@ -298,7 +298,12 @@ function TurningLeaf({ front, back, reverse, onFinish }: {
 
 function paginate(lore: string, probe: HTMLDivElement): string[] {
   const words = lore.match(/\S+\s*/gu) ?? [];
-  const pages: string[] = [];
+  const breaks = [0];
+  const pageText = (start: number, end: number) => words.slice(start, end).join("").trimEnd();
+  const fits = (start: number, end: number) => {
+    probe.textContent = pageText(start, end);
+    return probe.scrollHeight <= probe.clientHeight;
+  };
 
   for (let start = 0; start < words.length;) {
     let shortest = start + 1;
@@ -307,8 +312,7 @@ function paginate(lore: string, probe: HTMLDivElement): string[] {
 
     while (shortest <= longest) {
       const candidate = Math.floor((shortest + longest) / 2);
-      probe.textContent = words.slice(start, candidate).join("").trimEnd();
-      if (probe.scrollHeight <= probe.clientHeight) {
+      if (fits(start, candidate)) {
         end = candidate;
         shortest = candidate + 1;
       } else {
@@ -316,10 +320,34 @@ function paginate(lore: string, probe: HTMLDivElement): string[] {
       }
     }
 
-    pages.push(words.slice(start, end).join("").trimEnd());
+    breaks.push(end);
     start = end;
   }
 
+  if (breaks.length >= 3) {
+    const penultimate = breaks.at(-3)!;
+    const last = breaks.at(-2)!;
+    const end = words.length;
+    const precedingWords = last - penultimate;
+    const remainingWords = end - last;
+
+    // Rebalance short endings without changing the total page count or overflowing either page.
+    if (remainingWords < precedingWords / 3) {
+      const middle = penultimate + Math.ceil((end - penultimate) / 2);
+      const target = penultimate + Math.ceil((end - penultimate) * 0.62);
+      const paragraphs: number[] = [];
+      const sentences: number[] = [];
+      for (let split = target; split >= middle; split--) {
+        const word = words[split - 1]!;
+        if (/\n\s*\n/u.test(word)) paragraphs.push(split);
+        else if (/[.!?…]['"»”]?\s+$/u.test(word)) sentences.push(split);
+      }
+      const split = [...paragraphs, ...sentences, target]
+        .find((candidate) => fits(penultimate, candidate) && fits(candidate, end));
+      if (split !== undefined) breaks[breaks.length - 2] = split;
+    }
+  }
+
   probe.textContent = "";
-  return pages;
+  return breaks.slice(1).map((end, index) => pageText(breaks[index]!, end));
 }
