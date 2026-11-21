@@ -41,6 +41,8 @@ const CLASSIC_CHAMPION_PREFIX = "Jade_";
 // The last 2015 patch provides the historical catalog before modern skins.
 const CLASSIC_ARCHIVE_PATCH = "5.24.1";
 const CLASSIC_BASE_SKIN_NUMBERS = new Set([301, 302]);
+// These splash files come from Riot's archived 5.24.1 Data Dragon package.
+const ARCHIVED_CLASSIC_SPLASHES = new Map([["Jade_Akali", new Set([1, 2, 5])]]);
 const ARCHIVED_CHAMPION_IDS: Record<string, string> = {
   Fiddlesticks: "FiddleSticks",
   Wukong: "MonkeyKing",
@@ -155,6 +157,7 @@ export class DataDragonClient implements ChampionRepository {
       );
     }
     const archive = classic ? await this.getClassicArchive(id, locale) : undefined;
+    const archivedSplashes = ARCHIVED_CLASSIC_SPLASHES.get(champion.id);
     let skins = (champion.skins ?? []).filter((skin) => !isChroma(skin));
     if (classic) {
       const historicalNumbers = new Set(archive?.skins?.map((skin) => skin.num));
@@ -191,7 +194,9 @@ export class DataDragonClient implements ChampionRepository {
                 ? "Aspecto original"
                 : "Original skin"
               : skin.name,
-          imageUrl: `/api/assets/skin/${champion.id}/${skin.num}.jpg`,
+          imageUrl: archivedSplashes?.has(skin.num)
+            ? `/images/classic/5.24.1/${champion.id.slice(CLASSIC_CHAMPION_PREFIX.length)}_${skin.num}.jpg`
+            : `/api/assets/skin/${champion.id}/${skin.num}.jpg`,
         })),
     };
   }
