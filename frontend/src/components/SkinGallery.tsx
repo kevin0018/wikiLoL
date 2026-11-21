@@ -286,7 +286,6 @@ function SkinFilmstrip({ skins, index, select, viewer = false }: {
           type="button"
           aria-current={position === index ? "true" : undefined}
           aria-label={skin.name}
-          title={skin.name}
           onClick={() => select(position)}
         >
           <span className="skin-thumbnail-art">
