@@ -159,7 +159,9 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
                 }}
               >
                 <BookCover name={name} url={coverUrl} openLabel={t("champion.openBook")} />
-                <div className="lore-book-board-lining" />
+                <div className="lore-book-board-lining">
+                  {spread > 1 && <BookPage text={pages[0]} number={1} />}
+                </div>
               </div>
             ) : turn ? (
               <TurningLeaf

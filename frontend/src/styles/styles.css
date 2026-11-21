@@ -1486,6 +1486,10 @@ body:has(.lore-book[open]) {
   perspective: 1800px;
 }
 
+:where(.lore-book-frame.is-closed, .lore-book-frame.is-moving-board) .lore-book-stage {
+  perspective: 18000px;
+}
+
 .lore-book-board-face {
   isolation: isolate;
   border: 1px solid #745641;
@@ -1687,7 +1691,8 @@ body:has(.lore-book[open]) {
     repeating-linear-gradient(0deg, #8d704f 0 1px, #ba9c75 1px 2px, #cfb48b 2px 3px);
 }
 
-.lore-book-spread > .lore-book-page {
+.lore-book-spread > .lore-book-page,
+.lore-book-board-lining > .lore-book-page {
   overflow: hidden;
   border-radius: 0.5rem 0 0.18rem 0.45rem / 0.35rem;
 }
@@ -1866,6 +1871,9 @@ body:has(.lore-book[open]) {
 
 .lore-book-board-lining {
   transform: rotateY(180deg);
+}
+
+.lore-book-board-lining:empty {
   border: 0.4rem solid #493025;
   border-radius: 0.8rem 0.2rem 0.2rem 0.8rem;
   background:
@@ -1874,26 +1882,42 @@ body:has(.lore-book[open]) {
   box-shadow: inset 0 0 0 1px #4624198c, inset 0 0 2rem #2c150d7a;
 }
 
-.lore-book-frame.is-moving-board .lore-book-spread {
-  animation: lore-reveal-paper var(--book-open-time) linear both;
+.lore-book-frame.is-moving-board .lore-book-spread > .lore-book-page:first-child {
+  visibility: hidden;
+}
+
+.lore-book-frame.is-moving-board .lore-book-spread::before {
+  animation: lore-left-stack var(--book-open-time) linear both;
+}
+
+.lore-book-frame.is-moving-board .lore-book-spread::after,
+.lore-book-frame.is-moving-board .lore-book-spread > .lore-book-page + .lore-book-page {
+  animation: lore-reveal-right-page var(--book-open-time) linear both;
 }
 
 .lore-book-frame.is-moving-board .lore-book-nav {
   animation: lore-reveal-controls var(--book-open-time) linear both;
 }
 
-.lore-book-frame.is-closing :is(.lore-book-board, .lore-book-binding > span, .lore-book-spread, .lore-book-nav) {
+.lore-book-frame.is-closing :is(.lore-book-board, .lore-book-binding > span, .lore-book-spread, .lore-book-nav),
+.lore-book-frame.is-closing .lore-book-spread::before,
+.lore-book-frame.is-closing .lore-book-spread::after,
+.lore-book-frame.is-closing .lore-book-spread > .lore-book-page + .lore-book-page {
   animation-direction: reverse;
 }
 
 @keyframes lore-board {
-  0% { z-index: 3; transform: translateX(-50%) var(--cover-pose); }
-  23% { transform: translateX(-17%) rotateY(-41deg) scale(1.06, 0.95); }
-  35% { transform: rotateY(-78deg) scale(1.1, 0.81); }
-  43% { z-index: 3; transform: rotateY(-106deg) scale(1.13, 0.81); }
-  59% { z-index: 0; transform: translateY(0.2rem) rotateY(-144deg) scale(1.13, 0.87); }
-  68% { transform: translateY(0.3rem) rotateY(-160deg) scale(1.13, 0.91); }
-  100% { z-index: 0; transform: translateY(0.3rem) rotateY(-179deg); }
+  0% {
+    width: var(--cover-width);
+    transform: translateX(-50%) var(--cover-pose);
+    animation-timing-function: ease-in;
+  }
+  28% {
+    width: 50%;
+    transform: translateX(0) rotateX(0deg) rotateY(-62deg);
+    animation-timing-function: cubic-bezier(0.26, 0.52, 0.32, 1);
+  }
+  100% { width: 50%; transform: translateX(0) rotateX(0deg) rotateY(-180deg); }
 }
 
 @keyframes lore-binding-release {
@@ -1901,9 +1925,14 @@ body:has(.lore-book[open]) {
   20%, 100% { opacity: 0; }
 }
 
-@keyframes lore-reveal-paper {
-  0%, 21% { opacity: 0; }
-  42%, 100% { opacity: 1; }
+@keyframes lore-reveal-right-page {
+  0%, 12% { opacity: 0; }
+  36%, 100% { opacity: 1; }
+}
+
+@keyframes lore-left-stack {
+  0%, 75% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 @keyframes lore-reveal-controls {
@@ -1981,6 +2010,7 @@ body:has(.lore-book[open]) {
 
   .lore-book-stage {
     --cover-pose: rotateX(13deg) rotateY(-17deg);
+    perspective: 1800px;
   }
 
   .lore-book-ribbon {
@@ -2014,7 +2044,19 @@ body:has(.lore-book[open]) {
   }
 
   .lore-book-frame.is-moving-board .lore-book-spread {
-    animation-name: lore-reveal-single;
+    animation: lore-reveal-single var(--book-open-time) linear both;
+  }
+
+  .lore-book-frame.is-moving-board .lore-book-spread::before {
+    animation: none;
+  }
+
+  .lore-book-frame.is-moving-board .lore-book-spread > .lore-book-page:first-child {
+    visibility: visible;
+  }
+
+  .lore-book-frame.is-moving-board.is-closing .lore-book-spread {
+    animation-direction: reverse;
   }
 
   .lore-book-nav button {
