@@ -217,6 +217,22 @@ describe("DataDragonClient", () => {
     ]);
   });
 
+  it("uses Sona's official Classic base instead of her 2015 splash", async () => {
+    const skins = [{ num: 0, name: "default" }];
+    const classic = {
+      id: "Jade_Sona", key: "60037", name: "Sona", title: "Maven of the Strings",
+      image: { full: "Jade_Sona.png" }, tags: ["Support"], blurb: "Classic ability notes.", skins,
+    };
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(Response.json(["16.23.1"]))
+      .mockResolvedValueOnce(Response.json({ data: { Jade_Sona: classic } }))
+      .mockResolvedValueOnce(Response.json({ data: { Sona: { skins } } })));
+
+    const result = await new DataDragonClient().getChampion("Jade_Sona", "en_US");
+
+    expect(result.skins[0]?.imageUrl).toBe("/api/assets/skin/Jade_Sona/0.jpg");
+  });
+
   it.each([true, false])("prefers the official Classic base with archive available = %s", async (available) => {
     const classic = {
       id: "Jade_Lux", key: "60099", name: "Lux", title: "the Lady of Luminosity",

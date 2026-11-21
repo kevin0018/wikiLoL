@@ -41,6 +41,8 @@ const CACHE_TTL_MS = 60 * 60 * 1000;
 const CLASSIC_CHAMPION_PREFIX = "Jade_";
 // The last 2015 patch provides the historical catalog before modern skins.
 const CLASSIC_BASE_SKIN_NUMBERS = new Set([301, 302]);
+// Riot serves Sona's first base splash in the Classic namespace at skin 0.
+const CLASSIC_ORIGINAL_SPLASHES = new Set(["Jade_Sona"]);
 const ARCHIVED_CLASSIC_SPLASHES = new Map(Object.entries(classicSplashArchive.skins));
 const ARCHIVED_CHAMPION_IDS: Record<string, string> = {
   Fiddlesticks: "FiddleSticks",
@@ -195,7 +197,8 @@ export class DataDragonClient implements ChampionRepository {
                 ? "Aspecto original"
                 : "Original skin"
               : skin.name,
-          imageUrl: archivedSplashes?.includes(skin.num)
+          imageUrl: archivedSplashes?.includes(skin.num) &&
+            !(skin.num === 0 && CLASSIC_ORIGINAL_SPLASHES.has(champion.id))
             ? `/images/classic/${classicSplashArchive.patch}/${archivedId}_${skin.num}.jpg`
             : `/api/assets/skin/${champion.id}/${skin.num}.jpg`,
         })),
