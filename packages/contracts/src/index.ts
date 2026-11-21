@@ -50,6 +50,7 @@ export const championSummarySchema = z.object({
 });
 
 export const championDetailSchema = championSummarySchema.extend({
+  classicNotes: z.array(z.string()).optional(),
   skins: z.array(championSkinSchema),
 });
 
@@ -103,9 +104,13 @@ const recentMatchSchema = z.object({
   championName: z.string(),
   championImageUrl: z.string().nullable(),
   win: z.boolean(),
+  largestMultiKill: z.number().int().nonnegative().default(0),
   kills: z.number().int().nonnegative(),
   deaths: z.number().int().nonnegative(),
   assists: z.number().int().nonnegative(),
+  farm: z.number().int().nonnegative().nullable().default(null),
+  killParticipation: z.number().int().min(0).max(100).nullable().default(null),
+  itemImageUrls: z.array(z.string().nullable()).default([]),
   queueId: z.number().int().nonnegative(),
   durationSeconds: z.number().int().nonnegative(),
   startedAt: z.number().int().nonnegative(),
@@ -167,8 +172,8 @@ export type MostPlayedChampion = z.infer<typeof mostPlayedChampionSchema>;
 export type ChallengerEntry = z.infer<typeof challengerEntrySchema>;
 
 export const playerLookupSchema = z.object({
-  gameName: z.string().trim().min(1),
-  tagLine: z.string().trim().min(1),
+  gameName: z.string().trim().min(1).max(32),
+  tagLine: z.string().trim().min(1).max(16),
   region: regionSchema,
 });
 

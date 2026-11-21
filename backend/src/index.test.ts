@@ -3,7 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import app from "./index.js";
 
 describe("API", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
 
   it("uses the secondary splash source when Riot cannot serve the requested skin", async () => {
     const fetchMock = vi.fn<typeof fetch>()
@@ -43,6 +47,53 @@ describe("API", () => {
 
     expect(response.status).toBe(400);
     expect(response.body).toHaveProperty("error");
+  });
+
+  it.each([
+    `/api/account/profile?gameName=${"a".repeat(33)}&tagLine=EUW&region=EUW`,
+    `/api/account/rank?puuid=${"a".repeat(129)}&region=EUW`,
+    "/api/account/activity/matches?puuid=player-id&region=EUW&start=1001",
+  ])("rejects oversized input before calling Riot for %s", async (path) => {
+    const fetchMock = vi.fn<typeof fetch>();
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect((await request(app).get(path)).status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("only grants cross-origin access to allowed origins", async () => {
+    const allowed = await request(app).get("/api/unknown").set("Origin", "http://localhost:5173");
+    const other = await request(app).get("/api/unknown").set("Origin", "https://other.example");
+
+    expect(allowed.headers["access-control-allow-origin"]).toBe("http://localhost:5173");
+    expect(other.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
+  it("returns Riot's retry delay and pauses upstream calls until it expires", async () => {
+    vi.stubEnv("RIOT_API_KEY", "test-key");
+    const startedAt = Date.now();
+    const now = vi.spyOn(Date, "now").mockReturnValue(startedAt);
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(null, { status: 429, headers: { "Retry-After": "12" } }))
+      .mockImplementation(async () => Response.json([]));
+    vi.stubGlobal("fetch", fetchMock);
+    const rankPath = "/api/account/rank?puuid=player&region=";
+
+    const limited = await request(app).get(rankPath + "KR");
+    expect(limited.status).toBe(429);
+    expect(limited.headers["retry-after"]).toBe("12");
+    expect(limited.headers["cache-control"]).toBe("no-store");
+
+    now.mockReturnValue(startedAt + 5000);
+    const blocked = await request(app).get(rankPath + "KR");
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers["retry-after"]).toBe("7");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect((await request(app).get(rankPath + "EUW")).status).toBe(200);
+
+    now.mockReturnValue(startedAt + 12_000);
+    expect((await request(app).get(rankPath + "KR")).status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("devuelve un error JSON para rutas desconocidas", async () => {

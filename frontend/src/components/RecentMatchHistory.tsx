@@ -16,6 +16,13 @@ const queueLabels: Partial<Record<number, TranslationKey>> = {
   1700: "account.matchArena",
 };
 
+const multiKillLabels: Partial<Record<number, TranslationKey>> = {
+  2: "account.doubleKill",
+  3: "account.tripleKill",
+  4: "account.quadraKill",
+  5: "account.pentaKill",
+};
+
 export function RecentMatchHistory({
   matches,
   nextStart,
@@ -83,6 +90,8 @@ export function RecentMatchHistory({
   const selectedTrigger = useRef<HTMLButtonElement>(null);
   const wins = matches.filter((match) => match.win).length;
   const winRate = matches.length ? Math.round((wins / matches.length) * 100) : 0;
+  const number = new Intl.NumberFormat(locale);
+  const perMinute = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   const date = new Intl.DateTimeFormat(locale, { month: "short", day: "numeric" });
 
   return (
@@ -144,47 +153,97 @@ export function RecentMatchHistory({
         </div>
       ) : visibleMatches.length ? (
         <ol className="match-strip" key={pageIndex}>
-          {visibleMatches.map((match) => (
-            <li className={`match-card ${match.win ? "is-win" : "is-loss"}`} key={match.matchId}>
-              <button
-                className="match-row"
-                type="button"
-                aria-haspopup="dialog"
-                aria-label={t("account.openMatch", {
-                  champion: match.championName,
-                  date: match.startedAt ? date.format(match.startedAt) : "",
-                })}
-                onClick={(event) => {
-                  selectedTrigger.current = event.currentTarget;
-                  setSelectedMatch(match);
-                }}
-              >
-                <span className="match-champion">
-                  <span className="match-portrait">
-                    {match.championImageUrl && <img src={match.championImageUrl} alt="" loading="lazy" />}
+          {visibleMatches.map((match) => {
+            const multiKill = multiKillLabels[match.largestMultiKill];
+            const achievement = match.largestMultiKill > 1
+              ? t(multiKill ?? "account.multiKill", { count: match.largestMultiKill })
+              : null;
+            const openLabel = t("account.openMatch", {
+              champion: match.championName,
+              date: match.startedAt ? date.format(match.startedAt) : "",
+            }).trimEnd();
+
+            const farm = match.farm === null ? null : number.format(match.farm);
+            const farmRate = match.farm !== null && match.durationSeconds > 0
+              ? perMinute.format((match.farm * 60) / match.durationSeconds)
+              : null;
+            const participation = match.killParticipation === null ? null : `${match.killParticipation}%`;
+            const accessibleLabel = [
+              openLabel,
+              achievement,
+              farm && `${t("account.farm")} ${farm}`,
+              participation && `${t("account.killParticipation")} ${participation}`,
+            ].filter(Boolean).join(" · ");
+
+            return (
+              <li className={`match-card ${match.win ? "is-win" : "is-loss"}`} key={match.matchId}>
+                <button
+                  className="match-row"
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-label={accessibleLabel}
+                  onClick={(event) => {
+                    selectedTrigger.current = event.currentTarget;
+                    setSelectedMatch(match);
+                  }}
+                >
+                  <span className="match-outcome">
+                    <span className="match-result">{t(match.win ? "account.matchWin" : "account.matchLoss")}</span>
+                    <span className="match-queue">{t(queueLabels[match.queueId] ?? "account.matchOther")}</span>
+                    {achievement && (
+                      <span className="match-multikill" data-penta={match.largestMultiKill >= 5 || undefined}>
+                        {achievement}
+                      </span>
+                    )}
                   </span>
-                  <span className="match-identity">
-                    <strong>{match.championName}</strong>
-                    <small>{t(queueLabels[match.queueId] ?? "account.matchOther")}</small>
+                  <span className="match-details">
+                    {match.startedAt > 0 && (
+                      <time dateTime={new Date(match.startedAt).toISOString()}>{date.format(match.startedAt)}</time>
+                    )}
+                    {match.durationSeconds > 0 && <span>{formatDuration(match.durationSeconds)}</span>}
                   </span>
-                </span>
-                <span className="match-result">{t(match.win ? "account.matchWin" : "account.matchLoss")}</span>
-                <span className="match-score">
-                  <span>{match.kills} / {match.deaths} / {match.assists}</span>
-                  <small>{t("account.kda")}</small>
-                </span>
-                <span className="match-details">
-                  {match.startedAt > 0 && (
-                    <time dateTime={new Date(match.startedAt).toISOString()}>{date.format(match.startedAt)}</time>
-                  )}
-                  {match.durationSeconds > 0 && (
-                    <span>{formatDuration(match.durationSeconds)}</span>
-                  )}
-                </span>
-                <span className="match-open"><ChevronIcon /></span>
-              </button>
-            </li>
-          ))}
+                  <span className="match-open"><ChevronIcon /></span>
+                  <span className="match-summary">
+                    <span className="match-champion">
+                      <span className="match-portrait">
+                        {match.championImageUrl && <img src={match.championImageUrl} alt="" loading="lazy" />}
+                      </span>
+                      <span className="match-identity"><strong>{match.championName}</strong></span>
+                    </span>
+                    <span className="match-metrics">
+                      <span className="match-score">
+                        <span>{match.kills} / <span className="match-deaths">{match.deaths}</span> / {match.assists}</span>
+                        <small>{t("account.kda")}</small>
+                      </span>
+                      {farm !== null && (
+                        <span className="match-score">
+                          <span>{farm} <small>{t("account.farm")}</small></span>
+                          {farmRate && <small>{t("account.farmPerMinute", { rate: farmRate })}</small>}
+                        </span>
+                      )}
+                      {participation !== null && (
+                        <span className="match-score">
+                          <span>{participation}</span>
+                          <small title={t("account.killParticipation")}>{t("account.killParticipationShort")}</small>
+                        </span>
+                      )}
+                    </span>
+                    {match.itemImageUrls.some(Boolean) && (
+                      <span className="match-build" aria-hidden="true">
+                        {match.itemImageUrls.map((url, slot) => (
+                          <span className="match-build-slot" key={slot}>
+                            {url && <img src={url} alt="" loading="lazy" onError={(event) => {
+                              event.currentTarget.hidden = true;
+                            }} />}
+                          </span>
+                        ))}
+                      </span>
+                    )}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
         </ol>
       ) : (
         <p className="panel-empty">{t("account.matchesEmpty")}</p>

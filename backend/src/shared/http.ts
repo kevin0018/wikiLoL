@@ -9,7 +9,7 @@ export async function fetchJson<T>(
 
   if (!response.ok) {
     const detail = await response.text();
-    throw new UpstreamError(response.status, detail);
+    throw new UpstreamError(response.status, detail, response.headers.get("Retry-After"));
   }
 
   const payload: unknown = await response.json();
@@ -31,8 +31,15 @@ export class UpstreamError extends Error {
   constructor(
     public readonly status: number,
     public readonly detail: string,
+    public readonly retryAfter: string | null = null,
   ) {
     super(`Upstream request failed with status ${status}`);
+  }
+}
+
+export class RiotRateLimitError extends Error {
+  constructor(public readonly retryAfterSeconds: number) {
+    super("Riot API rate limit exceeded");
   }
 }
 
@@ -40,8 +47,4 @@ export class UpstreamPayloadError extends Error {
   constructor(public readonly cause: ZodError) {
     super("Upstream response did not match the expected schema");
   }
-}
-
-export function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : "Error desconocido";
 }

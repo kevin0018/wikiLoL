@@ -5,10 +5,11 @@ import express, {
   type RequestHandler,
 } from "express";
 import { ZodError } from "zod";
+import { createAccountRateLimit } from "./interfaces/accountRateLimit.js";
 import { apiRouter } from "./interfaces/routes.js";
 import { assetsRouter } from "./proxy/infra/RiotAssetsProxy.js";
 import {
-  errorMessage,
+  RiotRateLimitError,
   UpstreamError,
   UpstreamPayloadError,
 } from "./shared/http.js";
@@ -30,7 +31,15 @@ try {
 const app = express();
 const port = Number(process.env.PORT ?? 3000);
 
-app.use(cors());
+const allowedOrigins = (process.env.CORS_ALLOWED_ORIGINS ?? "")
+  .split(",").map((origin) => origin.trim()).filter(Boolean);
+if (process.env.NODE_ENV !== "production" && process.env.VERCEL !== "1") {
+  allowedOrigins.push("http://localhost:5173", "http://127.0.0.1:5173");
+}
+
+app.disable("x-powered-by");
+app.use(cors({ origin: allowedOrigins, methods: ["GET", "HEAD"], exposedHeaders: ["Retry-After"] }));
+app.use(["/api/account", "/api/league"], createAccountRateLimit());
 app.use(express.json());
 app.use("/api", apiRouter);
 app.use("/api/assets", assetsRouter);
@@ -52,6 +61,14 @@ const errorHandler: ErrorRequestHandler = (
     return;
   }
 
+  if (error instanceof RiotRateLimitError) {
+    response.set({
+      "Cache-Control": "no-store",
+      "Retry-After": String(error.retryAfterSeconds),
+    }).status(429).json({ error: "Riot ha limitado las solicitudes. Inténtalo de nuevo en unos segundos." });
+    return;
+  }
+
   if (error instanceof UpstreamError || error instanceof UpstreamPayloadError) {
     if (error instanceof UpstreamPayloadError) {
       console.error("Riot devolvió una respuesta inesperada", error.cause.issues);
@@ -65,7 +82,7 @@ const errorHandler: ErrorRequestHandler = (
   }
 
   console.error(error);
-  response.status(500).json({ error: errorMessage(error) });
+  response.status(500).json({ error: "Error interno del servidor." });
 };
 
 app.use(notFound);

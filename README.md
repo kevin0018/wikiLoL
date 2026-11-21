@@ -92,6 +92,7 @@ Requirements:
 
 - Node.js 22 or newer
 - pnpm 10
+- `tar` to unpack the Classic artwork
 - A Riot API key for player and leaderboard routes
 
 Install all dependencies from the repository root:
@@ -107,8 +108,10 @@ RIOT_API_KEY=RGAPI-...
 PORT=3000
 ```
 
-Optionally create `frontend/.env` when the backend is hosted on a different
-origin:
+For a frontend on a different origin, set `CORS_ALLOWED_ORIGINS` in the
+backend to a comma-separated list of allowed frontend origins. Local Vite
+origins on port 5173 are allowed during development. Set the backend URL in
+`frontend/.env`:
 
 ```dotenv
 VITE_BACKEND_URL=http://localhost:3000
@@ -119,6 +122,10 @@ Start the frontend and backend:
 ```bash
 pnpm dev
 ```
+
+The first frontend startup or build downloads the pinned Data Dragon archive
+(376 MB) and extracts the Classic splash images. The archive is cached under
+`node_modules/.cache/wikilol`, and the generated images are ignored by Git.
 
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:3000`

@@ -23,7 +23,7 @@ import { GetMostPlayedChampionHandler } from "../account/app/query/GetMostPlayed
 import { GetMostPlayedChampionQuery } from "../account/app/query/GetMostPlayedChampionQuery.js";
 import { QueueType } from "../account/domain/value-object/QueueType.js";
 import { Region } from "../account/domain/value-object/Region.js";
-import { riotAccountRepository } from "../account/infra/RiotAccountRepository.js";
+import { MAX_MATCH_HISTORY_OFFSET, riotAccountRepository } from "../account/infra/RiotAccountRepository.js";
 import { GetChampionByIdHandler } from "../champion/app/query/GetChampionByIdHandler.js";
 import { GetChampionByIdQuery } from "../champion/app/query/GetChampionByIdQuery.js";
 import { GetChampionDataHandler } from "../champion/app/query/GetChampionDataHandler.js";
@@ -52,13 +52,9 @@ const getChallengerPicks = new GetChallengerPicksHandler(riotAccountRepository);
 const getChampionData = new GetChampionDataHandler(dataDragonClient);
 const getChampionById = new GetChampionByIdHandler(dataDragonClient);
 
-const rankQuerySchema = z.object({
-  puuid: z.string().min(1),
-  region: regionSchema,
-});
-
+const puuidSchema = z.string().min(1).max(128).regex(/^[A-Za-z0-9_-]+$/);
 const playerResourceSchema = z.object({
-  puuid: z.string().min(1),
+  puuid: puuidSchema,
   region: regionSchema,
 });
 
@@ -102,7 +98,7 @@ apiRouter.get("/account/profile", async (request, response) => {
 });
 
 apiRouter.get("/account/rank", async (request, response) => {
-  const query = rankQuerySchema.parse(request.query);
+  const query = playerResourceSchema.parse(request.query);
   const ranks = await getAccountRank.execute(
     new GetAccountRankQuery(
       query.puuid,
@@ -140,7 +136,7 @@ apiRouter.get("/account/activity", async (request, response) => {
 
 apiRouter.get("/account/activity/matches", async (request, response) => {
   const query = playerResourceSchema.merge(localeQuerySchema)
-    .extend({ start: z.coerce.number().int().min(20) })
+    .extend({ start: z.coerce.number().int().min(20).max(MAX_MATCH_HISTORY_OFFSET) })
     .parse(request.query);
   const page = await getAccountActivity.executePage(
     query.puuid, Region.from(query.region), query.locale, query.start,
@@ -195,9 +191,8 @@ apiRouter.get("/league/challenger", async (request, response) => {
 });
 
 apiRouter.get("/league/challenger/picks", async (request, response) => {
-  const playerId = z.string().min(1).max(128);
   const query = z.object({
-    puuid: z.union([playerId, z.array(playerId).min(1).max(5)]),
+    puuid: z.union([puuidSchema, z.array(puuidSchema).min(1).max(5)]),
     region: regionSchema.default("EUW"),
     locale: localeSchema.default("es_ES"),
   }).parse(request.query);

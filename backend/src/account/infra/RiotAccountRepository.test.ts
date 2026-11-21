@@ -8,6 +8,7 @@ const originalApiKey = process.env.RIOT_API_KEY;
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
   if (originalApiKey === undefined) {
     delete process.env.RIOT_API_KEY;
   } else {
@@ -47,7 +48,8 @@ describe("RiotAccountRepository", () => {
           gameDuration: 1700, gameStartTimestamp: 1234, queueId: 420, gameVersion: "16.23.4.123",
           teams: [{ teamId: 100, win: true }, { teamId: 200, win: false }],
           participants: [
-            { puuid: "player", championId: 103, win: id !== "EUW1_2", kills: 7, deaths: 2, assists: 9, teamId: 100, item0: 3157, riotIdGameName: "Kaori", totalDamageDealtToChampions: 32050, goldEarned: 14500, totalMinionsKilled: 180, neutralMinionsKilled: 20 },
+            { puuid: "player", championId: 103, win: id !== "EUW1_2", kills: 7, largestMultiKill: id === "EUW1_2" ? 5 : undefined, deaths: 2, assists: 9, teamId: 100, item0: 3157, riotIdGameName: "Kaori", totalDamageDealtToChampions: 32050, goldEarned: 14500, totalMinionsKilled: 180, neutralMinionsKilled: 20 },
+            { puuid: "teammate", championId: 103, kills: 13, teamId: 100 },
             { puuid: "opponent", championId: 103, kills: 2, teamId: 200 },
           ],
         },
@@ -65,16 +67,19 @@ describe("RiotAccountRepository", () => {
     const result = await repository.getActivity("player", region, "es_ES");
     expect(result.matches.map(({ matchId }) => matchId)).toEqual(matchIds);
     expect(result.nextStart).toBeNull();
+    expect(result.matches[0]?.largestMultiKill).toBe(0);
     expect(result.matches[1]).toMatchObject({
-      win: false, championName: "Ahri", kills: 7, deaths: 2, assists: 9, queueId: 420, durationSeconds: 1700,
+      win: false, championName: "Ahri", kills: 7, largestMultiKill: 5, deaths: 2, assists: 9, queueId: 420, durationSeconds: 1700,
+      farm: 200, killParticipation: 80,
+      itemImageUrls: ["/api/assets/item/16.23.1/3157.png", null, null, null, null, null, null],
     });
     expect(result.mostPlayed).toEqual([expect.objectContaining({ championName: "Ahri", gamesPlayed: 6 })]);
     await expect(repository.getMostPlayed("player", region, 20, 4, "en_US")).resolves.toEqual(result.mostPlayed);
     const detail = await repository.getMatchDetails("EUW1_1", region, "es_ES");
     expect(detail.teams).toMatchObject([
-      { teamId: 100, win: true, kills: 7, players: [{ playerName: "Kaori", damage: 32050, gold: 14500, farm: 200, items: [
+      { teamId: 100, win: true, kills: 20, players: [{ playerName: "Kaori", damage: 32050, gold: 14500, farm: 200, items: [
         { name: "Zhonya", imageUrl: "/api/assets/item/16.23.1/3157.png" }, null, null, null, null, null, null,
-      ] }] },
+      ] }, { kills: 13 }] },
       { teamId: 200, win: false, kills: 2, players: [{ damage: null, gold: null, farm: null }] },
     ]);
     expect(fetchMock).toHaveBeenCalledTimes(7);
@@ -108,8 +113,10 @@ describe("RiotAccountRepository", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  it("retries missing identities and preserves standings when a profile icon fails", async () => {
+  it("preserves partial standings and retries missing data after Riot's cooldown", async () => {
     process.env.RIOT_API_KEY = "test-key";
+    const startedAt = Date.now();
+    const now = vi.spyOn(Date, "now").mockReturnValue(startedAt);
     const league = {
       entries: [
         {
@@ -137,7 +144,11 @@ describe("RiotAccountRepository", () => {
     const queue = QueueType.from("RANKED_SOLO_5x5");
 
     const unresolved = await repository.getChallenger(region, queue, 1);
+    now.mockReturnValue(startedAt + 5000);
     const resolved = await repository.getChallenger(region, queue, 1);
+    await expect(repository.getChallenger(region, queue, 1)).rejects.toMatchObject({ retryAfterSeconds: 5 });
+    expect(fetchMock).toHaveBeenCalledTimes(6);
+    now.mockReturnValue(startedAt + 10_000);
     const cached = await repository.getChallenger(region, queue, 1);
 
     expect(unresolved[0]?.riotIdForDisplay).toBe("Riot ID no disponible");

@@ -96,6 +96,7 @@ Requisitos:
 
 - Node.js 22 o superior
 - pnpm 10
+- `tar` para extraer las ilustraciones de Classic
 - Una API key de Riot para las rutas de jugadores y clasificación
 
 Instala todas las dependencias desde la raíz:
@@ -111,8 +112,10 @@ RIOT_API_KEY=RGAPI-...
 PORT=3000
 ```
 
-Opcionalmente, crea `frontend/.env` si el backend se encuentra en un origen
-distinto:
+Si el frontend se sirve desde otro origen, configura `CORS_ALLOWED_ORIGINS`
+en el backend con los orígenes del frontend separados por comas. Durante el
+desarrollo se permiten los orígenes locales de Vite en el puerto 5173.
+Configura la URL del backend en `frontend/.env`:
 
 ```dotenv
 VITE_BACKEND_URL=http://localhost:3000
@@ -123,6 +126,10 @@ Inicia el frontend y el backend:
 ```bash
 pnpm dev
 ```
+
+El primer arranque o compilación del frontend descarga el paquete fijado de
+Data Dragon (376 MB) y extrae las ilustraciones de Classic. El paquete se guarda
+en `node_modules/.cache/wikilol` y Git ignora las imágenes generadas.
 
 - Frontend: `http://localhost:5173`
 - Backend: `http://localhost:3000`

@@ -22,6 +22,7 @@ export interface ChampionSkin {
 }
 
 export interface ChampionDetail extends ChampionSummary {
+  classicNotes?: string[];
   skins: ChampionSkin[];
 }
 
