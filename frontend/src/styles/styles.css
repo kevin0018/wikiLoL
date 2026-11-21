@@ -1477,54 +1477,107 @@ body:has(.lore-book[open]) {
 
 .lore-book-stage {
   --cover-width: min(100% - 1rem, 23rem, calc((100dvh - 6.75rem) * 0.68));
+  --cover-depth: clamp(2rem, 6vh, 3.15rem);
+  --cover-radius: 0.2rem 0.9rem 0.85rem 0.25rem;
+  --cover-pose: rotateX(17deg) rotateY(-23deg);
   position: relative;
   display: grid;
   height: min(36rem, calc(100dvh - 6.75rem));
   perspective: 1800px;
 }
 
-.lore-book-cover,
 .lore-book-board-face {
-  --cover-radius: 0.2rem 0.9rem 0.85rem 0.25rem;
-  --cover-grain: url("/images/book-paper.webp");
-  position: relative;
   isolation: isolate;
-  border: 1px solid #856048;
+  border: 1px solid #745641;
   border-radius: var(--cover-radius);
   background:
-    linear-gradient(90deg, #281810 1%, #694936 4%, #322018 6%, #a0774d38 8%, #351f18 11%, transparent 17%),
-    var(--cover-grain) center / cover, #493025;
-  background-blend-mode: normal, multiply;
+    linear-gradient(90deg, #1c100d 0%, #493022 2%, #916c4f66 5%, #321f17 8%, transparent 13%),
+    radial-gradient(ellipse at 20% 0%, #deb08135, transparent 68%),
+    url("/images/book-paper.webp") center / cover, #493025;
+  background-blend-mode: normal, normal, multiply;
   color: #f4d494;
+  box-shadow: inset 1px 1px 2px #e5b5873b, inset -2px -3px 7px #130a07a8;
 }
 
 .lore-book-cover {
+  position: relative;
   place-self: center;
   width: var(--cover-width);
   height: 100%;
   padding: 0;
+  transform: var(--cover-pose);
+  transform-style: preserve-3d;
   cursor: pointer;
-  box-shadow:
-    inset 0 0 0 3px #1f130d8a, inset 0 0 1.8rem #100907bc,
-    4px 2px #b19c77, 7px 4px #776346, 9px 6px #b49a72, 11px 8px #362418,
-    0 1.35rem 3rem #000b;
-  transition: box-shadow 250ms var(--ease-out);
 }
 
-.lore-book-cover:hover {
-  box-shadow:
-    inset 0 0 0 3px #1f130d8a, inset 0 0 1.8rem #100907bc,
-    5px 2px #b19c77, 8px 4px #776346, 11px 6px #b49a72, 13px 8px #362418,
-    0 1.5rem 3.9rem #000c;
+.lore-book-frame.is-closed .lore-book-stage::before {
+  position: absolute;
+  inset: auto auto -0.95rem 50%;
+  width: var(--cover-width);
+  height: 18%;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, #000e 12%, #0007 55%, transparent 75%);
+  filter: blur(12px);
+  transform: translateX(-43%) rotate(-3deg);
+  content: "";
+  pointer-events: none;
 }
 
-.lore-book-cover::before,
+.lore-book-binding {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  pointer-events: none;
+}
+
+.lore-book-back-cover,
+.lore-book-edge {
+  position: absolute;
+  display: block;
+}
+
+.lore-book-back-cover {
+  inset: 0;
+  transform: translateZ(calc(-1 * var(--cover-depth)));
+  border-radius: var(--cover-radius);
+  background: #3b271b;
+  box-shadow: inset -2px -2px #1b100b, 0 0.5rem 1.1rem #0007;
+}
+
+.lore-book-edge {
+  --leaf-lines: #8d6c4f50 0 1px, transparent 1px 3px, #ebd7aa41 3px 4px, transparent 4px 6px;
+  background-color: #bda17a;
+}
+
+.lore-book-edge.is-fore-edge {
+  inset: 7px 5px 7px auto;
+  width: var(--cover-depth);
+  transform: rotateY(-90deg);
+  transform-origin: right center;
+  background-image:
+    linear-gradient(0deg, #3e291760, transparent 75%, #ddba873b),
+    linear-gradient(270deg, #321d1394, transparent 27%, transparent 84%, #5c3b28a6),
+    repeating-linear-gradient(90deg, var(--leaf-lines));
+}
+
+.lore-book-edge.is-tail {
+  inset: auto 5px 7px 11px;
+  height: var(--cover-depth);
+  transform: rotateX(90deg);
+  transform-origin: center bottom;
+  background-color: #8e7352;
+  background-image:
+    linear-gradient(90deg, #291a1191, transparent 42%, #422b2055),
+    linear-gradient(0deg, #24140dba, transparent 29%, transparent 65%, #3824198a),
+    repeating-linear-gradient(0deg, var(--leaf-lines));
+}
+
 .lore-book-board-face::before {
   position: absolute;
   inset: 4.5% 5% 4.5% 11%;
-  border: 1px solid #b38a536d;
+  border: 1px solid #b38a5354;
   border-radius: 0.18rem 0.52rem 0.52rem 0.18rem;
-  box-shadow: 0 1px #170e09, inset 0 0 0 3px #352117, inset 0 0 0 4px #b28a5344;
+  box-shadow: 0 1px #170e09b0, inset 0 0 0 3px #352117, inset 0 0 0 4px #b28a5333;
   content: "";
   pointer-events: none;
 }
@@ -1586,6 +1639,15 @@ body:has(.lore-book[open]) {
 .lore-book :focus-visible {
   outline: 2px solid #e9c38c;
   outline-offset: 4px;
+}
+
+.lore-book button.lore-book-cover:focus-visible {
+  outline: none;
+}
+
+.lore-book-cover:focus-visible .lore-book-board-face {
+  outline: 2px solid #e9c38c;
+  outline-offset: -6px;
 }
 
 .lore-book-spread {
@@ -1764,8 +1826,8 @@ body:has(.lore-book[open]) {
   backface-visibility: hidden;
 }
 
-.lore-book-board-face {
-  box-shadow: 4px 2px #b19c77, 7px 4px #776346, 9px 6px #b49a72, 11px 8px #362418;
+.lore-book-board .lore-book-binding > span {
+  animation: lore-binding-release var(--book-turn-time) linear both;
 }
 
 .lore-book-board-lining {
@@ -1790,16 +1852,21 @@ body:has(.lore-book[open]) {
   animation: lore-reveal-controls var(--book-turn-time) linear both;
 }
 
-.lore-book-frame.is-closing :is(.lore-book-board, .lore-book-board-face, .lore-book-board-lining, .lore-book-spread, .lore-book-nav) {
+.lore-book-frame.is-closing :is(.lore-book-board, .lore-book-board-face, .lore-book-board-lining, .lore-book-binding > span, .lore-book-spread, .lore-book-nav) {
   animation-direction: reverse;
 }
 
 @keyframes lore-board {
-  0% { transform: translateX(-50%) rotateY(0); }
+  0% { transform: translateX(-50%) var(--cover-pose); }
   24% { transform: translateX(-25%) rotateY(-12deg); }
   48% { transform: translateX(-5%) rotateY(-67deg) scaleY(0.91); }
   72% { transform: rotateY(-136deg) scaleY(0.94); }
   100% { transform: rotateY(-179deg); }
+}
+
+@keyframes lore-binding-release {
+  0% { opacity: 1; }
+  20%, 100% { opacity: 0; }
 }
 
 @keyframes lore-board-settle {
@@ -1887,6 +1954,10 @@ body:has(.lore-book[open]) {
     --book-spread-size: 1;
   }
 
+  .lore-book-stage {
+    --cover-pose: rotateX(13deg) rotateY(-17deg);
+  }
+
   .lore-book-ribbon {
     inset-inline: auto 0.25rem;
     width: 0.52rem;
@@ -1916,7 +1987,7 @@ body:has(.lore-book[open]) {
   }
 
   @keyframes lore-board-single {
-    0% { transform: translateX(-50%) rotateY(0); }
+    0% { transform: translateX(-50%) var(--cover-pose); }
     30% { transform: translateX(-58%) rotateY(-30deg); }
     70%, 100% { transform: translateX(-75%) rotateY(-104deg) scaleY(0.86); }
   }
@@ -1935,12 +2006,6 @@ body:has(.lore-book[open]) {
 @media (prefers-reduced-motion: no-preference) {
   .lore-book[open] {
     animation: lore-book-open 280ms var(--ease-out);
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lore-book-cover {
-    transition: none;
   }
 }
 

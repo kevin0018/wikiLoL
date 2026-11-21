@@ -131,8 +131,7 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
                   navigation.current?.focus({ preventScroll: true });
                 });
               }}>
-                <BookCover name={name} url={coverUrl} />
-                <span className="lore-book-open-label">{t("champion.openBook")} <ChevronIcon /></span>
+                <BookCover name={name} url={coverUrl} openLabel={t("champion.openBook")} />
               </button>
             ) : (
               <>
@@ -159,10 +158,7 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
                   if (event.target === event.currentTarget) finishTurn();
                 }}
               >
-                <div className="lore-book-board-face">
-                  <BookCover name={name} url={coverUrl} />
-                  <span className="lore-book-open-label">{t("champion.openBook")} <ChevronIcon /></span>
-                </div>
+                <BookCover name={name} url={coverUrl} openLabel={t("champion.openBook")} />
                 <div className="lore-book-board-lining" />
               </div>
             ) : turn ? (
@@ -196,13 +192,21 @@ export function ChampionLoreBook({ name, lore, coverUrl }: {
   );
 }
 
-function BookCover({ name, url }: { name: string; url: string }) {
+function BookCover({ name, url, openLabel }: { name: string; url: string; openLabel: string }) {
   return (
     <>
-      <span className="lore-book-cover-art" aria-hidden="true">
-        <img src={url} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
+      <span className="lore-book-binding" aria-hidden="true">
+        <span className="lore-book-back-cover" />
+        <span className="lore-book-edge is-fore-edge" />
+        <span className="lore-book-edge is-tail" />
       </span>
-      <span className="lore-book-cover-name">{name}</span>
+      <span className="lore-book-board-face">
+        <span className="lore-book-cover-art" aria-hidden="true">
+          <img src={url} alt="" onError={(event) => { event.currentTarget.hidden = true; }} />
+        </span>
+        <span className="lore-book-cover-name">{name}</span>
+        <span className="lore-book-open-label">{openLabel} <ChevronIcon /></span>
+      </span>
     </>
   );
 }
