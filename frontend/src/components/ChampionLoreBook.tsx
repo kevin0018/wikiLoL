@@ -18,6 +18,7 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
   const nextRef = useRef<HTMLButtonElement>(null);
   const previousRef = useRef<HTMLButtonElement>(null);
   const probeRef = useRef<HTMLDivElement>(null);
+  const probeTitleRef = useRef<HTMLHeadingElement>(null);
   const [open, setOpen] = useState(false);
   const [page, setPage] = useState(-1);
   const [layout, setLayout] = useState<{ pages: string[]; spread: number }>();
@@ -27,6 +28,12 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
   const opening = turn?.previous === -1;
   const busy = Boolean(turn) || searching;
   const showChapter = !opening && introLeaves < 2;
+  const history = (["launch", "worlds", "runes", "rift"] as const).map((entry): PageContent => ({
+    title: t(`champion.bookHistory.${entry}.title`),
+    text: t(`champion.bookHistory.${entry}.text`),
+    number: 0,
+  }));
+  const introSpread = searching ? 2 : 0;
   const spread = layout?.spread ?? 1;
   const pages = layout?.pages ?? [];
   const total = pages.length + 1;
@@ -37,11 +44,13 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
 
   useEffect(() => {
     const probe = probeRef.current;
-    if (!open || !probe) return;
+    const heading = probeTitleRef.current;
+    const copy = probe?.parentElement;
+    if (!open || !probe || !heading || !copy) return;
     const measure = () => {
       if (!probe.clientHeight || !probe.clientWidth) return;
       setLayout({
-        pages: paginate(lore, probe),
+        pages: paginate(lore, probe, heading),
         spread: Number(getComputedStyle(probe).getPropertyValue("--book-spread-size")) || 1,
       });
       setTurn(null);
@@ -49,9 +58,9 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
     };
     measure();
     const observer = new ResizeObserver(measure);
-    observer.observe(probe);
+    observer.observe(copy);
     return () => observer.disconnect();
-  }, [lore, open]);
+  }, [lore, name, open]);
 
   useEffect(() => {
     if (open && layout && first < 0) coverRef.current?.focus({ preventScroll: true });
@@ -80,7 +89,9 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
 
   function getPage(index: number): PageContent {
     const content = { text: pages[index], number: index + 1 };
-    return index === pages.length ? { ...content, illustration: { url: illustrationUrl, name } } : content;
+    if (index === pages.length) return { ...content, illustration: { url: illustrationUrl, name } };
+    if (index === 0) return { ...content, title: name, bookmark: true };
+    return content;
   }
 
   const last = Math.min(first + spread, total);
@@ -140,7 +151,10 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
             if (first < 0 && event.target === event.currentTarget) dialogRef.current?.close();
           }}>
             <div className="lore-book-page lore-book-probe" aria-hidden="true">
-              <div ref={probeRef} className="lore-book-print" />
+              <div className="lore-book-copy">
+                <h3 ref={probeTitleRef} className="lore-book-page-title">{name}</h3>
+                <div ref={probeRef} className="lore-book-print" />
+              </div>
             </div>
 
             {first < 0 ? (
@@ -158,19 +172,18 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
                 {Array.from({ length: spread }, (_, index) => (
                   <BookStack
                     key={index}
-                    page={showChapter ? getPage(first + index) : blankPage}
+                    page={showChapter ? getPage(first + index) : history[introSpread + index]!}
                     right={index === 1}
-                    bookmark={index === spread - 1 && first === 0 && (!turn || Boolean(board))}
                   />
                 ))}
               </div>
             )}
 
-            {board && spread > 1 && <BookStack page={showChapter ? getPage(1) : blankPage} right bookmark moving />}
+            {board && spread > 1 && <BookStack page={showChapter ? getPage(1) : history[1]!} right moving />}
 
-            {(restingPage >= 0 || (introLeaves === 1 && spread > 1)) && (
+            {(restingPage >= 0 || (searching && spread > 1)) && (
               <div aria-hidden="true" className={`lore-book-resting ${turn?.direction === -1 ? "is-right" : ""}`}>
-                <BookPage {...(searching ? blankPage : getPage(restingPage))} />
+                <BookPage {...(searching ? history[introLeaves === 2 ? 0 : 2]! : getPage(restingPage))} />
               </div>
             )}
 
@@ -184,14 +197,14 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
               >
                 <BookCover name={name} openLabel={t("champion.openBook")} />
                 <div className="lore-book-board-lining">
-                  {spread > 1 && <BookPage {...(showChapter ? getPage(0) : blankPage)} />}
+                  {spread > 1 && <BookPage {...(showChapter ? getPage(0) : history[0]!)} />}
                 </div>
               </div>
             ) : busy ? (
               <TurningLeaf
                 key={searching ? `intro:${introLeaves}` : `${turn?.previous}:${first}:${spread}`}
-                front={searching ? blankPage : getPage(turningPage)}
-                back={searching && (!showChapter || spread === 1) ? blankPage : getPage(reversePage)}
+                front={searching ? history[(introLeaves === 2 ? 0 : 2) + spread - 1]! : getPage(turningPage)}
+                back={introLeaves === 2 ? history[2]! : getPage(reversePage)}
                 reverse={turn?.direction === -1}
                 speed={searching ? 3 : 1}
                 onFinish={finishTurn}
@@ -241,26 +254,24 @@ function BookCover({ name, openLabel }: { name: string; openLabel: string }) {
 type PageContent = {
   text: string | undefined;
   number: number;
+  title?: string;
+  bookmark?: boolean;
   illustration?: { url: string; name: string };
 };
 
-const blankPage: PageContent = { text: undefined, number: 0 };
-
-function BookStack({ page, right, bookmark, moving = false }: {
+function BookStack({ page, right, moving = false }: {
   page: PageContent;
   right: boolean;
-  bookmark: boolean;
   moving?: boolean;
 }) {
   return (
     <div className={`lore-book-stack ${right ? "is-right" : ""} ${moving ? "is-moving" : ""}`} aria-hidden={moving || undefined}>
       <BookPage {...page} />
-      {bookmark && <span className="lore-book-ribbon" aria-hidden="true" />}
     </div>
   );
 }
 
-function BookPage({ text, number, illustration }: PageContent) {
+function BookPage({ text, number, title, bookmark, illustration }: PageContent) {
   return (
     <div className="lore-book-page">
       {illustration ? (
@@ -268,9 +279,13 @@ function BookPage({ text, number, illustration }: PageContent) {
           <img src={illustration.url} alt={illustration.name} decoding="async" />
         </figure>
       ) : (
-        <div className="lore-book-print">{text}</div>
+        <div className="lore-book-copy">
+          {title && <h3 className="lore-book-page-title">{title}</h3>}
+          <div className="lore-book-print">{text}</div>
+        </div>
       )}
-      {(text || illustration) && <span className="lore-book-folio" aria-hidden="true">{number}</span>}
+      {bookmark && <span className="lore-book-ribbon" aria-hidden="true" />}
+      {number > 0 && (text || illustration) && <span className="lore-book-folio" aria-hidden="true">{number}</span>}
     </div>
   );
 }
@@ -350,11 +365,12 @@ function TurningLeaf({ front, back, reverse, speed, onFinish }: {
   );
 }
 
-function paginate(lore: string, probe: HTMLDivElement): string[] {
+function paginate(lore: string, probe: HTMLDivElement, heading: HTMLHeadingElement): string[] {
   const words = lore.match(/\S+\s*/gu) ?? [];
   const breaks = [0];
   const pageText = (start: number, end: number) => words.slice(start, end).join("").trimEnd();
   const fits = (start: number, end: number) => {
+    heading.hidden = start !== 0;
     probe.textContent = pageText(start, end);
     return probe.scrollHeight <= probe.clientHeight;
   };
@@ -403,5 +419,6 @@ function paginate(lore: string, probe: HTMLDivElement): string[] {
   }
 
   probe.textContent = "";
+  heading.hidden = false;
   return breaks.slice(1).map((end, index) => pageText(breaks[index]!, end));
 }

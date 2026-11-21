@@ -1757,7 +1757,21 @@ body:has(.lore-book[open]) {
   pointer-events: none;
 }
 
+.lore-book-copy {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.lore-book-page-title {
+  margin: 0 0 clamp(0.5rem, 1.6vh, 0.95rem);
+  color: #51351f;
+  font: 400 clamp(1.45rem, 3.3vw, 2.6rem)/1.08 var(--font-display);
+  overflow-wrap: anywhere;
+}
+
 .lore-book-print {
+  flex: 1;
   min-height: 0;
   overflow: hidden;
   color: var(--book-ink);
@@ -1799,7 +1813,7 @@ body:has(.lore-book[open]) {
   position: absolute;
   z-index: 1;
   inset-block-start: 0;
-  inset-inline-start: 0.2rem;
+  inset-inline-end: 0.2rem;
   width: clamp(0.62rem, 1.4vw, 1rem);
   height: clamp(2.25rem, 8vh, 4.75rem);
   background: linear-gradient(90deg, #472326, #a14c46 27%, #733138 82%, #451e22);
@@ -1934,7 +1948,7 @@ body:has(.lore-book[open]) {
 }
 
 .lore-book-stack.is-moving
-  :is(.lore-book-print, .lore-book-folio, .lore-book-ribbon, .lore-book-plate) {
+  :is(.lore-book-copy, .lore-book-folio, .lore-book-ribbon, .lore-book-plate) {
   animation: lore-covered-ink var(--book-open-time) linear both;
 }
 
@@ -1946,7 +1960,7 @@ body:has(.lore-book[open]) {
 .lore-book-frame.is-closing .lore-book-stack:first-child::before,
 .lore-book-frame.is-closing .lore-book-stack.is-moving,
 .lore-book-frame.is-closing .lore-book-stack.is-moving
-  :is(.lore-book-print, .lore-book-folio, .lore-book-ribbon, .lore-book-plate) {
+  :is(.lore-book-copy, .lore-book-folio, .lore-book-ribbon, .lore-book-plate) {
   animation-direction: reverse;
 }
 
