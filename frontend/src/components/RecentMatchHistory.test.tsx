@@ -39,6 +39,9 @@ it("loads only the selected scoreboard and reuses it when reopened", async () =>
     matchId: `EUW1_${index + 1}`,
     championName,
     championImageUrl: null,
+    farm: 197,
+    killParticipation: 68,
+    itemImageUrls: ["/api/assets/item/16.23.1/3157.png", null, null, null, null, null, null],
     win: true,
     kills: 5,
     largestMultiKill: index === 1 ? 5 : 1,
@@ -67,8 +70,9 @@ it("loads only the selected scoreboard and reuses it when reopened", async () =>
   );
 
   expect(fetchMock).not.toHaveBeenCalled();
-  expect(screen.queryByRole("button", { name: /Ahri.*kill/i })).toBeNull();
-  const selected = screen.getByRole("button", { name: /Open scoreboard: Garen.*Pentakill/ });
+  expect(screen.getByRole("button", { name: /Open scoreboard: Ahri/ }).querySelector(".match-multikill")).toBeNull();
+  const selected = screen.getByRole("button", { name: /Open scoreboard: Garen.*Pentakill.*CS 197.*Kill participation 68%/ });
+  expect(selected.querySelector(".match-build img")?.getAttribute("src")).toBe("/api/assets/item/16.23.1/3157.png");
   fireEvent.click(selected);
   await screen.findByRole("table", { name: "Match scoreboard" });
   expect(screen.getAllByRole("columnheader")).toHaveLength(6);
@@ -87,6 +91,9 @@ it("replaces the visible page and reuses it on back-and-forward navigation", asy
     matchId: `EUW1_${index + 1}`,
     championName: "Ahri",
     championImageUrl: null,
+    farm: null,
+    killParticipation: null,
+    itemImageUrls: [],
     win: true,
     kills: 5,
     largestMultiKill: 0,

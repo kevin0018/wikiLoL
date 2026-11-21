@@ -132,11 +132,32 @@ interface PlayerMatch {
   matchId: string;
   info: Omit<MatchInfo, "participants">;
   player: MatchInfo["participants"][number];
+  killParticipation: number | null;
 }
 
 interface PlayerMatchPage {
   matches: PlayerMatch[];
   count: number;
+}
+
+function matchItemPatch(gameVersion: string): string | undefined {
+  const release = gameVersion.match(/^([0-9]+\.[0-9]+)\./)?.[1];
+  return release && `${release}.1`;
+}
+
+function matchItemIds(player: PlayerMatch["player"]): number[] {
+  return [player.item0, player.item1, player.item2, player.item3, player.item4, player.item5, player.item6];
+}
+
+function itemImageUrl(patch: string, id: number): string {
+  return `/api/assets/item/${patch}/${id}.png`;
+}
+
+function playerFarm(player: PlayerMatch["player"]): number | null {
+  const { totalMinionsKilled, neutralMinionsKilled } = player;
+  return totalMinionsKilled === undefined && neutralMinionsKilled === undefined
+    ? null
+    : (totalMinionsKilled ?? 0) + (neutralMinionsKilled ?? 0);
 }
 
 const ACTIVITY_PAGE_SIZE = 20;
@@ -270,9 +291,10 @@ export class RiotAccountRepository implements AccountRepository {
     mostPlayed: MostPlayedChampion[] = [],
   ): Promise<RecentMatch[]> {
     const knownChampions = new Map(mostPlayed.map((champion) => [champion.championId, champion]));
-    return Promise.all(history.map(async ({ matchId, info, player }) => {
+    return Promise.all(history.map(async ({ matchId, info, player, killParticipation }) => {
       const champion = knownChampions.get(player.championId)
         ?? await this.getChampionPortrait(player.championId, locale).catch(() => null);
+      const patch = matchItemPatch(info.gameVersion);
       return {
         matchId,
         championName: champion?.championName ?? player.championName ?? String(player.championId),
@@ -282,6 +304,9 @@ export class RiotAccountRepository implements AccountRepository {
         largestMultiKill: player.largestMultiKill,
         deaths: player.deaths,
         assists: player.assists,
+        farm: playerFarm(player),
+        killParticipation,
+        itemImageUrls: patch ? matchItemIds(player).map((id) => id > 0 ? itemImageUrl(patch, id) : null) : [],
         queueId: info.queueId,
         durationSeconds: info.gameDuration,
         startedAt: info.gameStartTimestamp,
@@ -291,8 +316,7 @@ export class RiotAccountRepository implements AccountRepository {
 
   async getMatchDetails(matchId: string, region: Region, locale: string): Promise<MatchDetails> {
     const match = await this.getMatch(regionalHosts[region.value], matchId);
-    const release = match.gameVersion.match(/^([0-9]+\.[0-9]+)\./)?.[1];
-    const patch = release ? `${release}.1` : await this.dataDragon.getCurrentPatch();
+    const patch = matchItemPatch(match.gameVersion) ?? await this.dataDragon.getCurrentPatch();
     const itemNames = await this.dataDragon.getItemNames(locale, patch).catch(() => null);
 
     const teams = new Map<number, MatchDetails["teams"][number]>();
@@ -300,10 +324,9 @@ export class RiotAccountRepository implements AccountRepository {
     const players = await Promise.all(match.participants.map(async (player) => {
       const champion = await this.getChampionPortrait(player.championId, locale).catch(() => null);
       const championName = champion?.championName ?? player.championName ?? String(player.championId);
-      const slots = [player.item0, player.item1, player.item2, player.item3, player.item4, player.item5, player.item6];
-      const items = slots.map((id) => id > 0 ? {
+      const items = matchItemIds(player).map((id) => id > 0 ? {
         name: itemNames?.get(String(id)) ?? String(id),
-        imageUrl: `/api/assets/item/${patch}/${id}.png`,
+        imageUrl: itemImageUrl(patch, id),
       } : null);
       return {
         teamId: arena ? player.playerSubteamId : player.teamId,
@@ -318,9 +341,7 @@ export class RiotAccountRepository implements AccountRepository {
           assists: player.assists,
           damage: player.totalDamageDealtToChampions ?? null,
           gold: player.goldEarned ?? null,
-          farm: player.totalMinionsKilled === undefined && player.neutralMinionsKilled === undefined
-            ? null
-            : (player.totalMinionsKilled ?? 0) + (player.neutralMinionsKilled ?? 0),
+          farm: playerFarm(player),
           items,
         },
       };
@@ -398,7 +419,18 @@ export class RiotAccountRepository implements AccountRepository {
         matchIds.slice(index, index + MATCH_BATCH_SIZE).map(async (matchId) => {
           const { participants, ...info } = await this.getMatch(host, matchId);
           const player = participants.find((candidate) => candidate.puuid === puuid);
-          return player && { matchId, info, player };
+          if (!player) return;
+
+          const arena = participants.some((candidate) => candidate.playerSubteamId > 0);
+          const teamId = arena ? player.playerSubteamId : player.teamId;
+          const teamKills = teamId > 0
+            ? participants.reduce((kills, candidate) =>
+              (arena ? candidate.playerSubteamId : candidate.teamId) === teamId ? kills + candidate.kills : kills, 0)
+            : 0;
+          const killParticipation = teamKills > 0
+            ? Math.min(100, Math.round(((player.kills + player.assists) / teamKills) * 100))
+            : null;
+          return { matchId, info, player, killParticipation };
         }),
       );
       for (const match of batch) {
