@@ -1690,7 +1690,7 @@ body:has(.lore-book[open]) {
   pointer-events: none;
 }
 
-.lore-book-stack + .lore-book-stack::before {
+.lore-book-stack.is-right::before {
   left: 0.18rem;
   right: 0;
   border-radius: 0 0 0.5rem 7% / 0 0 0.4rem 71%;
@@ -1705,7 +1705,7 @@ body:has(.lore-book[open]) {
   border-radius: 0.5rem 0 0.18rem 0.45rem / 0.35rem;
 }
 
-.lore-book-stack + .lore-book-stack > .lore-book-page {
+.lore-book-stack.is-right > .lore-book-page {
   border-radius: 0 0.65rem 0.6rem 0.18rem / 0.35rem;
 }
 
@@ -1741,7 +1741,7 @@ body:has(.lore-book[open]) {
   box-shadow: inset 0 0 1.2rem #4f251a55, inset 0 0 0 1px #63301540;
 }
 
-.lore-book-stack + .lore-book-stack > .lore-book-page,
+.lore-book-stack.is-right > .lore-book-page,
 :where(.lore-book-leaf:not(.is-back) .lore-book-leaf-face:not(.is-back)) .lore-book-page,
 :where(.lore-book-leaf.is-back .lore-book-leaf-face.is-back) .lore-book-page,
 .lore-book-resting.is-right .lore-book-page {
@@ -1937,11 +1937,20 @@ body:has(.lore-book[open]) {
   animation: lore-left-stack var(--book-open-time) linear both;
 }
 
-.lore-book-frame.is-moving-board .lore-book-stack + .lore-book-stack {
+.lore-book-frame.is-moving-board .lore-book-spread .lore-book-stack.is-right {
+  visibility: hidden;
+}
+
+.lore-book-stack.is-moving {
+  position: absolute;
+  z-index: 2;
+  inset: 0 auto 0 50%;
+  width: var(--cover-width);
+  pointer-events: none;
   animation: lore-open-stack var(--book-open-time) linear both;
 }
 
-.lore-book-frame.is-moving-board .lore-book-stack + .lore-book-stack
+.lore-book-stack.is-moving
   :is(.lore-book-print, .lore-book-folio, .lore-book-ribbon, .lore-book-plate) {
   animation: lore-covered-ink var(--book-open-time) linear both;
 }
@@ -1952,8 +1961,8 @@ body:has(.lore-book[open]) {
 
 .lore-book-frame.is-closing :is(.lore-book-board, .lore-book-binding > span, .lore-book-spread, .lore-book-nav),
 .lore-book-frame.is-closing .lore-book-stack:first-child::before,
-.lore-book-frame.is-closing .lore-book-stack + .lore-book-stack,
-.lore-book-frame.is-closing .lore-book-stack + .lore-book-stack
+.lore-book-frame.is-closing .lore-book-stack.is-moving,
+.lore-book-frame.is-closing .lore-book-stack.is-moving
   :is(.lore-book-print, .lore-book-folio, .lore-book-ribbon, .lore-book-plate) {
   animation-direction: reverse;
 }
@@ -1962,11 +1971,13 @@ body:has(.lore-book[open]) {
   0% {
     width: var(--cover-width);
     transform: translateX(-50%) var(--cover-pose);
+    transform-origin: center;
     animation-timing-function: ease-in;
   }
   16% {
-    width: 50%;
-    transform: translateX(-32%) var(--cover-pose);
+    width: var(--cover-width);
+    transform: translateX(-37%) var(--cover-pose);
+    transform-origin: left center;
   }
   34% {
     width: 50%;
@@ -1983,17 +1994,19 @@ body:has(.lore-book[open]) {
 
 @keyframes lore-open-stack {
   0% {
-    width: var(--cover-max-width);
-    transform: translateX(-50%) var(--cover-pose) translateZ(-4px);
+    width: var(--cover-width);
+    transform: translateX(-50%) var(--cover-pose) translateZ(-5px) scale(0.98, 0.94);
+    transform-origin: center;
     animation-timing-function: ease-in;
   }
   16% {
-    width: 100%;
-    transform: translateX(-32%) var(--cover-pose) translateZ(-4px);
+    width: var(--cover-width);
+    transform: translateX(-37%) var(--cover-pose) translateZ(-5px) scale(0.98, 0.94);
+    transform-origin: left center;
   }
   34%, 100% {
-    width: 100%;
-    transform: translateX(0) rotateX(0deg) rotateY(0deg) translateZ(0);
+    width: 50%;
+    transform: translateX(0) rotateX(0deg) rotateY(0deg) translateZ(0) scale(1);
   }
 }
 
@@ -2132,8 +2145,8 @@ body:has(.lore-book[open]) {
   }
 
   @keyframes lore-board-single {
-    0% { z-index: 3; transform: translateX(-50%) var(--cover-pose); }
-    30% { transform: translateX(-58%) rotateY(-30deg); }
+    0% { z-index: 3; transform: translateX(-50%) var(--cover-pose); transform-origin: center; }
+    30% { transform: translateX(-58%) rotateY(-30deg); transform-origin: left center; }
     46% { z-index: 3; }
     64% { z-index: 0; }
     74%, 100% { z-index: 0; transform: translateX(-108%) rotateY(-112deg) scaleY(0.84); }

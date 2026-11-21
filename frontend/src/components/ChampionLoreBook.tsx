@@ -143,15 +143,17 @@ export function ChampionLoreBook({ name, lore, illustrationUrl }: {
             ) : (
               <div className="lore-book-spread" role="region" aria-label={range}>
                 {Array.from({ length: spread }, (_, index) => (
-                  <div className="lore-book-stack" key={index}>
-                    <BookPage {...getPage(first + index)} />
-                    {index === spread - 1 && first === 0 && (!turn || board) && (
-                      <span className="lore-book-ribbon" aria-hidden="true" />
-                    )}
-                  </div>
+                  <BookStack
+                    key={index}
+                    page={getPage(first + index)}
+                    right={index === 1}
+                    bookmark={index === spread - 1 && first === 0 && (!turn || Boolean(board))}
+                  />
                 ))}
               </div>
             )}
+
+            {board && spread > 1 && <BookStack page={getPage(1)} right bookmark moving />}
 
             {restingPage >= 0 && (
               <div aria-hidden="true" className={`lore-book-resting ${turn?.direction === -1 ? "is-right" : ""}`}>
@@ -227,6 +229,20 @@ type PageContent = {
   number: number;
   illustration?: { url: string; name: string };
 };
+
+function BookStack({ page, right, bookmark, moving = false }: {
+  page: PageContent;
+  right: boolean;
+  bookmark: boolean;
+  moving?: boolean;
+}) {
+  return (
+    <div className={`lore-book-stack ${right ? "is-right" : ""} ${moving ? "is-moving" : ""}`} aria-hidden={moving || undefined}>
+      <BookPage {...page} />
+      {bookmark && <span className="lore-book-ribbon" aria-hidden="true" />}
+    </div>
+  );
+}
 
 function BookPage({ text, number, illustration }: PageContent) {
   return (
