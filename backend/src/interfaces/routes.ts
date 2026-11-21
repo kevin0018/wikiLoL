@@ -23,7 +23,7 @@ import { GetMostPlayedChampionHandler } from "../account/app/query/GetMostPlayed
 import { GetMostPlayedChampionQuery } from "../account/app/query/GetMostPlayedChampionQuery.js";
 import { QueueType } from "../account/domain/value-object/QueueType.js";
 import { Region } from "../account/domain/value-object/Region.js";
-import { riotAccountRepository } from "../account/infra/RiotAccountRepository.js";
+import { MAX_MATCH_HISTORY_OFFSET, riotAccountRepository } from "../account/infra/RiotAccountRepository.js";
 import { GetChampionByIdHandler } from "../champion/app/query/GetChampionByIdHandler.js";
 import { GetChampionByIdQuery } from "../champion/app/query/GetChampionByIdQuery.js";
 import { GetChampionDataHandler } from "../champion/app/query/GetChampionDataHandler.js";
@@ -136,7 +136,7 @@ apiRouter.get("/account/activity", async (request, response) => {
 
 apiRouter.get("/account/activity/matches", async (request, response) => {
   const query = playerResourceSchema.merge(localeQuerySchema)
-    .extend({ start: z.coerce.number().int().min(20).max(1000) })
+    .extend({ start: z.coerce.number().int().min(20).max(MAX_MATCH_HISTORY_OFFSET) })
     .parse(request.query);
   const page = await getAccountActivity.executePage(
     query.puuid, Region.from(query.region), query.locale, query.start,

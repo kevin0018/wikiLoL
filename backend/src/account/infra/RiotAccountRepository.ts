@@ -161,6 +161,7 @@ function playerFarm(player: PlayerMatch["player"]): number | null {
 }
 
 const ACTIVITY_PAGE_SIZE = 20;
+export const MAX_MATCH_HISTORY_OFFSET = 1000;
 const MATCH_HISTORY_TTL_MS = 60_000;
 const MATCH_HISTORY_CACHE_LIMIT = 256;
 const MATCH_DETAILS_CACHE_LIMIT = 512;
@@ -290,9 +291,10 @@ export class RiotAccountRepository implements AccountRepository {
 
   async getActivityPage(puuid: string, region: Region, locale: string, start: number): Promise<MatchHistoryPage> {
     const { matches, count } = await this.getPlayerMatches(puuid, region, ACTIVITY_PAGE_SIZE, start);
+    const nextStart = start + count;
     return {
       matches: await this.summarizeRecentMatches(matches, locale),
-      nextStart: count === ACTIVITY_PAGE_SIZE ? start + count : null,
+      nextStart: count === ACTIVITY_PAGE_SIZE && nextStart <= MAX_MATCH_HISTORY_OFFSET ? nextStart : null,
     };
   }
 
