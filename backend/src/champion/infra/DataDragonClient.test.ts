@@ -210,6 +210,7 @@ describe("DataDragonClient", () => {
     expect(result.lore).toBe("Corki joined the Screaming Yipsnakes.\n\nHe took to the skies.");
     expect(result.classicNotes).toEqual(["Phosphorus Bomb is instant.", "Missile Barrage is different."]);
     expect(result.skins.map(({ num }) => num)).toEqual([0, 1, 5, 6]);
+    expect(result.skins[0]?.imageUrl).toBe("/api/assets/skin/Jade_Corki/0.jpg");
     expect(result.skins[2]?.imageUrl).toBe("/images/classic/5.24.1/Corki_5.jpg");
     await expect(client.getChampion("Jade_Corki", "en_US")).resolves.toEqual(result);
     expect(fetchMock.mock.calls.map(([url]) => url).filter((url) => String(url).includes("/5.24.1/"))).toEqual([
@@ -217,20 +218,31 @@ describe("DataDragonClient", () => {
     ]);
   });
 
-  it("uses Sona's official Classic base instead of her 2015 splash", async () => {
-    const skins = [{ num: 0, name: "default" }];
+  it.each([
+    { name: "Sona", native: [0], archived: [] },
+    { name: "Janna", native: [0], archived: [1] },
+    { name: "Akali", native: [301], archived: [5] },
+    { name: "Mordekaiser", native: [0, 2], archived: [1] },
+  ])("selects the historical splash source for each $name skin", async ({ name, native, archived }) => {
+    const id = `Jade_${name}`;
+    const skins = [...native, ...archived].map((num) => ({ num, name: num === 0 ? "default" : `Skin ${num}` }));
     const classic = {
-      id: "Jade_Sona", key: "60037", name: "Sona", title: "Maven of the Strings",
-      image: { full: "Jade_Sona.png" }, tags: ["Support"], blurb: "Classic ability notes.", skins,
+      id, key: "60037", name, title: "Champion title",
+      image: { full: `${id}.png` }, tags: ["Support"], blurb: "Classic ability notes.", skins,
     };
     vi.stubGlobal("fetch", vi.fn<typeof fetch>()
       .mockResolvedValueOnce(Response.json(["16.23.1"]))
-      .mockResolvedValueOnce(Response.json({ data: { Jade_Sona: classic } }))
-      .mockResolvedValueOnce(Response.json({ data: { Sona: { skins } } })));
+      .mockResolvedValueOnce(Response.json({ data: { [id]: classic } }))
+      .mockResolvedValueOnce(Response.json({ data: { [name]: { skins } } })));
 
-    const result = await new DataDragonClient().getChampion("Jade_Sona", "en_US");
+    const result = await new DataDragonClient().getChampion(id, "en_US");
 
-    expect(result.skins[0]?.imageUrl).toBe("/api/assets/skin/Jade_Sona/0.jpg");
+    expect(Object.fromEntries(result.skins.map(({ num, imageUrl }) => [num, imageUrl]))).toEqual(
+      Object.fromEntries([
+        ...native.map((num) => [num, `/api/assets/skin/${id}/${num}.jpg`]),
+        ...archived.map((num) => [num, `/images/classic/5.24.1/${name}_${num}.jpg`]),
+      ]),
+    );
   });
 
   it.each([true, false])("prefers the official Classic base with archive available = %s", async (available) => {

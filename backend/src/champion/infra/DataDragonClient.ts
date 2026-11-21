@@ -7,6 +7,7 @@ import type {
 import type { ChampionRepository } from "../domain/repository/ChampionRepository.js";
 import { fetchJson, UpstreamError } from "../../shared/http.js";
 import classicSplashArchive from "./classicSplashArchive.json" with { type: "json" };
+import classicSplashSources from "./classicSplashSources.json" with { type: "json" };
 
 interface DataDragonImage {
   full: string;
@@ -41,8 +42,8 @@ const CACHE_TTL_MS = 60 * 60 * 1000;
 const CLASSIC_CHAMPION_PREFIX = "Jade_";
 // The last 2015 patch provides the historical catalog before modern skins.
 const CLASSIC_BASE_SKIN_NUMBERS = new Set([301, 302]);
-// Riot serves Sona's first base splash in the Classic namespace at skin 0.
-const CLASSIC_ORIGINAL_SPLASHES = new Set(["Jade_Sona"]);
+// These regular skin IDs have distinct historical art in Riot's Classic namespace.
+const OFFICIAL_CLASSIC_SPLASHES = new Map(Object.entries(classicSplashSources.native));
 const ARCHIVED_CLASSIC_SPLASHES = new Map(Object.entries(classicSplashArchive.skins));
 const ARCHIVED_CHAMPION_IDS: Record<string, string> = {
   Fiddlesticks: "FiddleSticks",
@@ -161,6 +162,7 @@ export class DataDragonClient implements ChampionRepository {
     const archivedId = classic ? (ARCHIVED_CHAMPION_IDS[currentId] ?? currentId) : undefined;
     const archive = archivedId ? await this.getClassicArchive(archivedId, locale) : undefined;
     const archivedSplashes = archivedId ? ARCHIVED_CLASSIC_SPLASHES.get(archivedId) : undefined;
+    const officialClassicSplashes = OFFICIAL_CLASSIC_SPLASHES.get(champion.id);
     let skins = (champion.skins ?? []).filter((skin) => !isChroma(skin));
     if (classic) {
       const historicalNumbers = new Set(archive?.skins?.map((skin) => skin.num));
@@ -198,7 +200,8 @@ export class DataDragonClient implements ChampionRepository {
                 : "Original skin"
               : skin.name,
           imageUrl: archivedSplashes?.includes(skin.num) &&
-            !(skin.num === 0 && CLASSIC_ORIGINAL_SPLASHES.has(champion.id))
+            !CLASSIC_BASE_SKIN_NUMBERS.has(skin.num) &&
+            !officialClassicSplashes?.includes(skin.num)
             ? `/images/classic/${classicSplashArchive.patch}/${archivedId}_${skin.num}.jpg`
             : `/api/assets/skin/${champion.id}/${skin.num}.jpg`,
         })),
