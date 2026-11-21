@@ -15,7 +15,7 @@ import type {
 } from "../domain/value-object/Region.js";
 import { z } from "zod";
 import { dataDragonClient, type DataDragonClient } from "../../champion/infra/DataDragonClient.js";
-import { fetchJson } from "../../shared/http.js";
+import { fetchJson, RiotRateLimitError, UpstreamError } from "../../shared/http.js";
 
 const platformHosts: Record<RegionCode, string> = {
   EUW: "euw1.api.riotgames.com",
@@ -167,6 +167,16 @@ const MATCH_DETAILS_CACHE_LIMIT = 512;
 const ACCOUNT_CACHE_TTL_MS = 15 * 60 * 1000;
 const MATCH_BATCH_SIZE = 8;
 const MATCH_BATCH_PAUSE_MS = 1000;
+const DEFAULT_RIOT_RETRY_DELAY_MS = 5000;
+
+function riotRetryDeadline(retryAfter: string | null, now: number): number {
+  if (retryAfter === null) return now + DEFAULT_RIOT_RETRY_DELAY_MS;
+
+  const deadline = /^\d+$/.test(retryAfter)
+    ? now + Number(retryAfter) * 1000
+    : Date.parse(retryAfter);
+  return Number.isSafeInteger(deadline) ? Math.max(now, deadline) : now + DEFAULT_RIOT_RETRY_DELAY_MS;
+}
 
 function wait(milliseconds: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
@@ -190,6 +200,7 @@ export class RiotAccountRepository implements AccountRepository {
   private readonly matchHistoryRequests = new Map<string, Promise<PlayerMatchPage>>();
 
   private readonly matchDetailsCache = new Map<string, Promise<MatchInfo>>();
+  private readonly riotRetryDeadlines = new Map<string, number>();
 
   constructor(private readonly dataDragon: DataDragonClient = dataDragonClient) {}
 
@@ -548,7 +559,7 @@ export class RiotAccountRepository implements AccountRepository {
     return request;
   }
 
-  private riotFetch<T>(
+  private async riotFetch<T>(
     host: string,
     path: string,
     schema: z.ZodType<T>,
@@ -557,11 +568,29 @@ export class RiotAccountRepository implements AccountRepository {
     if (!apiKey) {
       throw new Error("RIOT_API_KEY no está configurada.");
     }
-    return fetchJson(
-      `https://${host}${path}`,
-      { headers: { "X-Riot-Token": apiKey } },
-      schema,
-    );
+    const blockedUntil = this.riotRetryDeadlines.get(host) ?? 0;
+    const now = Date.now();
+    if (blockedUntil > now) {
+      throw new RiotRateLimitError(Math.ceil((blockedUntil - now) / 1000));
+    }
+
+    try {
+      return await fetchJson(
+        `https://${host}${path}`,
+        { headers: { "X-Riot-Token": apiKey } },
+        schema,
+      );
+    } catch (error) {
+      if (!(error instanceof UpstreamError) || error.status !== 429) throw error;
+
+      const receivedAt = Date.now();
+      const retryAt = Math.max(
+        this.riotRetryDeadlines.get(host) ?? 0,
+        riotRetryDeadline(error.retryAfter, receivedAt),
+      );
+      this.riotRetryDeadlines.set(host, retryAt);
+      throw new RiotRateLimitError(Math.ceil((retryAt - receivedAt) / 1000));
+    }
   }
 }
 

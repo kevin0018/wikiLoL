@@ -3,7 +3,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import app from "./index.js";
 
 describe("API", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
 
   it("uses the secondary splash source when Riot cannot serve the requested skin", async () => {
     const fetchMock = vi.fn<typeof fetch>()
@@ -63,6 +67,33 @@ describe("API", () => {
 
     expect(allowed.headers["access-control-allow-origin"]).toBe("http://localhost:5173");
     expect(other.headers["access-control-allow-origin"]).toBeUndefined();
+  });
+
+  it("returns Riot's retry delay and pauses upstream calls until it expires", async () => {
+    vi.stubEnv("RIOT_API_KEY", "test-key");
+    const startedAt = Date.now();
+    const now = vi.spyOn(Date, "now").mockReturnValue(startedAt);
+    const fetchMock = vi.fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(null, { status: 429, headers: { "Retry-After": "12" } }))
+      .mockImplementation(async () => Response.json([]));
+    vi.stubGlobal("fetch", fetchMock);
+    const rankPath = "/api/account/rank?puuid=player&region=";
+
+    const limited = await request(app).get(rankPath + "KR");
+    expect(limited.status).toBe(429);
+    expect(limited.headers["retry-after"]).toBe("12");
+    expect(limited.headers["cache-control"]).toBe("no-store");
+
+    now.mockReturnValue(startedAt + 5000);
+    const blocked = await request(app).get(rankPath + "KR");
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers["retry-after"]).toBe("7");
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect((await request(app).get(rankPath + "EUW")).status).toBe(200);
+
+    now.mockReturnValue(startedAt + 12_000);
+    expect((await request(app).get(rankPath + "KR")).status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("devuelve un error JSON para rutas desconocidas", async () => {

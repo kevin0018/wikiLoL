@@ -9,6 +9,7 @@ import { createAccountRateLimit } from "./interfaces/accountRateLimit.js";
 import { apiRouter } from "./interfaces/routes.js";
 import { assetsRouter } from "./proxy/infra/RiotAssetsProxy.js";
 import {
+  RiotRateLimitError,
   UpstreamError,
   UpstreamPayloadError,
 } from "./shared/http.js";
@@ -57,6 +58,14 @@ const errorHandler: ErrorRequestHandler = (
     response.status(400).json({
       error: error.issues[0]?.message ?? "Parámetros no válidos.",
     });
+    return;
+  }
+
+  if (error instanceof RiotRateLimitError) {
+    response.set({
+      "Cache-Control": "no-store",
+      "Retry-After": String(error.retryAfterSeconds),
+    }).status(429).json({ error: "Riot ha limitado las solicitudes. Inténtalo de nuevo en unos segundos." });
     return;
   }
 
