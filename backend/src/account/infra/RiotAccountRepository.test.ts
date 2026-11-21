@@ -8,6 +8,7 @@ const originalApiKey = process.env.RIOT_API_KEY;
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
   if (originalApiKey === undefined) {
     delete process.env.RIOT_API_KEY;
   } else {
@@ -112,8 +113,10 @@ describe("RiotAccountRepository", () => {
     expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
-  it("retries missing identities and preserves standings when a profile icon fails", async () => {
+  it("preserves partial standings and retries missing data after Riot's cooldown", async () => {
     process.env.RIOT_API_KEY = "test-key";
+    const startedAt = Date.now();
+    const now = vi.spyOn(Date, "now").mockReturnValue(startedAt);
     const league = {
       entries: [
         {
@@ -141,7 +144,11 @@ describe("RiotAccountRepository", () => {
     const queue = QueueType.from("RANKED_SOLO_5x5");
 
     const unresolved = await repository.getChallenger(region, queue, 1);
+    now.mockReturnValue(startedAt + 5000);
     const resolved = await repository.getChallenger(region, queue, 1);
+    await expect(repository.getChallenger(region, queue, 1)).rejects.toMatchObject({ retryAfterSeconds: 5 });
+    expect(fetchMock).toHaveBeenCalledTimes(6);
+    now.mockReturnValue(startedAt + 10_000);
     const cached = await repository.getChallenger(region, queue, 1);
 
     expect(unresolved[0]?.riotIdForDisplay).toBe("Riot ID no disponible");
