@@ -1367,30 +1367,176 @@ main {
   margin-top: var(--space-sm);
 }
 
-.champion-archive-lore summary {
-  display: flex;
-  width: fit-content;
-  min-height: 2rem;
+.lore-book-trigger {
+  display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
-  list-style: none;
+  min-height: 2.75rem;
+  padding-inline: var(--space-xs);
+  border: 1px solid var(--color-rule);
+  border-radius: 0.35rem;
+  background: var(--color-paper-2);
   cursor: pointer;
 }
 
-.champion-archive-lore summary::-webkit-details-marker {
-  display: none;
+.lore-book-trigger:hover {
+  border-color: var(--gold);
+  color: var(--gold-pale);
 }
 
-.champion-archive-lore summary svg {
+.lore-book-trigger svg {
   width: 0.9rem;
 }
 
-.champion-archive-lore[open] summary svg {
-  transform: rotate(90deg);
+body:has(.lore-book[open]) {
+  overflow: hidden;
 }
 
-.champion-profile:has(.champion-archive-lore[open]) {
+.lore-book {
+  --book-paper: #efe3cd;
+  --book-ink: #332519;
+  --book-rule: #b49a77;
+  position: fixed;
+  inset: 0;
+  width: min(55rem, calc(100% - 2rem));
+  max-width: none;
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--book-rule);
+  border-radius: 0.85rem 1.05rem 1.05rem 0.85rem;
+  background: var(--book-paper);
+  color: var(--book-ink);
+  box-shadow: 0 1.25rem 5rem #000b;
+}
+
+.lore-book::backdrop {
+  background: #070a0fdd;
+  backdrop-filter: blur(6px);
+}
+
+.lore-book-spread {
+  display: grid;
+  grid-template-columns: minmax(0, 0.6fr) minmax(0, 1fr);
+  height: min(40rem, calc(100dvh - 2rem));
+}
+
+.lore-book-cover {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(145deg, var(--panel-high), var(--ink));
+}
+
+.lore-book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 56% center;
+}
+
+.lore-book-cover::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #0b101646, transparent 21%, transparent 89%, #170f0bcc);
+  content: "";
+  pointer-events: none;
+}
+
+.lore-book-page {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  background: linear-gradient(90deg, #b197734a, transparent 1.7rem), var(--book-paper);
+}
+
+.lore-book-page > header {
+  display: flex;
   align-items: start;
+  justify-content: space-between;
+  gap: var(--space-sm);
+  margin-inline: clamp(1rem, 4vw, 2.8rem);
+  padding-block: clamp(1rem, 3vw, 2rem) var(--space-sm);
+  border-bottom: 1px solid var(--book-rule);
+}
+
+.lore-book-page header span {
+  color: #745235;
+  font: 600 var(--text-xs)/1.3 var(--font-utility);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.lore-book-page h2 {
+  margin: 0.2rem 0 0;
+  font: 400 clamp(2rem, 5vw, 3.8rem)/1 var(--font-display);
+}
+
+.lore-book-close {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  place-items: center;
+  border: 1px solid var(--book-rule);
+  border-radius: 50%;
+  color: var(--book-ink);
+  cursor: pointer;
+}
+
+.lore-book-close:hover {
+  background: #d9c7a7;
+}
+
+.lore-book :focus-visible {
+  outline-color: #765037;
+}
+
+.lore-book-close svg {
+  width: 1rem;
+}
+
+.lore-book-text {
+  overflow: auto;
+  padding: var(--space-md) clamp(1rem, 4vw, 2.8rem) var(--space-lg);
+  scrollbar-color: #9a7b57 transparent;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+}
+
+.lore-book-text p {
+  max-width: 62ch;
+  margin: 0 0 1em;
+  color: var(--book-ink);
+  font: 400 clamp(1rem, 1.8vw, 1.125rem)/1.7 Georgia, serif;
+}
+
+.lore-book-text p:first-child::first-letter {
+  float: left;
+  margin: 0.08em 0.12em 0 0;
+  color: #805030;
+  font: 400 3.2em/0.83 var(--font-display);
+}
+
+@media (max-width: 600px) {
+  .lore-book-spread {
+    grid-template-columns: minmax(0, 1fr);
+    height: min(38rem, calc(100dvh - 2rem));
+  }
+
+  .lore-book-cover {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .lore-book[open] {
+    animation: lore-book-open 280ms var(--ease-out);
+  }
+}
+
+@keyframes lore-book-open {
+  from { opacity: 0; transform: translateY(0.45rem) scale(0.985); }
 }
 
 /* Champion skin gallery */

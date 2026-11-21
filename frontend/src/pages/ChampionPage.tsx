@@ -6,7 +6,8 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { ArrowIcon, ChevronIcon } from "../components/Icons";
+import { ChampionLoreBook } from "../components/ChampionLoreBook";
+import { ArrowIcon } from "../components/Icons";
 import { SkinGallery } from "../components/SkinGallery";
 import { PageTransition } from "../components/PageTransition";
 import { ErrorState, LoadingState } from "../components/States";
@@ -91,12 +92,12 @@ export function ChampionPage() {
           {(data.lore || Boolean(data.classicNotes?.length)) && (
             <div className="champion-lore">
               {data.lore && (data.classicNotes ? (
-                <details className="champion-archive-lore">
-                  <summary className="utility-label">
-                    {t("champion.archiveLore")} <ChevronIcon />
-                  </summary>
-                  <p>{data.lore}</p>
-                </details>
+                <ChampionLoreBook
+                  key={data.id}
+                  name={data.name}
+                  lore={data.lore}
+                  coverUrl={data.skins[0]?.imageUrl}
+                />
               ) : (
                 <div>
                   <span className="utility-label">{t("champion.lore")}</span>
