@@ -233,7 +233,10 @@ function BookPage({ text, number, illustration }: PageContent) {
     <div className="lore-book-page">
       {illustration ? (
         <figure className="lore-book-plate">
-          <img src={illustration.url} alt={illustration.name} decoding="async" />
+          <div className="lore-book-etching">
+            <img src={illustration.url} alt={illustration.name} decoding="async" />
+            <img className="lore-book-etching-negative" src={illustration.url} alt="" aria-hidden="true" decoding="async" />
+          </div>
         </figure>
       ) : (
         <div className="lore-book-print">{text}</div>
