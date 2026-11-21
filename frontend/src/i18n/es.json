@@ -87,6 +87,7 @@
   "champion.archiveLore": "Historia del campeón",
   "champion.openBook": "Abrir libro",
   "champion.bookCover": "Portada",
+  "champion.bookClose": "Cerrar libro",
   "champion.bookPrevious": "Anterior",
   "champion.bookNext": "Siguiente",
   "champion.bookSinglePage": "{first} de {total}",
