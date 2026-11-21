@@ -1453,12 +1453,13 @@ body:has(.lore-book[open]) {
 }
 
 .lore-book {
-  --book-paper: #eddfbf;
+  --book-paper: #e7cea0;
+  --book-turn-time: 920ms;
   --book-ink: #332519;
   --book-spread-size: 2;
   position: fixed;
   inset: 0;
-  width: min(65rem, calc(100% - 2rem));
+  width: min(58rem, calc(100% - 2rem));
   max-width: none;
   max-height: none;
   margin: auto;
@@ -1479,11 +1480,11 @@ body:has(.lore-book[open]) {
   position: relative;
   display: grid;
   height: min(36rem, calc(100dvh - 6.75rem));
-  perspective: 1100px;
+  perspective: 1800px;
 }
 
 .lore-book-cover,
-.lore-book-turn.is-cover .lore-book-turn-front {
+.lore-book-board-face {
   --cover-radius: 0.2rem 0.9rem 0.85rem 0.25rem;
   --cover-grain: url("/images/book-paper.webp");
   position: relative;
@@ -1507,11 +1508,10 @@ body:has(.lore-book[open]) {
     inset 0 0 0 3px #1f130d8a, inset 0 0 1.8rem #100907bc,
     4px 2px #b19c77, 7px 4px #776346, 9px 6px #b49a72, 11px 8px #362418,
     0 1.35rem 3rem #000b;
-  transition: transform 250ms var(--ease-out), box-shadow 250ms var(--ease-out);
+  transition: box-shadow 250ms var(--ease-out);
 }
 
 .lore-book-cover:hover {
-  transform: rotateY(-5deg) translateY(-2px);
   box-shadow:
     inset 0 0 0 3px #1f130d8a, inset 0 0 1.8rem #100907bc,
     5px 2px #b19c77, 8px 4px #776346, 11px 6px #b49a72, 13px 8px #362418,
@@ -1519,7 +1519,7 @@ body:has(.lore-book[open]) {
 }
 
 .lore-book-cover::before,
-.lore-book-turn.is-cover .lore-book-turn-front::before {
+.lore-book-board-face::before {
   position: absolute;
   inset: 4.5% 5% 4.5% 11%;
   border: 1px solid #b38a536d;
@@ -1602,23 +1602,43 @@ body:has(.lore-book[open]) {
 }
 
 .lore-book-page {
-  --paper-surface: url("/images/book-paper.webp") center / cover;
   --page-gutter: to left;
+  --paper-orientation: 1;
+  position: relative;
+  isolation: isolate;
   display: grid;
   height: 100%;
   min-width: 0;
   grid-template-rows: minmax(0, 1fr) 1.3rem;
   padding: clamp(0.66rem, 3.7vh, 2.7rem) clamp(0.95rem, 4.4vw, 4rem) 0.45rem;
-  background:
-    linear-gradient(var(--page-gutter), #4d2c1f65, #76513222 0.8rem, transparent 2.8rem),
-    var(--paper-surface), var(--book-paper);
-  box-shadow: inset 0 0 1.25rem #8e5d3338;
+  background: var(--book-paper);
+}
+
+.lore-book-page::before,
+.lore-book-page::after {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  content: "";
+}
+
+.lore-book-page::before {
+  background: url("/images/book-vellum.webp") center / 100% 100%;
+  transform: scaleX(var(--paper-orientation));
+}
+
+.lore-book-page::after {
+  background: linear-gradient(var(--page-gutter), #4b281e88, #8c532c24 1rem, transparent 3rem);
+  box-shadow: inset 0 0 1.2rem #4f251a55, inset 0 0 0 1px #63301540;
 }
 
 .lore-book-page + .lore-book-page,
-.lore-book-turn:not(.is-back) .lore-book-turn-front .lore-book-page,
-.lore-book-turn.is-back .lore-book-turn-back .lore-book-page {
+:where(.lore-book-leaf:not(.is-back) .lore-book-leaf-face:not(.is-back)) .lore-book-page,
+:where(.lore-book-leaf.is-back .lore-book-leaf-face.is-back) .lore-book-page,
+.lore-book-resting.is-right .lore-book-page {
   --page-gutter: to right;
+  --paper-orientation: -1;
 }
 
 .lore-book-probe {
@@ -1633,7 +1653,7 @@ body:has(.lore-book[open]) {
   min-height: 0;
   overflow: hidden;
   color: var(--book-ink);
-  font: 400 clamp(0.99rem, 1.65vw, 1.125rem)/1.58 Georgia, serif;
+  font: 400 clamp(0.99rem, 1.65vw, 1.125rem)/1.58 "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
@@ -1673,95 +1693,130 @@ body:has(.lore-book[open]) {
   border-radius: 0 0.65rem 0.6rem 0 / 0.35rem;
 }
 
-.lore-book-resting.is-right .lore-book-page {
-  --page-gutter: to right;
-}
-
-.lore-book-turn {
+/* Slice the moving leaf so the curl can travel across the printed surface. */
+.lore-book-leaf {
   position: absolute;
   z-index: 2;
   inset: 0 0 0 auto;
   width: calc(100% / var(--book-spread-size));
-  transform-origin: left center;
   transform-style: preserve-3d;
   pointer-events: none;
-  animation: lore-leaf 640ms cubic-bezier(0.35, 0.05, 0.25, 1) both;
-  --leaf-lift: -72deg;
-  --leaf-cross: -118deg;
-  --leaf-finish: -180deg;
-  --leaf-bend: 7deg;
-  --leaf-shadow: to right;
 }
 
-.lore-book-turn.is-back {
+.lore-book-leaf.is-back {
   inset-inline: 0 auto;
-  transform-origin: right center;
-  --leaf-lift: 72deg;
-  --leaf-cross: 118deg;
-  --leaf-finish: 180deg;
-  --leaf-bend: -7deg;
-  --leaf-shadow: to left;
 }
 
-.lore-book-turn-front,
-.lore-book-turn-back,
-.lore-book-turn.is-cover .lore-book-turn-front {
+.lore-book-leaf-section {
   position: absolute;
-  inset: 0;
+  inset: 0 auto 0 0;
+  width: var(--leaf-section-width);
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+
+.lore-book-leaf.is-back .lore-book-leaf-section {
+  inset-inline: auto 0;
+  transform-origin: right center;
+}
+
+.lore-book-leaf-face {
+  position: absolute;
+  inset: 0 -0.8px 0 0;
   overflow: hidden;
-  border-radius: 0.35rem;
   backface-visibility: hidden;
 }
 
-.lore-book-turn-back {
+.lore-book-leaf-face.is-back {
   transform: rotateY(180deg);
 }
 
-.lore-book-turn:not(.is-cover) :is(.lore-book-turn-front, .lore-book-turn-back) {
-  animation: lore-leaf-edge 640ms ease-in-out both;
-}
-
-.lore-book-turn:not(.is-cover) :is(.lore-book-turn-front, .lore-book-turn-back)::after {
+.lore-book-leaf-face::after {
   position: absolute;
   inset: 0;
-  background: linear-gradient(var(--leaf-shadow), #38201573, transparent 18%, #fff8e48c 48%, #5a36267a 95%);
-  animation: lore-leaf-shade 640ms ease-in-out both;
+  background: #4b281a;
+  opacity: var(--leaf-shade, 0);
   content: "";
 }
 
-.lore-book-turn.is-cover {
-  inset-inline: 50% auto;
+.lore-book-leaf-page {
+  position: absolute;
+  top: 0;
+  width: var(--leaf-width);
+  height: 100%;
+}
+
+.lore-book-board {
+  position: absolute;
+  z-index: 3;
+  inset: 0 auto 0 50%;
   width: var(--cover-width);
-  animation-name: lore-board;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  pointer-events: none;
+  animation: lore-board var(--book-turn-time) linear both;
 }
 
-.lore-book-turn.is-cover .lore-book-turn-back {
-  background: #c7a97e url("/images/book-paper.webp") center / cover;
+.lore-book-board-face,
+.lore-book-board-lining {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
 }
 
-.lore-book-turn.is-cover .lore-book-turn-back .lore-book-page {
-  visibility: hidden;
+.lore-book-board-face {
+  box-shadow: 4px 2px #b19c77, 7px 4px #776346, 9px 6px #b49a72, 11px 8px #362418;
 }
 
-@keyframes lore-leaf {
-  38% { transform: rotateY(var(--leaf-lift)) skewY(var(--leaf-bend)) scale(0.94, 0.83); }
-  66% { transform: rotateY(var(--leaf-cross)) skewY(var(--leaf-bend)) scale(0.94, 0.83); }
-  100% { transform: rotateY(var(--leaf-finish)); }
+.lore-book-board-lining {
+  transform: rotateY(180deg);
+  border: 0.4rem solid #493025;
+  border-radius: 0.8rem 0.2rem 0.2rem 0.8rem;
+  background:
+    linear-gradient(270deg, #24140e94, transparent 70%),
+    url("/images/book-vellum.webp") center / cover, #896041;
+  box-shadow: inset 0 0 0 1px #4624198c, inset 0 0 2rem #2c150d7a;
 }
 
-@keyframes lore-leaf-edge {
-  42%, 64% { border-radius: 9% 12% 5% 8% / 3% 4% 4% 3%; }
+.lore-book-board :is(.lore-book-board-face, .lore-book-board-lining) {
+  animation: lore-board-settle var(--book-turn-time) linear both;
 }
 
-@keyframes lore-leaf-shade {
-  0%, 100% { opacity: 0; }
-  45%, 66% { opacity: 1; }
+.lore-book-frame.is-moving-board .lore-book-spread {
+  animation: lore-reveal-paper var(--book-turn-time) linear both;
+}
+
+.lore-book-frame.is-moving-board .lore-book-nav {
+  animation: lore-reveal-controls var(--book-turn-time) linear both;
+}
+
+.lore-book-frame.is-closing :is(.lore-book-board, .lore-book-board-face, .lore-book-board-lining, .lore-book-spread, .lore-book-nav) {
+  animation-direction: reverse;
 }
 
 @keyframes lore-board {
-  0% { transform: translateX(-50%); }
-  40% { transform: rotateY(-67deg) scale(0.91, 0.82); }
-  100% { transform: rotateY(-178deg); }
+  0% { transform: translateX(-50%) rotateY(0); }
+  24% { transform: translateX(-25%) rotateY(-12deg); }
+  48% { transform: translateX(-5%) rotateY(-67deg) scaleY(0.91); }
+  72% { transform: rotateY(-136deg) scaleY(0.94); }
+  100% { transform: rotateY(-179deg); }
+}
+
+@keyframes lore-board-settle {
+  0%, 72% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes lore-reveal-paper {
+  0%, 14% { clip-path: inset(0 50% 0 50%); opacity: 0; }
+  43% { clip-path: inset(0 9% 0 50%); opacity: 1; }
+  59% { clip-path: inset(0 0 0 45%); }
+  100% { clip-path: inset(-1rem -2rem -1.5rem -2rem); }
+}
+
+@keyframes lore-reveal-controls {
+  0%, 74% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 .lore-book-nav {
@@ -1824,7 +1879,7 @@ body:has(.lore-book[open]) {
 }
 
 .lore-book-frame.is-closed .lore-book-close {
-  margin-top: 1rem;
+  margin-top: 3.6rem;
 }
 
 @media (max-width: 760px) {
@@ -1839,26 +1894,41 @@ body:has(.lore-book[open]) {
     transform: none;
   }
 
-  .lore-book-turn {
-    animation-name: lore-leaf-single;
+  .lore-book-leaf .lore-book-leaf-face .lore-book-page {
+    --page-gutter: to left;
+    --paper-orientation: 1;
   }
 
-  .lore-book-turn.is-cover {
+  .lore-book-board {
     animation-name: lore-board-single;
+  }
+
+  .lore-book-board :is(.lore-book-board-face, .lore-book-board-lining) {
+    animation-name: lore-board-settle-single;
+  }
+
+  .lore-book-frame.is-moving-board .lore-book-spread {
+    animation-name: lore-reveal-single;
   }
 
   .lore-book-nav button {
     font-size: 0.69rem;
   }
 
-  @keyframes lore-leaf-single {
-    0% { opacity: 1; }
-    78%, 100% { opacity: 0; transform: rotateY(var(--leaf-lift)) skewY(var(--leaf-bend)); }
+  @keyframes lore-board-single {
+    0% { transform: translateX(-50%) rotateY(0); }
+    30% { transform: translateX(-58%) rotateY(-30deg); }
+    70%, 100% { transform: translateX(-75%) rotateY(-104deg) scaleY(0.86); }
   }
 
-  @keyframes lore-board-single {
-    0% { transform: translateX(-50%); }
-    78%, 100% { opacity: 0; transform: translateX(-50%) rotateY(-72deg) scaleY(0.86); }
+  @keyframes lore-board-settle-single {
+    0%, 40% { opacity: 1; }
+    70%, 100% { opacity: 0; }
+  }
+
+  @keyframes lore-reveal-single {
+    0%, 12% { clip-path: inset(0 100% 0 0); }
+    76%, 100% { clip-path: inset(-1rem -1rem -1.5rem -1rem); }
   }
 }
 
@@ -1871,10 +1941,6 @@ body:has(.lore-book[open]) {
 @media (prefers-reduced-motion: reduce) {
   .lore-book-cover {
     transition: none;
-  }
-
-  .lore-book-cover:hover {
-    transform: none;
   }
 }
 
