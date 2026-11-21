@@ -5,6 +5,7 @@ import express, {
   type RequestHandler,
 } from "express";
 import { ZodError } from "zod";
+import { createAccountRateLimit } from "./interfaces/accountRateLimit.js";
 import { apiRouter } from "./interfaces/routes.js";
 import { assetsRouter } from "./proxy/infra/RiotAssetsProxy.js";
 import {
@@ -37,6 +38,7 @@ if (process.env.NODE_ENV !== "production" && process.env.VERCEL !== "1") {
 
 app.disable("x-powered-by");
 app.use(cors({ origin: allowedOrigins, methods: ["GET", "HEAD"], exposedHeaders: ["Retry-After"] }));
+app.use(["/api/account", "/api/league"], createAccountRateLimit());
 app.use(express.json());
 app.use("/api", apiRouter);
 app.use("/api/assets", assetsRouter);
