@@ -16,6 +16,13 @@ const queueLabels: Partial<Record<number, TranslationKey>> = {
   1700: "account.matchArena",
 };
 
+const multiKillLabels: Partial<Record<number, TranslationKey>> = {
+  2: "account.doubleKill",
+  3: "account.tripleKill",
+  4: "account.quadraKill",
+  5: "account.pentaKill",
+};
+
 export function RecentMatchHistory({
   matches,
   nextStart,
@@ -144,47 +151,62 @@ export function RecentMatchHistory({
         </div>
       ) : visibleMatches.length ? (
         <ol className="match-strip" key={pageIndex}>
-          {visibleMatches.map((match) => (
-            <li className={`match-card ${match.win ? "is-win" : "is-loss"}`} key={match.matchId}>
-              <button
-                className="match-row"
-                type="button"
-                aria-haspopup="dialog"
-                aria-label={t("account.openMatch", {
-                  champion: match.championName,
-                  date: match.startedAt ? date.format(match.startedAt) : "",
-                })}
-                onClick={(event) => {
-                  selectedTrigger.current = event.currentTarget;
-                  setSelectedMatch(match);
-                }}
-              >
-                <span className="match-champion">
-                  <span className="match-portrait">
-                    {match.championImageUrl && <img src={match.championImageUrl} alt="" loading="lazy" />}
+          {visibleMatches.map((match) => {
+            const multiKill = multiKillLabels[match.largestMultiKill];
+            const achievement = match.largestMultiKill > 1
+              ? t(multiKill ?? "account.multiKill", { count: match.largestMultiKill })
+              : null;
+            const openLabel = t("account.openMatch", {
+              champion: match.championName,
+              date: match.startedAt ? date.format(match.startedAt) : "",
+            }).trimEnd();
+
+            return (
+              <li className={`match-card ${match.win ? "is-win" : "is-loss"}`} key={match.matchId}>
+                <button
+                  className="match-row"
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-label={achievement ? `${openLabel} · ${achievement}` : openLabel}
+                  onClick={(event) => {
+                    selectedTrigger.current = event.currentTarget;
+                    setSelectedMatch(match);
+                  }}
+                >
+                  <span className="match-champion">
+                    <span className="match-portrait">
+                      {match.championImageUrl && <img src={match.championImageUrl} alt="" loading="lazy" />}
+                    </span>
+                    <span className="match-identity">
+                      <strong>{match.championName}</strong>
+                      <small>{t(queueLabels[match.queueId] ?? "account.matchOther")}</small>
+                    </span>
                   </span>
-                  <span className="match-identity">
-                    <strong>{match.championName}</strong>
-                    <small>{t(queueLabels[match.queueId] ?? "account.matchOther")}</small>
+                  <span className="match-outcome">
+                    <span className="match-result">{t(match.win ? "account.matchWin" : "account.matchLoss")}</span>
+                    {achievement && (
+                      <span className="match-multikill" data-penta={match.largestMultiKill >= 5 || undefined}>
+                        {achievement}
+                      </span>
+                    )}
                   </span>
-                </span>
-                <span className="match-result">{t(match.win ? "account.matchWin" : "account.matchLoss")}</span>
-                <span className="match-score">
-                  <span>{match.kills} / {match.deaths} / {match.assists}</span>
-                  <small>{t("account.kda")}</small>
-                </span>
-                <span className="match-details">
-                  {match.startedAt > 0 && (
-                    <time dateTime={new Date(match.startedAt).toISOString()}>{date.format(match.startedAt)}</time>
-                  )}
-                  {match.durationSeconds > 0 && (
-                    <span>{formatDuration(match.durationSeconds)}</span>
-                  )}
-                </span>
-                <span className="match-open"><ChevronIcon /></span>
-              </button>
-            </li>
-          ))}
+                  <span className="match-score">
+                    <span>{match.kills} / {match.deaths} / {match.assists}</span>
+                    <small>{t("account.kda")}</small>
+                  </span>
+                  <span className="match-details">
+                    {match.startedAt > 0 && (
+                      <time dateTime={new Date(match.startedAt).toISOString()}>{date.format(match.startedAt)}</time>
+                    )}
+                    {match.durationSeconds > 0 && (
+                      <span>{formatDuration(match.durationSeconds)}</span>
+                    )}
+                  </span>
+                  <span className="match-open"><ChevronIcon /></span>
+                </button>
+              </li>
+            );
+          })}
         </ol>
       ) : (
         <p className="panel-empty">{t("account.matchesEmpty")}</p>

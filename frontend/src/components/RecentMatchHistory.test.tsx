@@ -41,6 +41,7 @@ it("loads only the selected scoreboard and reuses it when reopened", async () =>
     championImageUrl: null,
     win: true,
     kills: 5,
+    largestMultiKill: index === 1 ? 5 : 1,
     deaths: 2,
     assists: 10,
     queueId: 420,
@@ -66,7 +67,8 @@ it("loads only the selected scoreboard and reuses it when reopened", async () =>
   );
 
   expect(fetchMock).not.toHaveBeenCalled();
-  const selected = screen.getByRole("button", { name: /Open scoreboard: Garen/ });
+  expect(screen.queryByRole("button", { name: /Ahri.*kill/i })).toBeNull();
+  const selected = screen.getByRole("button", { name: /Open scoreboard: Garen.*Pentakill/ });
   fireEvent.click(selected);
   await screen.findByRole("table", { name: "Match scoreboard" });
   expect(screen.getAllByRole("columnheader")).toHaveLength(6);
@@ -87,6 +89,7 @@ it("replaces the visible page and reuses it on back-and-forward navigation", asy
     championImageUrl: null,
     win: true,
     kills: 5,
+    largestMultiKill: 0,
     deaths: 2,
     assists: 10,
     queueId: 420,
@@ -97,6 +100,7 @@ it("replaces the visible page and reuses it on back-and-forward navigation", asy
     ...match,
     matchId: `EUW1_${index + 21}`,
     championName: "Garen",
+    largestMultiKill: index === 0 ? 3 : 0,
   }));
   const fetchMock = vi.fn(async () => Response.json({ matches: olderMatches, nextStart: null }));
   vi.stubGlobal("fetch", fetchMock);
@@ -125,6 +129,7 @@ it("replaces the visible page and reuses it on back-and-forward navigation", asy
   expect(previous.disabled).toBe(true);
   fireEvent.click(next);
   await screen.findByText("Page 2");
+  expect(screen.getByRole("button", { name: /Garen.*Triple kill/ })).toBeTruthy();
   expect(screen.getAllByRole("button", { name: /Open scoreboard: Garen/ })).toHaveLength(20);
   expect(screen.queryByRole("button", { name: /Open scoreboard: Ahri/ })).toBeNull();
   expect(next.disabled).toBe(true);

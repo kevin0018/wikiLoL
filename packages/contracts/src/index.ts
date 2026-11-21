@@ -103,6 +103,7 @@ const recentMatchSchema = z.object({
   championName: z.string(),
   championImageUrl: z.string().nullable(),
   win: z.boolean(),
+  largestMultiKill: z.number().int().nonnegative().default(0),
   kills: z.number().int().nonnegative(),
   deaths: z.number().int().nonnegative(),
   assists: z.number().int().nonnegative(),

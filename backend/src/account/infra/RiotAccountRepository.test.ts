@@ -47,7 +47,7 @@ describe("RiotAccountRepository", () => {
           gameDuration: 1700, gameStartTimestamp: 1234, queueId: 420, gameVersion: "16.23.4.123",
           teams: [{ teamId: 100, win: true }, { teamId: 200, win: false }],
           participants: [
-            { puuid: "player", championId: 103, win: id !== "EUW1_2", kills: 7, deaths: 2, assists: 9, teamId: 100, item0: 3157, riotIdGameName: "Kaori", totalDamageDealtToChampions: 32050, goldEarned: 14500, totalMinionsKilled: 180, neutralMinionsKilled: 20 },
+            { puuid: "player", championId: 103, win: id !== "EUW1_2", kills: 7, largestMultiKill: id === "EUW1_2" ? 5 : undefined, deaths: 2, assists: 9, teamId: 100, item0: 3157, riotIdGameName: "Kaori", totalDamageDealtToChampions: 32050, goldEarned: 14500, totalMinionsKilled: 180, neutralMinionsKilled: 20 },
             { puuid: "opponent", championId: 103, kills: 2, teamId: 200 },
           ],
         },
@@ -65,8 +65,9 @@ describe("RiotAccountRepository", () => {
     const result = await repository.getActivity("player", region, "es_ES");
     expect(result.matches.map(({ matchId }) => matchId)).toEqual(matchIds);
     expect(result.nextStart).toBeNull();
+    expect(result.matches[0]?.largestMultiKill).toBe(0);
     expect(result.matches[1]).toMatchObject({
-      win: false, championName: "Ahri", kills: 7, deaths: 2, assists: 9, queueId: 420, durationSeconds: 1700,
+      win: false, championName: "Ahri", kills: 7, largestMultiKill: 5, deaths: 2, assists: 9, queueId: 420, durationSeconds: 1700,
     });
     expect(result.mostPlayed).toEqual([expect.objectContaining({ championName: "Ahri", gamesPlayed: 6 })]);
     await expect(repository.getMostPlayed("player", region, 20, 4, "en_US")).resolves.toEqual(result.mostPlayed);

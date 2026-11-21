@@ -2015,6 +2015,26 @@ main {
   font: var(--text-xs)/1.3 var(--font-utility);
 }
 
+.match-outcome {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3xs);
+  min-width: 0;
+}
+
+.match-multikill {
+  padding: 0.25rem 0.45rem;
+  border-radius: 0.3rem;
+  background: color-mix(in oklch, var(--gold) 18%, transparent);
+  color: var(--gold-pale);
+  font: 700 var(--text-xs)/1.15 var(--font-body);
+}
+
+.match-multikill[data-penta] {
+  box-shadow: inset 0 0 0 1px var(--gold);
+}
+
 .match-result {
   justify-self: start;
   padding: 0.25rem 0.45rem;
@@ -2788,6 +2808,11 @@ main {
 
   .match-champion { grid-row: span 2; }
   .match-portrait { width: clamp(1.6rem, 6vw, 2.2rem); }
+  .match-outcome {
+    flex-direction: column;
+    align-items: start;
+  }
+
   .match-score { font-size: var(--text-xs); }
   .match-score small { display: none; }
   .match-open { width: 1rem; }
