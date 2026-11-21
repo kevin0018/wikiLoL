@@ -1766,16 +1766,6 @@ body:has(.lore-book[open]) {
   overflow-wrap: anywhere;
 }
 
-.lore-book-preview-ink {
-  height: 58%;
-  margin-top: 0.18rem;
-  background:
-    linear-gradient(90deg, #6a432c56 55%, transparent 55%) top / 100% 1px no-repeat,
-    repeating-linear-gradient(0deg, #6a432c3b 0 1px, transparent 1px 0.75rem)
-      left top 1.4rem / 92% calc(100% - 1.4rem) no-repeat;
-  mask-image: linear-gradient(#000, #000 62%, transparent);
-}
-
 .lore-book-folio {
   align-self: center;
   justify-self: center;
@@ -1849,55 +1839,6 @@ body:has(.lore-book[open]) {
 .lore-book-resting.is-right {
   inset-inline: auto 0;
   border-radius: 0 0.65rem 0.6rem 0 / 0.35rem;
-}
-
-.lore-book-riffle {
-  position: absolute;
-  z-index: 2;
-  inset: 0;
-  transform-style: preserve-3d;
-  pointer-events: none;
-}
-
-.lore-book-frame.is-riffling .lore-book-stage {
-  perspective: 6500px;
-}
-
-.lore-book-riffle-leaf {
-  position: absolute;
-  inset: 0 0 0 auto;
-  width: calc(100% / var(--book-spread-size));
-  transform-origin: left center;
-  transform-style: preserve-3d;
-  animation: lore-riffle-leaf 265ms cubic-bezier(0.3, 0, 0.28, 1) both;
-}
-
-.lore-book-riffle-face {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  border-radius: 0.18rem 0.65rem 0.5rem 0.1rem / 0.35rem;
-  box-shadow: 0 1px 3px #3d28186b;
-  backface-visibility: hidden;
-}
-
-.lore-book-riffle-face.is-back {
-  transform: rotateY(180deg);
-  border-radius: 0.65rem 0.18rem 0.1rem 0.5rem / 0.35rem;
-}
-
-:where(.lore-book-riffle-face:not(.is-back)) .lore-book-page {
-  --page-gutter: to right;
-  --paper-orientation: -1;
-}
-
-@keyframes lore-riffle-leaf {
-  0% { visibility: hidden; transform: rotateY(-1deg); }
-  4% { visibility: visible; }
-  39% { transform: rotateY(-75deg) skewY(1deg) scaleY(0.91); }
-  67% { transform: rotateY(-129deg) skewY(1deg) scaleY(0.94); }
-  96% { visibility: visible; }
-  100% { visibility: hidden; transform: rotateY(-179deg); }
 }
 
 /* Slice the moving leaf so the curl can travel across the printed surface. */
@@ -2177,18 +2118,6 @@ body:has(.lore-book[open]) {
   .lore-book-leaf .lore-book-leaf-face .lore-book-page {
     --page-gutter: to left;
     --paper-orientation: 1;
-  }
-
-  .lore-book-riffle-leaf {
-    animation-name: lore-riffle-single;
-  }
-
-  @keyframes lore-riffle-single {
-    0% { visibility: hidden; transform: rotateY(-1deg); }
-    4% { visibility: visible; }
-    47% { transform: rotateY(-61deg) scaleY(0.94); }
-    91% { visibility: visible; }
-    100% { visibility: hidden; transform: translateX(-18%) rotateY(-98deg) scaleY(0.94); }
   }
 
   .lore-book-board {
